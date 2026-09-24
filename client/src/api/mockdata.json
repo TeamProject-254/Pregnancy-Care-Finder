@@ -1,0 +1,36 @@
+{
+  "doctor": {
+    "id": "1",
+    "name": "Doctor name",
+    "photoUrl": "../../assets/img/doctor-photo.png",
+    "specialty": "Cardiologist",
+    "isVerified": true,
+    "experience": "12 years experience",
+    "location": "location name",
+    "rating": 4.9,
+    "reviewsCount": 215,
+    "languages": ["English", "polish"],
+    "price": "40",
+    "about": "Pregnancy should be a time of joyful expectation, not medical anxiety. I combine evidence-based medicine with gentle care to make your journey safe, predictable, and stress-free.",
+    "expertise": [
+      "Prenatal Care & Monitoring",
+      "1st-3rd Trimester Ultrasound",
+      "High-Risk Pregnancy Care",
+      "Lactation & Postpartum Support"
+    ],
+    "availabilitySlots": [
+      "09:00 AM", "09:20 AM", "09:40 AM",
+      "10:00 AM", "11:00 AM", "11:30 AM",
+      "11:50 AM", "12:10 AM", "12:30 AM"
+    ]
+  },
+  "reviews": [
+    {
+      "id": 1,
+      "name": "Name patien",
+      "date": "2 weeks ago",
+      "rating": "4.8",
+      "text": "Dr. name was so attentive, calm, and gentle during my first screening. She answered all of my nervous questions in plain language without making me feel rushed. Having my partner in the room and seeing everything explained clearly on screen gave us complete peace of mind"
+    }
+  ]
+}
