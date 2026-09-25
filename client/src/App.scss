@@ -1,0 +1,9 @@
+@use "./styles/fonts";
+@use "./styles/variables";
+@use "./styles/normalize";
+
+body {
+  font-family: var(--font-family-base);
+  color: var(--color-gray-90);
+  background-color: var(--color-white);
+}

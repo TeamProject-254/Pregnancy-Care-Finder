@@ -1,0 +1,72 @@
+.header {
+  font-family: var(--font-family-base);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+  width: 100%;
+  background-color: var(--color-white);
+  padding: 2.5rem 4.5rem;
+
+  &__logo {
+    font-size: 32px;
+    font-weight: 500;
+    white-space: nowrap;
+
+    a {
+      text-decoration: none;
+      color: var(--color-gray-90);
+    }
+  }
+
+  &__left-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    white-space: nowrap;
+  }
+
+  &__nav {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    white-space: nowrap;
+  }
+
+  &__link {
+    text-decoration: none;
+    color: var(--color-gray-90);
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  &__button {
+    background-color: var(--color-gray-40);
+    padding: 0.5rem 0.85rem;
+    border-radius: 8px;
+    color: var(--color-gray-90);
+    font-size: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  &__profile {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: var(--color-gray-90);
+    font-size: 18px;
+    font-weight: 500;
+    white-space: nowrap;
+
+    img {
+      width: 24px;
+      height: 24px;
+      display: block;
+    }
+  }
+}
