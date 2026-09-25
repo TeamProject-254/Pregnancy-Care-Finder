@@ -19,7 +19,6 @@ export const Header = () => {
             <div className={styles.header__button}>Are you a health professional?</div>
           </NavLink>
           <NavLink to="/" className={getLinkClass}>Search</NavLink>
-          <NavLink to="/" className={getLinkClass}>About Us</NavLink>
           <NavLink to="/" className={getLinkClass}>Personal Cabinet</NavLink>
         </nav>
         <NavLink to="/profile" className={styles.header__profile}>
