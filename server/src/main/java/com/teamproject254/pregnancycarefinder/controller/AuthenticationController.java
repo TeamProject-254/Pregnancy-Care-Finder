@@ -1,5 +1,7 @@
 package com.teamproject254.pregnancycarefinder.controller;
 
+import com.teamproject254.pregnancycarefinder.dto.LoginRequest;
+import com.teamproject254.pregnancycarefinder.dto.LoginResponse;
 import com.teamproject254.pregnancycarefinder.dto.RegisterRequest;
 import com.teamproject254.pregnancycarefinder.service.AuthenticationService;
 import jakarta.validation.Valid;
@@ -23,5 +25,9 @@ public class AuthenticationController {
     @ResponseStatus(HttpStatus.CREATED)
     public void registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
         authenticationService.registerUser(registerRequest);
+    }
+    @PostMapping("/login")
+    public LoginResponse loginUser(@Valid @RequestBody LoginRequest loginRequest) {
+        return authenticationService.loginUser(loginRequest);
     }
 }
