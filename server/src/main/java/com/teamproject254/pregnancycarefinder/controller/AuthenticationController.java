@@ -1,11 +1,11 @@
 package com.teamproject254.pregnancycarefinder.controller;
 
+import com.teamproject254.pregnancycarefinder.service.AuthenticationService;
 import com.teamproject254.pregnancycarefinder.dto.LoginRequest;
 import com.teamproject254.pregnancycarefinder.dto.LoginResponse;
 import com.teamproject254.pregnancycarefinder.dto.RegisterRequest;
 import com.teamproject254.pregnancycarefinder.exception.RateLimitExceededException;
 import com.teamproject254.pregnancycarefinder.security.RateLimiterService;
-import com.teamproject254.pregnancycarefinder.service.AuthenticationService;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,8 +20,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
-
 
 @RestController
 @RequestMapping("/api/auth")
@@ -63,7 +61,7 @@ public class AuthenticationController {
 
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logoutUser(HttpServletResponse httpServletResponse) {
-        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt", null);
+        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt", "");
         cookie.setHttpOnly(true);
         cookie.setSecure(false);
         cookie.setPath("/");
