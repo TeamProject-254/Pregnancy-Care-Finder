@@ -11,7 +11,7 @@ export const HomePage = () => {
       <div className={styles.home__disclaimer}>
         <img src={informationIcon} alt="Information icon" />
         <div className={styles['home__disclaimer-text']}>
-          Medical Disclaimer: Pregnancy Care Finder is an informational service for finding healthcare providers and booking appointments. This service does not provide medical advice, diagnoses, or emergency care, and does not replace an in-person doctor visit.
+          <b>Medical Disclaimer:</b> Pregnancy Care Finder is an informational service for finding healthcare providers and booking appointments. This service does not provide medical advice, diagnoses, or emergency care, and does not replace an in-person doctor visit.
         </div>
       </div>
     </div>

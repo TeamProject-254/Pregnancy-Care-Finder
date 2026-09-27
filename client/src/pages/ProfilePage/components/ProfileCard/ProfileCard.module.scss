@@ -1,0 +1,84 @@
+$text-primary: #1e1e1e;
+$text-secondary: #6e6e6e;
+$border-color: #d4d7db;
+$bg-placeholder: #cfd4dc;
+$radius-sm: 8px;
+$radius-md: 12px;
+
+.card {
+  border: 1px solid $border-color;
+  border-radius: $radius-md;
+  padding: 24px;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: left;
+}
+
+.avatarPlaceholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: $bg-placeholder;
+  margin-bottom: 12px;
+}
+
+.userName {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+  color: $text-primary;
+}
+
+.userRole {
+  font-size: 13px;
+  color: $text-secondary;
+  margin-bottom: 24px;
+}
+
+.infoGroup {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+
+  .infoLabel {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: $text-primary;
+  }
+
+  .infoValue {
+    font-size: 13px;
+    color: $text-secondary;
+  }
+}
+
+.weekBadge {
+  border: 1px solid $border-color;
+  border-radius: $radius-sm;
+  padding: 10px;
+  text-align: center;
+  font-weight: 500;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.editBtn {
+  background-color: transparent;
+  border: 1px solid $border-color;
+  border-radius: $radius-sm;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 8px;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
+}

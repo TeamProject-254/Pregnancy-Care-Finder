@@ -3,7 +3,6 @@
   box-sizing: border-box;
   width: 100%;
   background-color: var(--color-white);
-  padding-top: 6rem;
 
   &__title {
     font-size: 44px;
@@ -21,7 +20,7 @@
 
   &__card {
     box-sizing: border-box;
-    border: 1.5px solid var(--color-gray-80);
+    border: 1.5px solid var(--color-gray-40);
     border-radius: 12px;
     padding: 1rem 1rem;
     background-color: var(--color-white);

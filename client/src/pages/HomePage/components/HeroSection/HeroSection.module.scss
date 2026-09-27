@@ -13,6 +13,10 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+
+    &-text {
+      color: var(--color-primary--second);
+    }
   }
 
   &__title {
@@ -33,7 +37,7 @@
 
   &__interactive {
     margin-top: 1.5rem;
-    background-color: color-mix(in srgb, var(--color-gray-20) 50%, transparent);
+    background-color: var(--color-gray-1);
     border-radius: 12px;
     padding: 1rem 2rem;
     display: inline-flex;
@@ -46,6 +50,7 @@
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex: 1;
   }
 
   &__icon {
@@ -55,16 +60,26 @@
     flex-shrink: 0;
   }
 
-  &__placeholder {
+  &__input {
+    border: none;
+    background: transparent;
+    outline: none;
     font-size: 22px;
     font-weight: 400;
     color: var(--color-gray-90);
+    width: 100%;
     white-space: nowrap;
+
+    &::placeholder {
+      color: var(--color-gray-90);
+      opacity: 1;
+    }
   }
 
   &__divider {
     font-size: 22px;
     user-select: none;
+    color: var(--color-gray-60);
   }
 
   &__button {
@@ -75,23 +90,29 @@
     text-decoration: none;
     border-radius: 12px;
     white-space: nowrap;
-    transition: opacity 0.2s ease;
     width: 184px;
     height: 44px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+
+    &:hover {
+      background-color: var(--color-gray-20);
+      color: var(--color-gray-70);
+    }
   }
 
   &__photoBox {
     position: absolute;
-    top: 1rem;
+    top: -5.5rem;
     right: 1rem;
-    width: 600px;
-    height: 500px;
+    width: 792px;
+    height: 443px;
     border-radius: 12px;
     overflow: hidden;
-    border: 1.5px solid var(--color-gray-70);
     z-index: 1;
   }
 
