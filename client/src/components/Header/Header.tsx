@@ -1,6 +1,7 @@
 import styles from './Header.module.scss';
 import { Link, NavLink } from 'react-router-dom';
 import profileIcon from '../../assets/img/profile-icon.svg';
+import iconLogo from '../../assets/img/icon.svg';
 
 export const Header = () => {
   const getLinkClass = ({ isActive }: { isActive: boolean }) => {
@@ -11,6 +12,7 @@ export const Header = () => {
   return (
     <header className={styles.header}>
       <div className={styles.header__logo}>
+        <img src={iconLogo} alt="Logo" />
         <Link to="/">Pregnancy Care Finder</Link>
       </div>
       <div className={styles['header__left-section']}>

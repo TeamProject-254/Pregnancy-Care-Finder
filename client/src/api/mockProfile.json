@@ -1,0 +1,49 @@
+{
+  "user": {
+    "id": "u1",
+    "name": "Username",
+    "role": "patient account",
+    "location": "Kyiv",
+    "languages": ["Ukrainian", "English"],
+    "pregnancyWeek": 18
+  },
+  "nextAppointment": {
+    "id": "app-next-1",
+    "doctor": {
+      "name": "Doctor name",
+      "speciality": "Cardiologist"
+    },
+    "procedure": "2nd Trimester Anatomy scan",
+    "date": "Thursday, Sep 28, 10:00 AM, 45m",
+    "location": "medclinic, name street"
+  },
+  "appointments": [
+    {
+      "id": "app-1",
+      "type": "upcoming",
+      "date": "Oct 14. 2026",
+      "time": "14:30",
+      "doctorName": "Dr name",
+      "speciality": "Speciality",
+      "status": "Pending"
+    },
+    {
+      "id": "app-2",
+      "type": "upcoming",
+      "date": "Nov 14. 2026",
+      "time": "14:30",
+      "doctorName": "Dr name",
+      "speciality": "Speciality",
+      "status": "Confirmed"
+    },
+    {
+      "id": "app-3",
+      "type": "past",
+      "date": "Aug 10. 2026",
+      "time": "11:00",
+      "doctorName": "Dr Smith",
+      "speciality": "Therapist",
+      "status": "Completed"
+    }
+  ]
+}

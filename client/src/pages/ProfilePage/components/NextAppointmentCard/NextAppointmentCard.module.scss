@@ -1,0 +1,113 @@
+$text-primary: #1e1e1e;
+$text-secondary: #6e6e6e;
+$border-color: #d4d7db;
+$bg-active: #cbd5e1;
+$bg-placeholder: #cfd4dc;
+$radius-sm: 8px;
+$radius-md: 12px;
+
+.card {
+  border: 1px solid $border-color;
+  border-radius: $radius-md;
+  padding: 24px;
+  background-color: #fff;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: $text-primary;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  gap: 20px;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.doctorBlock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+
+  .avatarPlaceholder {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background-color: $bg-placeholder;
+  }
+
+  .doctorName {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 2px 0;
+    color: $text-primary;
+  }
+
+  .doctorSpec {
+    font-size: 13px;
+    color: $text-secondary;
+    margin: 0;
+  }
+}
+
+.procedure {
+  h4 {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0 0 4px 0;
+    color: $text-primary;
+  }
+
+  p {
+    font-size: 13px;
+    color: $text-secondary;
+    margin: 2px 0;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.solidBtn {
+  background-color: $bg-active;
+  border: none;
+  border-radius: $radius-sm;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.outlineBtn {
+  background-color: transparent;
+  border: 1px solid $border-color;
+  border-radius: $radius-sm;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
+}
+
+.notice {
+  font-size: 11px;
+  color: $text-secondary;
+  margin-top: 20px;
+  margin-bottom: 0;
+}
