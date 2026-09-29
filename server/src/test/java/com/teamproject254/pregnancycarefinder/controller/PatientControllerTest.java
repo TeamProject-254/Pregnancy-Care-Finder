@@ -7,10 +7,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.teamproject254.pregnancycarefinder.dto.PatientProfileRequest;
-import com.teamproject254.pregnancycarefinder.dto.PatientProfileResponse;
+import com.teamproject254.pregnancycarefinder.dto.PatientRequest;
+import com.teamproject254.pregnancycarefinder.dto.PatientResponse;
+import com.teamproject254.pregnancycarefinder.security.JwtService;
 import com.teamproject254.pregnancycarefinder.service.PatientService;
 import jakarta.persistence.EntityNotFoundException;
+import java.security.Principal;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,49 +30,54 @@ public class PatientControllerTest {
     private MockMvc mockMvc;
 
     @MockBean
-    private PatientService patientService;
+    private JwtService jwtService;
 
     @MockBean
-    private com.teamproject254.pregnancycarefinder.security.JwtService jwtService;
+    private PatientService patientService;
 
     @Autowired
     private ObjectMapper objectMapper;
 
+    private final Principal principal = () -> "test@patient.com";
+
     @Test
     void getPatientProfile_ShouldReturnProfile_WhenPatientExists() throws Exception {
-    Long userId = 1L;
-    PatientProfileResponse response = new PatientProfileResponse("Warsaw" , Set.of("pl"), 12, true);
+        String email = "test@patient.com";
+        PatientResponse response = new PatientResponse(1L, "Warsaw", Set.of("pl"), 12, true);
 
-    when(patientService.getPatientProfile(userId)).thenReturn(response);
+        when(patientService.getPatientProfile(email)).thenReturn(response);
 
-    mockMvc.perform(get("/patient/{userId}", userId))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.location").value("Warsaw"))
-            .andExpect(jsonPath("$.languages").value("pl"))
-            .andExpect(jsonPath("$.pregnancyWeek").value(12))
-            .andExpect(jsonPath("$.explicitConsent").value(true));
+        mockMvc.perform(get("/patients/profile")
+                        .principal(principal))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.location").value("Warsaw"))
+                .andExpect(jsonPath("$.languages[0]").value("pl"))
+                .andExpect(jsonPath("$.pregnancyWeek").value(12))
+                .andExpect(jsonPath("$.explicitConsent").value(true));
     }
 
     @Test
     void getPatientProfile_ShouldReturnEntityNotFound_WhenPatientNotFound() throws Exception {
-        Long userId = 1L;
+        String email = "test@patient.com";
 
-        when(patientService.getPatientProfile(userId)).thenThrow(new EntityNotFoundException("Patient not found."));
+        when(patientService.getPatientProfile(email)).thenThrow(new EntityNotFoundException("Patient not found."));
 
-        mockMvc.perform(get("/patient/{userId}", userId))
+        mockMvc.perform(get("/patients/profile")
+                        .principal(principal))
                 .andExpect(status().isNotFound());
     }
 
     @Test
     void updateOrCreatePatientProfile_ShouldReturnUpdatedProfile_WhenPatientExists() throws Exception {
-        Long userId = 1L;
-        PatientProfileRequest request = new PatientProfileRequest("Cracow", null, null, null);
-        PatientProfileResponse response = new PatientProfileResponse("Cracow" , Set.of("pl"), 12, true);
+        String email = "test@patient.com";
+        PatientRequest request = new PatientRequest("Cracow", null, null, true);
+        PatientResponse response = new PatientResponse(1L, "Cracow", Set.of("pl"), 12, true);
 
-        when(patientService.updateOrCreatePatientProfile(eq(userId), any(PatientProfileRequest.class))).thenReturn(response);
+        when(patientService.updateOrCreatePatientProfile(eq(email), any(PatientRequest.class))).thenReturn(response);
 
-        mockMvc.perform(patch("/patient/{userId}", userId)
-                .contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(patch("/patients/profile")
+                        .principal(principal)
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.location").value("Cracow"))
@@ -81,12 +88,13 @@ public class PatientControllerTest {
 
     @Test
     void updateOrCreatePatientProfile_ShouldReturnBadRequest_WhenPregnancyWeekWithoutConsent() throws Exception {
-        Long userId = 1L;
-        PatientProfileRequest request = new PatientProfileRequest("Cracow", null, 12, false);
+        String email = "test@patient.com";
+        PatientRequest request = new PatientRequest("Cracow", null, 12, false);
 
-        when(patientService.updateOrCreatePatientProfile(eq(userId), any(PatientProfileRequest.class))).thenThrow(new IllegalArgumentException("Explicit consent is required to save pregnancy week."));
+        when(patientService.updateOrCreatePatientProfile(eq(email), any(PatientRequest.class))).thenThrow(new IllegalArgumentException("Explicit consent is required to save pregnancy week."));
 
-        mockMvc.perform(patch("/patient/{userId}", userId)
+        mockMvc.perform(patch("/patients/profile")
+                        .principal(principal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest());

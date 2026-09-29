@@ -1,11 +1,11 @@
 package com.teamproject254.pregnancycarefinder.service;
 
-import com.teamproject254.pregnancycarefinder.dto.PatientProfileRequest;
-import com.teamproject254.pregnancycarefinder.dto.PatientProfileResponse;
+import com.teamproject254.pregnancycarefinder.dto.PatientRequest;
+import com.teamproject254.pregnancycarefinder.dto.PatientResponse;
 
 public interface PatientService {
 
-    PatientProfileResponse getPatientProfile(Long userId);
+    PatientResponse getPatientProfile(String email);
 
-    PatientProfileResponse updateOrCreatePatientProfile(Long userId, PatientProfileRequest request);
+    PatientResponse updateOrCreatePatientProfile(String email, PatientRequest request);
 }

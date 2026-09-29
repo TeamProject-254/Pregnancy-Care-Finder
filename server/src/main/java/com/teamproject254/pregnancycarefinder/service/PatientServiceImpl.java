@@ -1,7 +1,8 @@
 package com.teamproject254.pregnancycarefinder.service;
 
-import com.teamproject254.pregnancycarefinder.dto.PatientProfileRequest;
-import com.teamproject254.pregnancycarefinder.dto.PatientProfileResponse;
+import com.teamproject254.pregnancycarefinder.dto.PatientRequest;
+import com.teamproject254.pregnancycarefinder.dto.PatientResponse;
+import com.teamproject254.pregnancycarefinder.mapper.PatientMapper;
 import com.teamproject254.pregnancycarefinder.model.Patient;
 import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.repository.PatientRepository;
@@ -18,20 +19,21 @@ public class PatientServiceImpl implements PatientService{
 
     private final PatientRepository patientRepository;
     private final UserRepository userRepository;
+    private final PatientMapper patientMapper;
 
     @Override
     @Transactional(readOnly = true)
-    public PatientProfileResponse getPatientProfile(Long userId) {
-       Patient patient = patientRepository.findByUserId(userId).orElseThrow(() -> new EntityNotFoundException("Patient not found."));
-
-       return mapToResponse(patient);
+    public PatientResponse getPatientProfile(String email) {
+       Patient patient = patientRepository.findByUserEmail(email)
+               .orElseThrow(() -> new EntityNotFoundException("Patient not found."));
+       return patientMapper.toResponse(patient);
     }
 
     @Override
-    public PatientProfileResponse updateOrCreatePatientProfile(Long userId,
-                                                               PatientProfileRequest request) {
-        Patient patient = patientRepository.findByUserId(userId).orElseGet(() -> {
-            User user =  userRepository.findById(userId)
+    public PatientResponse updateOrCreatePatientProfile(String email,
+                                                        PatientRequest request) {
+        Patient patient = patientRepository.findByUserEmail(email).orElseGet(() -> {
+            User user =  userRepository.findByEmail(email)
                     .orElseThrow(() -> new EntityNotFoundException("Patient not found."));
 
             return Patient.builder()
@@ -40,31 +42,18 @@ public class PatientServiceImpl implements PatientService{
                     .build();
         });
 
-        if (request.location() != null) {
-            patient.setLocation(request.location());
-        }
-        if (request.languages() != null) {
-            patient.setLanguages(request.languages());
-        }
-        if (request.explicitConsent() != null) {
-            patient.setExplicitConsent(request.explicitConsent());
-        }
         if (request.pregnancyWeek() != null) {
-            if (Boolean.FALSE.equals(patient.getExplicitConsent())) {
+            boolean effectiveConsent = request.explicitConsent() != null
+                    ? request.explicitConsent()
+                    : Boolean.TRUE.equals(patient.getExplicitConsent());
+
+            if (!effectiveConsent) {
                 throw new IllegalArgumentException("Explicit consent is required to save pregnancy week.");
             }
-            patient.setPregnancyWeek(request.pregnancyWeek());
         }
-        Patient savedPatient = patientRepository.save(patient);
-        return mapToResponse(savedPatient);
-    }
 
-    private PatientProfileResponse mapToResponse(Patient patient) {
-        return new PatientProfileResponse(
-                patient.getLocation(),
-                patient.getLanguages(),
-                patient.getPregnancyWeek(),
-                patient.getExplicitConsent()
-        );
+        patientMapper.updatePatientFromRequest(request, patient);
+        Patient savedPatient = patientRepository.save(patient);
+        return patientMapper.toResponse(savedPatient);
     }
 }

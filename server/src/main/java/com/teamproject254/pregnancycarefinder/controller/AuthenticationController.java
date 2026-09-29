@@ -35,9 +35,8 @@ public class AuthenticationController {
         authenticationService.registerUser(registerRequest);
     }
     @PostMapping("/login")
-    public  ResponseEntity<Map<String, String>> loginUser(@Valid @RequestBody LoginRequest loginRequest,
-                                                          HttpServletRequest httpServletRequest,
-                                                          HttpServletResponse httpServletResponse) {
+    public  ResponseEntity<LoginResponse> loginUser(@Valid @RequestBody LoginRequest loginRequest,
+                                                          HttpServletRequest httpServletRequest) {
 
         String clientIp = httpServletRequest.getRemoteAddr();
         Bucket bucket = rateLimiterService.resolveBucket(clientIp);
@@ -47,27 +46,11 @@ public class AuthenticationController {
         }
 
         LoginResponse loginResponse = authenticationService.loginUser(loginRequest);
-        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt", loginResponse.token());
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false);
-        cookie.setPath("/");
-        cookie.setMaxAge(60 * 60);
-        httpServletResponse.addCookie(cookie);
-
-        Map<String, String> result = new HashMap<>();
-        result.put("message", "Logged in successfully.");
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(loginResponse);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Map<String, String>> logoutUser(HttpServletResponse httpServletResponse) {
-        jakarta.servlet.http.Cookie cookie = new jakarta.servlet.http.Cookie("jwt", "");
-        cookie.setHttpOnly(true);
-        cookie.setSecure(false);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        httpServletResponse.addCookie(cookie);
-
+    public ResponseEntity<Map<String, String>> logoutUser() {
         Map<String, String> result = new HashMap<>();
         result.put("message", "Logged out successfully.");
         return ResponseEntity.ok(result);

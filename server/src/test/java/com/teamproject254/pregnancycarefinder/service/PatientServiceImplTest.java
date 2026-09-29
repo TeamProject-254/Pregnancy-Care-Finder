@@ -4,8 +4,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import com.teamproject254.pregnancycarefinder.dto.PatientProfileRequest;
-import com.teamproject254.pregnancycarefinder.dto.PatientProfileResponse;
+import com.teamproject254.pregnancycarefinder.dto.PatientRequest;
+import com.teamproject254.pregnancycarefinder.dto.PatientResponse;
 import com.teamproject254.pregnancycarefinder.model.Patient;
 import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.repository.PatientRepository;
@@ -33,7 +33,7 @@ public class PatientServiceImplTest {
 
     @Test
     void getPatientProfile_ShouldReturnPatientProfile_WhenPatientExist() {
-        Long userId = 1L;
+        String email = "test@patient.com";
         Patient patient = Patient.builder()
                 .id(1L)
                 .location("Warsaw")
@@ -42,9 +42,9 @@ public class PatientServiceImplTest {
                 .explicitConsent(true)
                 .build();
 
-        when(patientRepository.findByUserId(userId)).thenReturn(Optional.of(patient));
+        when(patientRepository.findByUserEmail(email)).thenReturn(Optional.of(patient));
 
-        PatientProfileResponse response = patientService.getPatientProfile(userId);
+        PatientResponse response = patientService.getPatientProfile(email);
 
         assertNotNull(response);
         assertEquals("Warsaw", response.location());
@@ -55,16 +55,16 @@ public class PatientServiceImplTest {
 
     @Test
     void getPatientProfile_ShouldThrownException_WhenPatientNotFound() {
-        Long userId = 1L;
+        String email = "test@patient.com";
 
-        when(patientRepository.findByUserId(userId)).thenReturn(Optional.empty());
+        when(patientRepository.findByUserEmail(email)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> patientService.getPatientProfile(userId));
+        assertThrows(EntityNotFoundException.class, () -> patientService.getPatientProfile(email));
     }
 
     @Test
     void updateOrCreatePatientProfile_ShouldUpdateExistingData_WhenPatientAlreadyExists() {
-        Long userId = 1L;
+        String email = "test@patient.com";
         Patient patient = Patient.builder()
                 .id(1L)
                 .location("Warsaw")
@@ -73,14 +73,14 @@ public class PatientServiceImplTest {
                 .explicitConsent(true)
                 .build();
 
-        PatientProfileRequest request = new PatientProfileRequest("Cracow", null, null, null);
+        PatientRequest request = new PatientRequest("Cracow", null, null, null);
 
-        when(patientRepository.findByUserId(userId)).thenReturn(Optional.of(patient));
+        when(patientRepository.findByUserEmail(email)).thenReturn(Optional.of(patient));
         when(patientRepository.save(any(Patient.class))).thenAnswer(
                 invocation -> invocation.getArgument(0));
 
-        PatientProfileResponse response =
-                patientService.updateOrCreatePatientProfile(userId, request);
+        PatientResponse response =
+                patientService.updateOrCreatePatientProfile(email, request);
 
         assertNotNull(response);
         assertEquals("Cracow", response.location());
@@ -90,17 +90,18 @@ public class PatientServiceImplTest {
 
     @Test
     void updateOrCreatePatientProfile_ShouldCreateNewProfile_WhenPatientDoesNotExists() {
-        Long userId = 1L;
-        User user = User.builder().id(userId).build();
+        String email = "test@patient.com";
+        User user = User.builder().id(1L).email(email).build();
 
-        PatientProfileRequest request = new PatientProfileRequest("Warsaw", Set.of("pl"), 12, true);
+        PatientRequest request = new PatientRequest("Warsaw", Set.of("pl"), 12, true);
 
-        when(patientRepository.findByUserId(userId)).thenReturn(Optional.empty());
-        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(patientRepository.findByUserEmail(email)).thenReturn(Optional.empty());
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
 
-        when(patientRepository.save(any(Patient.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(patientRepository.save(any(Patient.class))).thenAnswer(
+                invocation -> invocation.getArgument(0));
 
-        PatientProfileResponse response = patientService.updateOrCreatePatientProfile(userId, request);
+        PatientResponse response = patientService.updateOrCreatePatientProfile(email, request);
 
         assertNotNull(response);
         assertEquals("Warsaw", response.location());
@@ -113,19 +114,21 @@ public class PatientServiceImplTest {
 
     @Test
     void updateOrCreatePatientProfile_ShouldThrowException_WhenPregnancyWeekSavedWithoutConsent() {
-        Long userId = 1L;
+        String email = "test@patient.com";
         Patient patient = Patient.builder()
                 .id(1L)
                 .explicitConsent(false)
                 .build();
 
-        PatientProfileRequest request = new PatientProfileRequest("Warsaw", Set.of("pl"), 12,null);
+        PatientRequest request = new PatientRequest("Warsaw", Set.of("pl"), 12, null);
 
-        when(patientRepository.findByUserId(userId)).thenReturn(Optional.of(patient));
+        when(patientRepository.findByUserEmail(email)).thenReturn(Optional.of(patient));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> patientService.updateOrCreatePatientProfile(userId, request));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> patientService.updateOrCreatePatientProfile(email, request));
 
-        assertEquals("Explicit consent is required to save pregnancy week.", exception.getMessage());
+        assertEquals("Explicit consent is required to save pregnancy week.",
+                exception.getMessage());
         verify(patientRepository, never()).save(any());
     }
 }

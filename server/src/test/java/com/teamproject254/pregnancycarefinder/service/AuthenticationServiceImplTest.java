@@ -75,6 +75,7 @@ public class AuthenticationServiceImplTest {
     void loginUser_ShouldReturnToken_WhenCredentialsAreValid() {
         LoginRequest loginRequest = new LoginRequest("test@example.com", "Password123!");
         User user = User.builder()
+                .id(1L)
                 .email("test@example.com")
                 .password("encodedPassword")
                 .role(Role.PATIENT)
@@ -87,6 +88,9 @@ public class AuthenticationServiceImplTest {
 
         assertNotNull(loginResponse);
         assertEquals("mock-jwt-token", loginResponse.token());
+        assertEquals(1L, loginResponse.userId());
+        assertEquals("test@example.com", loginResponse.email());
+        assertEquals(Role.PATIENT, loginResponse.role());
         verify(authenticationManager, times(1)).authenticate(any(UsernamePasswordAuthenticationToken.class));
     }
 

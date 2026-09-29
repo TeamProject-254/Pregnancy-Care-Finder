@@ -22,7 +22,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Service {
+public class MedicalService {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
