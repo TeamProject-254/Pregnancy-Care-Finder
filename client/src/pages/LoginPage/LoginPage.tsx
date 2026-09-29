@@ -115,7 +115,7 @@ export const LoginPage = () => {
               <button className={styles.login__button}>Log in</button>
               <div className={styles.create__account__block}>
                 <span>Don’t have an account? </span>
-                <Link className={styles.create__account__link} to="/">
+                <Link className={styles.create__account__link} to="/register">
                   Create account
                 </Link>
               </div>

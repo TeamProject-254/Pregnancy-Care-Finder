@@ -4,6 +4,7 @@ import { MainLayout } from "./components/MainLayout";
 import { HomePage } from "./pages/HomePage/HomePage";
 import { DoctorProfilePage } from "./pages/DoctorPage";
 import { LoginPage } from "./pages/LoginPage";
+import { RegisterPage } from "./pages/RegisterPage";
 
 export const App = () => (
   <div className="App">
@@ -13,6 +14,7 @@ export const App = () => (
         <Route path="/doctors/:id" element={<DoctorProfilePage />} />
       </Route>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage />} />
     </Routes>
   </div>
 );
