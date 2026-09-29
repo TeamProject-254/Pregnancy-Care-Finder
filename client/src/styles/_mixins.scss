@@ -1,0 +1,22 @@
+@use "sass:list";
+
+$transition-duration-default: 0.2s !default;
+$transition-timing-default: ease !default;
+
+@mixin smooth-transition(
+  $properties: all,
+  $duration: $transition-duration-default,
+  $timing: $transition-timing-default
+) {
+  $transitions: ();
+
+  @each $prop in $properties {
+    $transitions: list.append(
+      $transitions,
+      $prop $duration $timing,
+      $separator: comma
+    );
+  }
+
+  transition: $transitions;
+}

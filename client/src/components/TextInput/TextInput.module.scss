@@ -1,0 +1,60 @@
+@use "../../styles/typography" as typo;
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+
+  &__label {
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  &__fieldWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  &__control {
+    @include typo.font-button;
+    width: 100%;
+    padding: 8px 16px 8px 8px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    color: var(--color-gray-90);
+    outline: none;
+    height: 60px;
+
+    &--error {
+      border-color: var(--color-error);
+    }
+  }
+
+  &__rightElement {
+    position: absolute;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__errorMessage {
+    font-size: 12px;
+    color: var(--color-error);
+  }
+}
+
+.inputGroup__control {
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus,
+  &:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px var(--color-white) inset !important;
+    box-shadow: 0 0 0 1000px var(--color-white) inset !important;
+
+    -webkit-text-fill-color: var(--color-gray-90) !important;
+  }
+}

@@ -1,0 +1,139 @@
+@use "../../styles/typography" as typo;
+@use "../../styles/variables";
+@use "../../styles/mixins" as *;
+
+.login__wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 1rem 4rem 2rem;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bread__crumbs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  max-width: 1440px;
+}
+
+.bread__crumbs__span {
+  font-size: 14px;
+  line-height: 135%;
+  font-weight: 400;
+  color: var(--color-gray-90);
+}
+
+.main__content {
+  width: 100%;
+  max-width: 1440px;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.login__form {
+  width: 600px;
+  outline: 1px solid var(--color-gray-40);
+  border-radius: 12px;
+  background-color: var(--color-white);
+  padding: 24px;
+  height: 602px;
+}
+
+.content__img {
+  position: relative;
+  z-index: -1;
+}
+
+.title__block {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form__title {
+  @include typo.font-h2;
+}
+
+.form__desc {
+  @include typo.font-h5;
+  color: var(--color-gray-80);
+}
+
+.inputs__block {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-top: 50px;
+}
+
+.checkbox__block {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 32px;
+}
+
+.forgot__password {
+  @include typo.font-main;
+  color: var(--color-primary--second);
+}
+
+.login__block {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.login__button {
+  @include typo.font-button;
+  width: 392px;
+  height: 44px;
+  background-color: var(--color-primary);
+  text-align: center;
+  color: var(--color-gray-90);
+  border-radius: 12px;
+}
+
+.create__account__link {
+  @include smooth-transition;
+  display: inline-block;
+  position: relative;
+  color: var(--color-primary--second);
+  cursor: pointer;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    width: 100%;
+    left: 0;
+    height: 1px;
+    transform: scaleX(0);
+    transform-origin: center;
+    background-color: var(--color-primary--second);
+
+    @include smooth-transition(transform);
+  }
+}
+
+.create__account__link:hover::after {
+  transform: scaleX(1);
+}
+
+.content__img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.img__title {
+  @include typo.font-h3;
+}

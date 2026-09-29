@@ -1,0 +1,37 @@
+import React from "react";
+
+interface EyeIconProps extends React.SVGProps<SVGSVGElement> {
+  size?: number;
+}
+
+export const EyeIcon: React.FC<EyeIconProps> = ({
+  width = 34,
+  height = 28,
+  className = "",
+  ...rest
+}) => {
+  return (
+    <svg
+      width={width}
+      height={height}
+      viewBox="0 0 34 28"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      {...rest}
+    >
+      <path
+        d="M12.2 1.73539C13.6584 1.27149 15.2566 1 17 1C23.691 1 28.2448 4.9993 30.9602 8.52693C32.32 10.2936 33 11.177 33 13.8C33 16.423 32.32 17.3064 30.9602 19.0731C28.2448 22.6006 23.691 26.6 17 26.6C10.309 26.6 5.75514 22.6006 3.03982 19.0731C1.67994 17.3064 1 16.423 1 13.8C1 11.177 1.67994 10.2936 3.03982 8.52693C3.80979 7.52662 4.72757 6.4884 5.8 5.51419"
+        stroke="#212529"
+        stroke-width="2"
+        stroke-linecap="round"
+      />
+      <path
+        d="M21.8 13.8C21.8 16.451 19.651 18.6 17 18.6C14.3489 18.6 12.2 16.451 12.2 13.8C12.2 11.149 14.3489 9 17 9C19.651 9 21.8 11.149 21.8 13.8Z"
+        stroke="#212529"
+        stroke-width="2"
+        stroke-linecap="round"
+      />
+    </svg>
+  );
+};
