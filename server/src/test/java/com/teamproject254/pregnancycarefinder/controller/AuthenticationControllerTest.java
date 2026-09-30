@@ -32,7 +32,7 @@ public class AuthenticationControllerTest {
     private RateLimiterService rateLimiterService;
 
     @Mock
-    Bucket bucket;
+    private Bucket bucket;
 
     @InjectMocks
     private AuthenticationController authenticationController;
@@ -42,6 +42,7 @@ public class AuthenticationControllerTest {
     @BeforeEach
     void setUp() {
         request = new MockHttpServletRequest();
+        request.setRemoteAddr("127.0.0.1");
     }
 
     @Test

@@ -2,12 +2,12 @@ package com.teamproject254.pregnancycarefinder.service;
 
 import com.teamproject254.pregnancycarefinder.dto.PatientRequest;
 import com.teamproject254.pregnancycarefinder.dto.PatientResponse;
+import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
 import com.teamproject254.pregnancycarefinder.mapper.PatientMapper;
 import com.teamproject254.pregnancycarefinder.model.Patient;
 import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.repository.PatientRepository;
 import com.teamproject254.pregnancycarefinder.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,7 +25,7 @@ public class PatientServiceImpl implements PatientService{
     @Transactional(readOnly = true)
     public PatientResponse getPatientProfile(String email) {
        Patient patient = patientRepository.findByUserEmail(email)
-               .orElseThrow(() -> new EntityNotFoundException("Patient not found."));
+               .orElseThrow(() -> new ResourceNotFoundException("Patient not found."));
        return patientMapper.toResponse(patient);
     }
 
@@ -34,7 +34,7 @@ public class PatientServiceImpl implements PatientService{
                                                         PatientRequest request) {
         Patient patient = patientRepository.findByUserEmail(email).orElseGet(() -> {
             User user =  userRepository.findByEmail(email)
-                    .orElseThrow(() -> new EntityNotFoundException("Patient not found."));
+                    .orElseThrow(() -> new ResourceNotFoundException("Patient not found."));
 
             return Patient.builder()
                     .user(user)
@@ -42,14 +42,16 @@ public class PatientServiceImpl implements PatientService{
                     .build();
         });
 
-        if (request.pregnancyWeek() != null) {
-            boolean effectiveConsent = request.explicitConsent() != null
-                    ? request.explicitConsent()
-                    : Boolean.TRUE.equals(patient.getExplicitConsent());
+        Integer effectivePregnancyWeek = request.pregnancyWeek() != null
+                ? request.pregnancyWeek()
+                : patient.getPregnancyWeek();
 
-            if (!effectiveConsent) {
-                throw new IllegalArgumentException("Explicit consent is required to save pregnancy week.");
-            }
+        boolean effectiveConsent = request.explicitConsent() != null
+                ? request.explicitConsent()
+                : Boolean.TRUE.equals(patient.getExplicitConsent());
+
+        if (effectivePregnancyWeek != null && !effectiveConsent) {
+            throw new IllegalArgumentException("Explicit consent is required when pregnancy week is set.");
         }
 
         patientMapper.updatePatientFromRequest(request, patient);

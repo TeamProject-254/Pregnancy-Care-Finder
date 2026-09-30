@@ -1,5 +1,6 @@
 package com.teamproject254.pregnancycarefinder.controller;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -9,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.teamproject254.pregnancycarefinder.dto.PatientRequest;
 import com.teamproject254.pregnancycarefinder.dto.PatientResponse;
+import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
 import com.teamproject254.pregnancycarefinder.security.JwtService;
 import com.teamproject254.pregnancycarefinder.service.PatientService;
 import jakarta.persistence.EntityNotFoundException;
@@ -20,6 +22,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(PatientController.class)
@@ -31,6 +34,9 @@ public class PatientControllerTest {
 
     @MockBean
     private JwtService jwtService;
+
+    @MockBean
+    private UserDetailsService userDetailsService;
 
     @MockBean
     private PatientService patientService;
@@ -51,7 +57,7 @@ public class PatientControllerTest {
                         .principal(principal))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.location").value("Warsaw"))
-                .andExpect(jsonPath("$.languages[0]").value("pl"))
+                .andExpect(jsonPath("$.languages", hasItem("pl")))
                 .andExpect(jsonPath("$.pregnancyWeek").value(12))
                 .andExpect(jsonPath("$.explicitConsent").value(true));
     }
@@ -60,7 +66,7 @@ public class PatientControllerTest {
     void getPatientProfile_ShouldReturnEntityNotFound_WhenPatientNotFound() throws Exception {
         String email = "test@patient.com";
 
-        when(patientService.getPatientProfile(email)).thenThrow(new EntityNotFoundException("Patient not found."));
+        when(patientService.getPatientProfile(email)).thenThrow(new ResourceNotFoundException("Patient not found."));
 
         mockMvc.perform(get("/patients/profile")
                         .principal(principal))
@@ -81,7 +87,7 @@ public class PatientControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.location").value("Cracow"))
-                .andExpect(jsonPath("$.languages[0]").value("pl"))
+                .andExpect(jsonPath("$.languages", hasItem("pl")))
                 .andExpect(jsonPath("$.pregnancyWeek").value(12))
                 .andExpect(jsonPath("$.explicitConsent").value(true));
     }

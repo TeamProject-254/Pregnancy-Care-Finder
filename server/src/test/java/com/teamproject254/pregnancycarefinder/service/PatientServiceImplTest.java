@@ -6,6 +6,8 @@ import static org.mockito.Mockito.*;
 
 import com.teamproject254.pregnancycarefinder.dto.PatientRequest;
 import com.teamproject254.pregnancycarefinder.dto.PatientResponse;
+import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
+import com.teamproject254.pregnancycarefinder.mapper.PatientMapper;
 import com.teamproject254.pregnancycarefinder.model.Patient;
 import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.repository.PatientRepository;
@@ -28,38 +30,35 @@ public class PatientServiceImplTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private PatientMapper patientMapper;
+
     @InjectMocks
     private PatientServiceImpl patientService;
 
     @Test
-    void getPatientProfile_ShouldReturnPatientProfile_WhenPatientExist() {
+    void getPatientProfile_ShouldReturnPatientProfile_WhenPatientExists() {
         String email = "test@patient.com";
-        Patient patient = Patient.builder()
-                .id(1L)
-                .location("Warsaw")
-                .languages(Set.of("pl", "en"))
-                .pregnancyWeek(12)
-                .explicitConsent(true)
-                .build();
+        Patient patient = Patient.builder().id(1L).location("Warsaw").build();
+        PatientResponse expectedResponse = new PatientResponse(1L, "Warsaw", Set.of("pl"), 12, true);
 
         when(patientRepository.findByUserEmail(email)).thenReturn(Optional.of(patient));
+        when(patientMapper.toResponse(patient)).thenReturn(expectedResponse);
 
         PatientResponse response = patientService.getPatientProfile(email);
 
         assertNotNull(response);
         assertEquals("Warsaw", response.location());
-        assertEquals(Set.of("pl", "en"), response.languages());
-        assertEquals(12, response.pregnancyWeek());
-        assertTrue(response.explicitConsent());
+        verify(patientMapper, times(1)).toResponse(patient);
     }
 
     @Test
-    void getPatientProfile_ShouldThrownException_WhenPatientNotFound() {
+    void getPatientProfile_ShouldThrowException_WhenPatientNotFound() {
         String email = "test@patient.com";
 
         when(patientRepository.findByUserEmail(email)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> patientService.getPatientProfile(email));
+        assertThrows(ResourceNotFoundException.class, () -> patientService.getPatientProfile(email));
     }
 
     @Test
@@ -68,48 +67,46 @@ public class PatientServiceImplTest {
         Patient patient = Patient.builder()
                 .id(1L)
                 .location("Warsaw")
-                .languages(Set.of("pl", "en"))
                 .pregnancyWeek(12)
                 .explicitConsent(true)
                 .build();
 
         PatientRequest request = new PatientRequest("Cracow", null, null, null);
+        PatientResponse expectedResponse = new PatientResponse(1L, "Cracow", Set.of("pl"), 12, true);
 
         when(patientRepository.findByUserEmail(email)).thenReturn(Optional.of(patient));
-        when(patientRepository.save(any(Patient.class))).thenAnswer(
-                invocation -> invocation.getArgument(0));
+        when(patientRepository.save(any(Patient.class))).thenReturn(patient);
+        when(patientMapper.toResponse(patient)).thenReturn(expectedResponse);
 
-        PatientResponse response =
-                patientService.updateOrCreatePatientProfile(email, request);
+        PatientResponse response = patientService.updateOrCreatePatientProfile(email, request);
 
         assertNotNull(response);
         assertEquals("Cracow", response.location());
 
-        verify(patientRepository).save(patient);
+        verify(patientMapper, times(1)).updatePatientFromRequest(request, patient);
+        verify(patientRepository, times(1)).save(patient);
     }
 
     @Test
-    void updateOrCreatePatientProfile_ShouldCreateNewProfile_WhenPatientDoesNotExists() {
+    void updateOrCreatePatientProfile_ShouldCreateNewProfile_WhenPatientDoesNotExist() {
         String email = "test@patient.com";
         User user = User.builder().id(1L).email(email).build();
 
         PatientRequest request = new PatientRequest("Warsaw", Set.of("pl"), 12, true);
+        PatientResponse expectedResponse = new PatientResponse(1L, "Warsaw", Set.of("pl"), 12, true);
 
         when(patientRepository.findByUserEmail(email)).thenReturn(Optional.empty());
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-
-        when(patientRepository.save(any(Patient.class))).thenAnswer(
-                invocation -> invocation.getArgument(0));
+        when(patientRepository.save(any(Patient.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(patientMapper.toResponse(any(Patient.class))).thenReturn(expectedResponse);
 
         PatientResponse response = patientService.updateOrCreatePatientProfile(email, request);
 
         assertNotNull(response);
         assertEquals("Warsaw", response.location());
-        assertEquals(Set.of("pl"), response.languages());
-        assertEquals(12, response.pregnancyWeek());
-        assertTrue(response.explicitConsent());
 
-        verify(patientRepository).save(any(Patient.class));
+        verify(userRepository, times(1)).findByEmail(email);
+        verify(patientRepository, times(1)).save(any(Patient.class));
     }
 
     @Test
@@ -127,8 +124,9 @@ public class PatientServiceImplTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> patientService.updateOrCreatePatientProfile(email, request));
 
-        assertEquals("Explicit consent is required to save pregnancy week.",
-                exception.getMessage());
+        assertEquals("Explicit consent is required when pregnancy week is set.", exception.getMessage());
+
+        verify(patientMapper, never()).updatePatientFromRequest(any(), any());
         verify(patientRepository, never()).save(any());
     }
 }

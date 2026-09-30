@@ -73,4 +73,5 @@ public class Provider {
     @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<MedicalService> services = new ArrayList<>();
+
 }

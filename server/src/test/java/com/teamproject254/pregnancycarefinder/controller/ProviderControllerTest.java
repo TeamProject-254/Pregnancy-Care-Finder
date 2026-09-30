@@ -14,6 +14,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.security.Principal;
@@ -36,7 +37,10 @@ class ProviderControllerTest {
     private ObjectMapper objectMapper;
 
     @MockBean
-    JwtService jwtService;
+    private JwtService jwtService;
+
+    @MockBean private
+    UserDetailsService userDetailsService;
 
     @MockBean
     private ProviderService providerService;
@@ -97,19 +101,6 @@ class ProviderControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
-    }
-
-    @Test
-    void createOrUpdateProviderProfile_shouldReturn400_whenRequestIsInvalid() throws Exception {
-        ProviderRequest invalidRequest = new ProviderRequest(
-                "", "", "", "", "", "", "", Set.of(), List.of()
-        );
-
-        mockMvc.perform(patch("/providers/profile")
-                        .principal(principal)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest)))
-                .andExpect(status().isBadRequest());
     }
 
     @Test

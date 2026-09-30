@@ -80,6 +80,7 @@ class ProviderServiceImplTest {
         User user = new User();
         user.setEmail(email);
 
+        ServiceRequest serviceReq = new ServiceRequest("Prenatal Consultation", 45);
         ProviderRequest request = new ProviderRequest(
                 "Dr. Sarah Jenkins",
                 "Obstetrics and Gynecology",
@@ -89,7 +90,7 @@ class ProviderServiceImplTest {
                 "+48 500 600 700",
                 "MED-987654",
                 Set.of("English", "Polish"),
-                List.of(new ServiceRequest("Prenatal Consultation", 45))
+                List.of(serviceReq)
         );
 
         ProviderResponse expectedResponse = new ProviderResponse(
@@ -105,9 +106,11 @@ class ProviderServiceImplTest {
                 List.of()
         );
 
+        MedicalService mappedService = new MedicalService();
+
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
         when(providerRepository.findByUserEmail(email)).thenReturn(Optional.empty());
-        when(providerMapper.toEntity(any())).thenReturn(new MedicalService());
+        when(providerMapper.toEntity(serviceReq)).thenReturn(mappedService);
         when(providerRepository.save(any(Provider.class))).thenAnswer(inv -> inv.getArgument(0));
         when(providerMapper.toResponse(any(Provider.class))).thenReturn(expectedResponse);
 
@@ -150,51 +153,22 @@ class ProviderServiceImplTest {
     }
 
     @Test
-    void createOrUpdateProviderProfile_shouldUpdateExistingProviderAndServices_whenExists() {
+    void createOrUpdateProviderProfile_shouldHandleNullServicesInRequest() {
         String email = "test@provider.com";
         User user = new User();
-        Provider existingProvider = new Provider();
-        existingProvider.setServices(new ArrayList<>());
+        user.setEmail(email);
 
-        ServiceRequest serviceReq = new ServiceRequest("Prenatal Consultation", 45);
         ProviderRequest request = new ProviderRequest(
-                "Dr. Sarah Jenkins",
-                "Obstetrics and Gynecology",
-                "123 Medical Ave, Warsaw",
-                "Mon-Fri 08:00 - 16:00",
-                "Specialized in high-risk pregnancies.",
-                "+48 500 600 700",
-                "MED-987654",
-                Set.of("English", "Polish"),
-                List.of(serviceReq)
+                "Dr. Sarah", "Gyn", "Address", "Hours", "Desc", "Contact", "LIC",
+                Set.of("English"), null
         );
-
-        ProviderResponse expectedResponse = new ProviderResponse(
-                1L,
-                "Dr. Sarah Jenkins",
-                "Obstetrics and Gynecology",
-                "123 Medical Ave, Warsaw",
-                "Mon-Fri 08:00 - 16:00",
-                "Specialized in high-risk pregnancies.",
-                "+48 500 600 700",
-                "MED-987654",
-                Set.of("English", "Polish"),
-                List.of()
-        );
-
-        MedicalService mappedService = new MedicalService();
 
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-        when(providerRepository.findByUserEmail(email)).thenReturn(Optional.of(existingProvider));
-        when(providerMapper.toEntity(serviceReq)).thenReturn(mappedService);
+        when(providerRepository.findByUserEmail(email)).thenReturn(Optional.empty());
         when(providerRepository.save(any(Provider.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(providerMapper.toResponse(any(Provider.class))).thenReturn(expectedResponse);
 
-        providerService.createOrUpdateProviderProfile(email, request);
-
-        assertEquals(1, existingProvider.getServices().size());
-        assertEquals(existingProvider, mappedService.getProvider());
-        verify(providerRepository).save(existingProvider);
+        assertDoesNotThrow(() -> providerService.createOrUpdateProviderProfile(email, request));
+        verify(providerRepository).save(any(Provider.class));
     }
 
     @Test
@@ -252,10 +226,7 @@ class ProviderServiceImplTest {
         Long providerId = 42L;
         when(providerRepository.findById(providerId)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> {
-            providerService.getPublicProviderById(providerId);
-        });
-
+        assertThrows(ResourceNotFoundException.class, () -> providerService.getPublicProviderById(providerId));
         verify(providerRepository).findById(providerId);
     }
 

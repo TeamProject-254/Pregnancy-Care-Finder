@@ -38,7 +38,7 @@ public class AuthenticationServiceImplTest {
     private JwtService jwtService;
 
     @InjectMocks
-    AuthenticationServiceImpl authenticationService;
+    private AuthenticationServiceImpl authenticationService;
 
     @Test
     void registerUser_ShouldSaveUser_WhenEmailIsUnique() {
@@ -103,7 +103,7 @@ public class AuthenticationServiceImplTest {
         assertThrows(UsernameNotFoundException.class,
                 () -> authenticationService.loginUser(loginRequest));
 
-        verify(authenticationManager, times(1)).authenticate(any());
+        verify(authenticationManager, never()).authenticate(any());
         verify(jwtService, never()).generateToken(anyString());
     }
 }
