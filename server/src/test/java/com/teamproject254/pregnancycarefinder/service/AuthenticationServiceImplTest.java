@@ -20,7 +20,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
@@ -104,7 +103,7 @@ public class AuthenticationServiceImplTest {
         assertThrows(ResourceNotFoundException.class,
                 () -> authenticationService.loginUser(loginRequest));
 
-        verify(authenticationManager, never()).authenticate(any());
+        verify(authenticationManager, times(1)).authenticate(any());
         verify(jwtService, never()).generateToken(anyString());
     }
 }
