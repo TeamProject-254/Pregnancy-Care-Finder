@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 import com.teamproject254.pregnancycarefinder.dto.LoginRequest;
 import com.teamproject254.pregnancycarefinder.dto.LoginResponse;
 import com.teamproject254.pregnancycarefinder.dto.RegisterRequest;
+import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
 import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.model.enums.Role;
 import com.teamproject254.pregnancycarefinder.repository.UserRepository;
@@ -100,7 +101,7 @@ public class AuthenticationServiceImplTest {
 
         when(userRepository.findByEmail(loginRequest.email())).thenReturn(Optional.empty());
 
-        assertThrows(UsernameNotFoundException.class,
+        assertThrows(ResourceNotFoundException.class,
                 () -> authenticationService.loginUser(loginRequest));
 
         verify(authenticationManager, never()).authenticate(any());
