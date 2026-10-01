@@ -17,6 +17,7 @@
   gap: 4px;
   width: 100%;
   max-width: 1440px;
+  text-decoration: none;
 }
 
 .bread__crumbs__span {
@@ -30,11 +31,13 @@
   width: 100%;
   max-width: 1440px;
   display: flex;
+  gap: 40px;
   margin-top: 20px;
 }
 
 .register__form {
-  width: 808px;
+  width: 100%;
+  max-width: 808px;
   outline: 1px solid var(--color-gray-40);
   border-radius: 12px;
   background-color: var(--color-white);
@@ -50,11 +53,13 @@
 
 .form__title {
   @include typo.font-h2;
+  margin: 0;
 }
 
 .form__desc {
   @include typo.font-h5;
   color: var(--color-gray-80);
+  margin: 0;
 }
 
 .role__section {
@@ -66,7 +71,7 @@
   font-weight: 600;
   font-size: 14px;
   margin-bottom: 12px;
-  color: var(--color-gray-100);
+  color: var(--color-gray-90);
 }
 
 .role__cards {
@@ -87,7 +92,7 @@
 
   &.active {
     border-color: var(--color-primary);
-    background-color: rgba(255, 160, 122, 0.05);
+    background-color: var(--color-background);
   }
 }
 
@@ -101,7 +106,7 @@
 .role__title {
   font-weight: 600;
   font-size: 14px;
-  color: var(--color-gray-100);
+  color: var(--color-gray-90);
 }
 
 .role__desc {
@@ -117,6 +122,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: border-color 0.2s ease;
 
   .active & {
     border-color: var(--color-primary);
@@ -149,15 +155,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 4px;
 }
 
 .checkbox__block {
   margin-top: 24px;
 }
 
+.checkbox__error {
+  color: var(--color-error);
+  font-size: 12px;
+  margin-top: 4px;
+  display: block;
+}
+
 .policy__link {
   text-decoration: underline;
-  color: var(--color-gray-100);
+  color: var(--color-gray-90);
 }
 
 .action__block {
@@ -179,6 +193,16 @@
   border-radius: 12px;
   border: none;
   cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-primary--second);
+  }
+  
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
 }
 
 .login__redirect {
@@ -192,6 +216,7 @@
   position: relative;
   color: var(--color-primary--second);
   cursor: pointer;
+  text-decoration: none;
 
   &::after {
     content: "";
@@ -203,7 +228,6 @@
     transform: scaleX(0);
     transform-origin: center;
     background-color: var(--color-primary--second);
-
     @include smooth-transition(transform);
   }
 
@@ -219,13 +243,20 @@
   flex-direction: column;
   gap: 24px;
   position: relative;
-  z-index: -1;
+  z-index: 1;
   max-width: 500px;
-  height: 728px;
-  width: 524px;
+  width: 100%;
 }
 
 .img__title {
   @include typo.font-h3;
+  text-align: center;
+  margin: 0;
+}
+
+.server__error {
+  color: var(--color-error);
+  font-size: 14px;
+  margin-top: 16px;
   text-align: center;
 }
