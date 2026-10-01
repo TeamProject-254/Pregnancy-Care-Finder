@@ -20,3 +20,13 @@ $transition-timing-default: ease !default;
 
   transition: $transitions;
 }
+
+@mixin grid-container {
+  display: grid;
+  grid-template-columns: repeat(12, 80px);
+  column-gap: 24px;
+  max-width: 1224px;
+  width: 100%;
+  margin-inline: auto;
+  box-sizing: border-box;
+}

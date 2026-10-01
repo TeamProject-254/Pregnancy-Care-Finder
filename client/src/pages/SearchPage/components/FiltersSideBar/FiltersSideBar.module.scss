@@ -1,0 +1,80 @@
+@use "../../../../styles/typography" as typo;
+
+.filter {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  grid-column: span 4;
+
+  &__top {
+    display: flex;
+    width: 100%;
+    height: 34px;
+    justify-content: space-between;
+    align-items: center;
+    padding-inline: 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  &__title {
+    @include typo.font-h4;
+    color: var(--color-gray-90);
+  }
+
+  &__icon {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &Closed {
+      transform: rotate(180deg);
+    }
+  }
+  &__collapse {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &Open {
+      grid-template-rows: 1fr;
+    }
+  }
+
+  &__collapseInner {
+    overflow: hidden;
+  }
+
+  &__main {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-radius: 12px;
+    padding: 12px;
+    border: 1px solid var(--color-gray-40);
+  }
+
+  &__divider {
+    width: 100%;
+    height: 2px;
+    background: var(--color-gray-40);
+  }
+
+  &__button__clear {
+    @include typo.font-button;
+    width: 100%;
+    height: 44px;
+    background-color: var(--color-white);
+    outline: 1px solid var(--color-gray-40);
+    padding: 10px;
+    border-radius: 12px;
+    text-align: center;
+    color: var(--color-gray-90);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background-color: var(--color-gray-10, #f8f9fa);
+    }
+  }
+}

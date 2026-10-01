@@ -1,4 +1,3 @@
-
 import "./App.scss";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { MainLayout } from "./components/MainLayout";
@@ -9,6 +8,7 @@ import { RegisterPage } from "./pages/RegisterPage";
 //import { ProfilePage } from "./pages/ProfilePage/ProfilePage";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { NotFound } from "./pages/NotFoundPage/NotFoundPage";
+import { SearchPage } from "./pages/SearchPage";
 
 const ProtectedRoute = () => {
   const { isAuthenticated } = useAuth();
@@ -32,6 +32,7 @@ const AppRoutes = () => (
     <Route element={<MainLayout />}>
       <Route index element={<HomePage />} />
       <Route path="/doctors/:id" element={<DoctorProfilePage />} />
+      <Route path="/search" element={<SearchPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/profile" element={<NotFound />} />
       </Route>
