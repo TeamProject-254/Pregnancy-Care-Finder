@@ -12,7 +12,9 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  registrationPendingConfirmation: boolean;
   register: (email: string, password: string, role: UserRole) => Promise<void>;
+  completeRegistration: () => void;
   login: (
     email: string,
     password: string,
@@ -44,6 +46,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return null;
     }
   });
+  const [registrationPendingConfirmation, setRegistrationPendingConfirmation] =
+    useState(false);
 
   const login = async (
     email: string,
@@ -77,13 +81,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       role,
     });
 
-    await login(email, password, false);
+    setRegistrationPendingConfirmation(true);
+    try {
+      await login(email, password, false);
+    } catch (error) {
+      setRegistrationPendingConfirmation(false);
+      throw error;
+    }
+  };
+
+  const completeRegistration = () => {
+    setRegistrationPendingConfirmation(false);
   };
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     setUser(null);
+    setRegistrationPendingConfirmation(false);
   };
 
   return (
@@ -91,7 +106,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       value={{
         user,
         isAuthenticated: user !== null,
+        registrationPendingConfirmation,
         register,
+        completeRegistration,
         login,
         logout,
       }}

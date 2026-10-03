@@ -9,6 +9,7 @@ import { TextInput } from "../../components/TextInput/TextInput";
 import { Checkbox } from "../../components/Checkbox/Checkbox";
 import { EyeIcon } from "../../components/icons/EyeIcon";
 import { useAuth } from "../../context/AuthContext";
+import { SuccessModal } from "./components/SuccessModal/SuccessModal";
 
 import arrowLeftIcon from "../../assets/img/arrow-left.svg";
 import authImage from "../../assets/img/auth-image.svg";
@@ -32,8 +33,12 @@ export const RegisterPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [serverError, setServerError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  const { register: registerUser } = useAuth();
+  const {
+    register: registerUser,
+    completeRegistration,
+  } = useAuth();
   const navigate = useNavigate();
 
   const {
@@ -62,7 +67,13 @@ export const RegisterPage = () => {
     try {
       const role = data.role === "patient" ? "PATIENT" : "PROVIDER";
       await registerUser(data.email, data.password, role);
-      navigate("/profile", { replace: true });
+
+      if (role === "PATIENT") {
+        setShowSuccessModal(true);
+      } else {
+        completeRegistration();
+        navigate("/profile", { replace: true });
+      }
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const responseData = error.response?.data as
@@ -81,13 +92,11 @@ export const RegisterPage = () => {
           setServerError("This email is already registered.");
         } else if (error.response?.status === 400) {
           setServerError("Invalid registration data. Please check your details.");
-        } else if (!error.response) {
-          setServerError("Cannot connect to server. Please try again.");
         } else {
-          setServerError("Registration failed. Please try again.");
+          setServerError("Failed to create an account; please try again later.");
         }
       } else {
-        setServerError("Something went wrong.");
+        setServerError("Failed to create an account; please try again later.");
       }
     } finally {
       setIsLoading(false);
@@ -351,6 +360,15 @@ export const RegisterPage = () => {
       </main>
 
       <Footer />
+
+      {showSuccessModal && (
+        <SuccessModal
+          onContinue={() => {
+            completeRegistration();
+            navigate("/profile", { replace: true });
+          }}
+        />
+      )}
     </>
   );
 };
