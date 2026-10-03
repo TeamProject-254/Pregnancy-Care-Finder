@@ -98,6 +98,29 @@
   text-align: center;
   color: var(--color-gray-90);
   border-radius: 12px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  outline: none;
+
+  transition:
+    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.15s ease,
+    opacity 0.2s ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-primary--second);
+  }
+
+  &:active:not(:disabled) {
+    background-color: var(--color-primary--second);
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 .create__account__link {
@@ -136,4 +159,11 @@
 
 .img__title {
   @include typo.font-h3;
+}
+
+.server__error {
+  @include typo.font-secondary-bold;
+  color: var(--color-error);
+  margin-top: 16px;
+  text-align: left;
 }

@@ -1,10 +1,4 @@
-
-import {
-  createContext,
-  useContext,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 import { api } from "../api/axios";
 
 export type UserRole = "PATIENT" | "PROVIDER";
@@ -18,18 +12,16 @@ interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  register: (
+  register: (email: string, password: string, role: UserRole) => Promise<void>;
+  login: (
     email: string,
     password: string,
-    role: UserRole
+    rememberMe: boolean,
   ) => Promise<void>;
-  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(
-  undefined
-);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -53,10 +45,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   });
 
-  const login = async (email: string, password: string) => {
+  const login = async (
+    email: string,
+    password: string,
+    rememberMe: boolean,
+  ) => {
     const response = await api.post("/auth/login", {
       email,
       password,
+      rememberMe,
     });
 
     const data = response.data;
@@ -73,18 +70,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setUser(loggedUser);
   };
 
-  const register = async (
-    email: string,
-    password: string,
-    role: UserRole
-  ) => {
+  const register = async (email: string, password: string, role: UserRole) => {
     await api.post("/auth/register", {
       email,
       password,
       role,
     });
 
-    await login(email, password);
+    await login(email, password, false);
   };
 
   const logout = () => {

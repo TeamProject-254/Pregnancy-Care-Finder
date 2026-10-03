@@ -35,21 +35,21 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
               {rightElement}
             </div>
           )}
-        </div>
 
-        {error && (
-          <div className={styles.inputGroup__errorWrapper}>
-            <img
-              src={cautionIcon}
-              alt="Error"
-              className={styles.inputGroup__cautionIcon}
-            />
-            <span className={styles.inputGroup__errorMessage}>{error}</span>
-          </div>
-        )}
+          {error && (
+            <div className={styles.inputGroup__errorBadge}>
+              <img
+                src={cautionIcon}
+                alt="Error"
+                className={styles.inputGroup__cautionIcon}
+              />
+              <span className={styles.inputGroup__errorMessage}>{error}</span>
+            </div>
+          )}
+        </div>
       </div>
     );
-  }
+  },
 );
 
 TextInput.displayName = "TextInput";

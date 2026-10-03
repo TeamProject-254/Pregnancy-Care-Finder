@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Footer } from "../../components/Footer";
 import { Header } from "../../components/Header";
 import arrowLeftIcon from "../../assets/img/arrow-left.svg";
@@ -9,6 +9,8 @@ import authImage from "../../assets/img/auth-image.svg";
 import { EyeIcon } from "../../components/icons/EyeIcon";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useState } from "react";
+import { useAuth } from "../../context/AuthContext";
+import { isAxiosError } from "axios";
 
 interface LoginFormInputs {
   email: string;
@@ -17,7 +19,13 @@ interface LoginFormInputs {
 }
 
 export const LoginPage = () => {
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [serverError, setServerError] = useState<string>("");
+
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
   const {
     register,
     handleSubmit,
@@ -30,8 +38,25 @@ export const LoginPage = () => {
     },
   });
 
-  const onSubmit: SubmitHandler<LoginFormInputs> = (data) => {
-    console.log(data);
+  const onSubmit: SubmitHandler<LoginFormInputs> = async (data) => {
+    setIsLoading(true);
+    setServerError("");
+
+    try {
+      await login(data.email, data.password, data.rememberMe);
+      navigate("/");
+    } catch (err) {
+      if (isAxiosError(err)) {
+        setServerError(
+          err.response?.data?.message ||
+            "Invalid email or password. Please try again.",
+        );
+      } else {
+        setServerError("Something went wrong. Please try again later.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -99,6 +124,9 @@ export const LoginPage = () => {
                 }
               />
             </div>
+            <p className={styles.server__error} role="alert">
+              {serverError}
+            </p>
 
             <div className={styles.checkbox__block}>
               <Checkbox
@@ -112,7 +140,15 @@ export const LoginPage = () => {
             </div>
 
             <div className={styles.login__block}>
-              <button className={styles.login__button}>Log in</button>
+              <button
+                className={styles.login__button}
+                type="submit"
+                disabled={
+                  isLoading || Boolean(errors.email) || Boolean(errors.password)
+                }
+              >
+                {isLoading ? "Logging in..." : "Log in"}
+              </button>
               <div className={styles.create__account__block}>
                 <span>Don’t have an account? </span>
                 <Link className={styles.create__account__link} to="/register">

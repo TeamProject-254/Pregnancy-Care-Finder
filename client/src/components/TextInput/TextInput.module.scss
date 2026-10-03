@@ -9,6 +9,7 @@
   &__label {
     font-size: 14px;
     font-weight: 500;
+    color: var(--color-gray-90);
   }
 
   &__fieldWrapper {
@@ -25,6 +26,7 @@
     border: 1px solid var(--color-gray-40);
     border-radius: 12px;
     color: var(--color-gray-90);
+    background-color: var(--color-white);
     outline: none;
     height: 60px;
     transition: border-color 0.2s ease;
@@ -59,11 +61,18 @@
     justify-content: center;
   }
 
-  &__errorWrapper {
-    display: flex;
+  &__errorBadge {
+    position: absolute;
+    left: 16px;
+    bottom: 0;
+    transform: translateY(50%);
+    background-color: var(--color-white);
+    padding: 0 6px;
+    display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin-top: 4px;
+    pointer-events: none;
+    z-index: 1;
   }
 
   &__cautionIcon {
@@ -73,8 +82,9 @@
   }
 
   &__errorMessage {
-    font-size: 12px;
-    color: var(--color-error);
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--color-gray-90);
     line-height: 1;
   }
 }
