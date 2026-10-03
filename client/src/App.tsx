@@ -1,5 +1,5 @@
 import "./App.scss";
-import { Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
 import { MainLayout } from "./components/MainLayout";
 import { HomePage } from "./pages/HomePage/HomePage";
 //import { DoctorProfilePage } from "./pages/DoctorPage";
@@ -17,9 +17,16 @@ const ProtectedRoute = () => {
 };
 
 const PublicRoute = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, registrationPendingConfirmation } = useAuth();
+  const location = useLocation();
+  const showingRegistrationConfirmation =
+    location.pathname === "/register" && registrationPendingConfirmation;
 
-  return isAuthenticated ? <Navigate to="/profile" replace /> : <Outlet />;
+  return isAuthenticated && !showingRegistrationConfirmation ? (
+    <Navigate to="/profile" replace />
+  ) : (
+    <Outlet />
+  );
 };
 
 const AppRoutes = () => (

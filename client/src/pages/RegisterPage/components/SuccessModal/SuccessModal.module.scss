@@ -1,0 +1,90 @@
+@use "../../../../styles/typography" as typo;
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.4); 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal {
+  background-color: var(--color-white);
+  padding: 48px;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+.icon__wrapper {
+  margin-bottom: 24px;
+  
+  img {
+    display: block;
+    width: 100px;
+    height: 100px;
+  }
+}
+
+.title {
+  @include typo.font-h2;
+  margin: 0 0 16px 0;
+  color: var(--color-gray-90);
+}
+
+.desc {
+  @include typo.font-h5;
+  color: var(--color-gray-80);
+  margin: 0 0 32px 0;
+  line-height: 1.5;
+}
+
+.actions {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.button {
+  @include typo.font-button;
+  width: 100%;
+  height: 44px;
+  background-color: var(--color-primary);
+  color: var(--color-gray-90);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: var(--color-primary--second);
+  }
+}
+
+.button__back {
+  @include typo.font-button;
+  width: 100%;
+  height: 44px;
+  background-color: transparent;
+  color: var(--color-gray-90);
+  border: 1px solid var(--color-primary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: var(--color-background); /* Або інший світлий відтінок на ховер */
+    border-color: var(--color-primary--second);
+  }
+}
