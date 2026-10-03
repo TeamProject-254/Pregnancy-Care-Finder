@@ -1,0 +1,151 @@
+@use "../../../../styles/typography" as typo;
+
+.card {
+  width: 100%;
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-20);
+  border-radius: 16px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.imageWrapper {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  background-color: var(--color-gray-10, #f8f9fa);
+  overflow: hidden;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.badge {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  padding: 6px 12px;
+  border-radius: 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+
+  &Dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--color-success);
+  }
+
+  &Text {
+    @include typo.font-secondary;
+    font-weight: 600;
+    color: var(--color-gray-90);
+  }
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
+  padding: 12px;
+}
+
+.mainInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.name {
+  @include typo.font-h4;
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--color-gray-90);
+  margin: 0;
+}
+
+.specialty {
+  @include typo.font-main;
+  color: var(--color-gray-90);
+  margin-top: 4px;
+}
+
+.focusAreas {
+  margin-top: 16px;
+}
+
+.focusTitle {
+  @include typo.font-secondary;
+  font-weight: 700;
+  color: var(--color-gray-90);
+  margin: 0 0 6px 0;
+}
+
+.focusList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.focusItem {
+  @include typo.font-secondary;
+  color: var(--color-gray-90);
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-gray-20);
+}
+
+.priceContainer {
+  @include typo.font-button;
+  display: flex;
+  align-items: baseline;
+  color: var(--color-gray-90);
+}
+
+.bookButton {
+  @include typo.font-button;
+  background-color: var(--color-primary);
+  color: var(--color-gray-90);
+  border: none;
+  border-radius: 12px;
+  padding: 10px 32px;
+  cursor: pointer;
+  transition:
+    opacity 0.2s ease,
+    background-color 0.2s ease;
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}

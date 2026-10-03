@@ -1,8 +1,6 @@
 package com.teamproject254.pregnancycarefinder.security;
 
-import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
-import io.github.bucket4j.Refill;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,5 +22,4 @@ public class RateLimiterService {
                         .refillIntervally(5, Duration.ofMinutes(1)))
                 .build();
     }
-
 }

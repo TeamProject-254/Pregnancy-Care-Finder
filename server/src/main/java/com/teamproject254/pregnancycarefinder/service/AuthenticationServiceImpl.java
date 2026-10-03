@@ -3,13 +3,13 @@ package com.teamproject254.pregnancycarefinder.service;
 import com.teamproject254.pregnancycarefinder.dto.LoginRequest;
 import com.teamproject254.pregnancycarefinder.dto.LoginResponse;
 import com.teamproject254.pregnancycarefinder.dto.RegisterRequest;
+import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
 import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.repository.UserRepository;
 import com.teamproject254.pregnancycarefinder.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +42,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public LoginResponse loginUser(LoginRequest loginRequest) {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -51,10 +52,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         );
 
         var user = userRepository.findByEmail(loginRequest.email())
-                .orElseThrow(()-> new UsernameNotFoundException("The user wasn't found"));
+                .orElseThrow(()-> new ResourceNotFoundException("The user wasn't found"));
 
         String token = jwtService.generateToken(user.getEmail());
 
-        return new LoginResponse(token);
+        return new LoginResponse(token,
+                user.getId(),
+                user.getEmail(),
+                user.getRole());
     }
 }

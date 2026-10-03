@@ -1,11 +1,9 @@
 package com.teamproject254.pregnancycarefinder.security;
 
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
-import java.security.Key;
 import java.util.Date;
 import java.util.function.Function;
 import javax.crypto.SecretKey;
@@ -16,12 +14,11 @@ import org.springframework.stereotype.Service;
 public class JwtService {
 
     private final SecretKey secret;
+    private final long expirationSeconds;
 
-    @Value("${jwt.expiration}")
-    private long expirationSeconds;
-
-    public JwtService(@Value("${jwt.secret}") String secretString) {
+    public JwtService(@Value("${jwt.secret}") String secretString, @Value("${jwt.expiration}") long expirationSeconds) {
         this.secret = Keys.hmacShaKeyFor(secretString.getBytes(StandardCharsets.UTF_8));
+        this.expirationSeconds = expirationSeconds;
     }
 
     public String generateToken(String email) {

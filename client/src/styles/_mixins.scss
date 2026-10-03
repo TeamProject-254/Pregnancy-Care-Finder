@@ -1,0 +1,32 @@
+@use "sass:list";
+
+$transition-duration-default: 0.2s !default;
+$transition-timing-default: ease !default;
+
+@mixin smooth-transition(
+  $properties: all,
+  $duration: $transition-duration-default,
+  $timing: $transition-timing-default
+) {
+  $transitions: ();
+
+  @each $prop in $properties {
+    $transitions: list.append(
+      $transitions,
+      $prop $duration $timing,
+      $separator: comma
+    );
+  }
+
+  transition: $transitions;
+}
+
+@mixin grid-container {
+  display: grid;
+  grid-template-columns: repeat(12, 80px);
+  column-gap: 24px;
+  max-width: 1224px;
+  width: 100%;
+  margin-inline: auto;
+  box-sizing: border-box;
+}

@@ -60,6 +60,7 @@ public class Provider {
 
     @Column(name = "license_number", nullable = false)
     private String licenseNumber;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "provider_languages",
@@ -71,5 +72,6 @@ public class Provider {
 
     @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<Service> services = new ArrayList<>();
+    private List<MedicalService> services = new ArrayList<>();
+
 }

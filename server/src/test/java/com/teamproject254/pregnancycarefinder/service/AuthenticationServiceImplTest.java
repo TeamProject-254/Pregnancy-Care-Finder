@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 import com.teamproject254.pregnancycarefinder.dto.LoginRequest;
 import com.teamproject254.pregnancycarefinder.dto.LoginResponse;
 import com.teamproject254.pregnancycarefinder.dto.RegisterRequest;
+import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
 import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.model.enums.Role;
 import com.teamproject254.pregnancycarefinder.repository.UserRepository;
@@ -19,7 +20,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,7 +38,7 @@ public class AuthenticationServiceImplTest {
     private JwtService jwtService;
 
     @InjectMocks
-    AuthenticationServiceImpl authenticationService;
+    private AuthenticationServiceImpl authenticationService;
 
     @Test
     void registerUser_ShouldSaveUser_WhenEmailIsUnique() {
@@ -75,6 +75,7 @@ public class AuthenticationServiceImplTest {
     void loginUser_ShouldReturnToken_WhenCredentialsAreValid() {
         LoginRequest loginRequest = new LoginRequest("test@example.com", "Password123!");
         User user = User.builder()
+                .id(1L)
                 .email("test@example.com")
                 .password("encodedPassword")
                 .role(Role.PATIENT)
@@ -87,6 +88,9 @@ public class AuthenticationServiceImplTest {
 
         assertNotNull(loginResponse);
         assertEquals("mock-jwt-token", loginResponse.token());
+        assertEquals(1L, loginResponse.userId());
+        assertEquals("test@example.com", loginResponse.email());
+        assertEquals(Role.PATIENT, loginResponse.role());
         verify(authenticationManager, times(1)).authenticate(any(UsernamePasswordAuthenticationToken.class));
     }
 
@@ -96,7 +100,7 @@ public class AuthenticationServiceImplTest {
 
         when(userRepository.findByEmail(loginRequest.email())).thenReturn(Optional.empty());
 
-        assertThrows(UsernameNotFoundException.class,
+        assertThrows(ResourceNotFoundException.class,
                 () -> authenticationService.loginUser(loginRequest));
 
         verify(authenticationManager, times(1)).authenticate(any());

@@ -2,11 +2,19 @@
   font-family: var(--font-family-base);
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   box-sizing: border-box;
   width: 100%;
-  background-color: var(--color-white);
+  background-color: var(--color-background);
   padding: 1rem 4rem 2rem;
+
+  &__content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: 1224px;
+  }
 
   &__logo {
     font-size: 32px;
@@ -18,21 +26,25 @@
     a {
       text-decoration: none;
       color: var(--color-gray-90);
-      padding-left: 5px;
+      padding-left: 10px;
+
+      span {
+        color: var(--color-primary--second);
+      }
     }
   }
 
   &__left-section {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 2rem;
     white-space: nowrap;
   }
 
   &__nav {
     display: flex;
     align-items: center;
-    gap: 2rem;
+    gap: 1.5rem;
     white-space: nowrap;
   }
 
@@ -49,48 +61,53 @@
   }
 
   &__button {
-    background-color: var(--color-gray-40);
-    padding: 0.5rem 0.85rem;
+    padding: 0.5rem 1rem;
     border-radius: 8px;
     color: var(--color-gray-90);
-    font-size: 20px;
+    font-size: 18px;
+    text-decoration: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     font-weight: 500;
     white-space: nowrap;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    border: 1px solid var(--color-primary--second);
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
 
     &:hover {
-      background-color: var(--color-gray-20);
-      color: var(--color-gray-70);
+      background-color: #F2D4CF;
     }
   }
 
   &__profile {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     text-decoration: none;
     color: var(--color-gray-90);
     font-size: 18px;
     font-weight: 500;
     white-space: nowrap;
-    transition: color 0.3s ease;
+    border: 1px solid transparent;
+
+    background-color: var(--color-primary);
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    transition:
+      border-color 0.3s ease,
+      opacity 0.3s ease;
 
     img {
-      width: 24px;
-      height: 24px;
+      width: 20px;
+      height: 20px;
       display: block;
-      transition: opacity 0.3s ease;
     }
 
     &:hover {
-      color: var(--color-gray-70);
-
-      img {
-        opacity: 0.6;
-      }
+      border-color: var(--color-primary--second);
     }
   }
 }

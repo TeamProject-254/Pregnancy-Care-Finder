@@ -24,9 +24,8 @@ export const Footer = () => {
       </div>
 
       <nav className={styles.footer__nav}>
-        <NavLink to="/search" className={styles.footer__link}>Search</NavLink>
-        <NavLink to="/about" className={styles.footer__link}>About Us</NavLink>
         <a href="tel:+380123456789" className={styles.footer__link}>Contact Us</a>
+        <NavLink to="/about" className={styles.footer__link}>Privacy Policy</NavLink>
       </nav>
 
       <div className={styles.footer__info}>
@@ -36,7 +35,6 @@ export const Footer = () => {
         </p>
         <nav className={styles.footer__nav}>
           <NavLink to="/terms" className={styles.footer__link}>Terms of Service</NavLink>
-          <NavLink to="/privacy" className={styles.footer__link}>Privacy Policy</NavLink>
         </nav>
       </div>
     </footer>

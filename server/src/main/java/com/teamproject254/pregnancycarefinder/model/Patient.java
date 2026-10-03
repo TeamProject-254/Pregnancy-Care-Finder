@@ -51,5 +51,6 @@ public class Patient {
     private Integer pregnancyWeek;
 
     @Column(name = "explicit_consent", nullable = false)
-    private Boolean explicitConsent;
+    @Builder.Default
+    private Boolean explicitConsent = false;
 }
