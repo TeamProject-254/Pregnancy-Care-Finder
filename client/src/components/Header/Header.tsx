@@ -24,7 +24,7 @@ export const Header: React.FC<HeaderProps> = ({ isLinksShown = true }) => {
       <div className={styles.header__content}>
         <div className={styles.header__logo}>
           <img src={iconLogo} alt="Logo" />
-          <Link to="/">Pregnancy Care Finder</Link>
+          <Link to="/">Pregnancy <span>Care</span> Finder</Link>
         </div>
 
         {isLinksShown && (

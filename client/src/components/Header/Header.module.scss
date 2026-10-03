@@ -27,6 +27,10 @@
       text-decoration: none;
       color: var(--color-gray-90);
       padding-left: 10px;
+
+      span {
+        color: var(--color-primary--second);
+      }
     }
   }
 
@@ -57,7 +61,6 @@
   }
 
   &__button {
-    background-color: var(--color-gray-1);
     padding: 0.5rem 1rem;
     border-radius: 8px;
     color: var(--color-gray-90);
@@ -68,12 +71,13 @@
     justify-content: center;
     font-weight: 500;
     white-space: nowrap;
+    border: 1px solid var(--color-primary--second);
     transition:
       background-color 0.3s ease,
       color 0.3s ease;
 
     &:hover {
-      background-color: var(--color-gray-20);
+      background-color: #F2D4CF;
     }
   }
 
@@ -87,12 +91,13 @@
     font-size: 18px;
     font-weight: 500;
     white-space: nowrap;
+    border: 1px solid transparent;
 
     background-color: var(--color-primary);
     padding: 0.5rem 1.25rem;
     border-radius: 8px;
     transition:
-      background-color 0.3s ease,
+      border-color 0.3s ease,
       opacity 0.3s ease;
 
     img {
@@ -102,7 +107,7 @@
     }
 
     &:hover {
-      background-color: var(--color-primary--second);
+      border-color: var(--color-primary--second);
     }
   }
 }

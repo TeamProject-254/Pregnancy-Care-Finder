@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import styles from "./SearchFrom.module.scss";
 import locationIcon from "../../assets/img/location-icon.svg";
 import doctorIcon from "../../assets/img/doctor-icon.svg";
@@ -9,9 +9,34 @@ interface SearchFormProps {
 }
 
 export const SearchForm: React.FC<SearchFormProps> = ({ className }) => {
-  const [specialty, setSpecialty] = useState("");
-  const [location, setLocation] = useState("");
+  const [searchParams] = useSearchParams();
+  const specialty = searchParams.get("specialty") || "";
+  const location = searchParams.get("location") || "";
+
+  return (
+    <SearchFormFields
+      key={JSON.stringify([specialty, location])}
+      className={className}
+      initialSpecialty={specialty}
+      initialLocation={location}
+    />
+  );
+};
+
+interface SearchFormFieldsProps extends SearchFormProps {
+  initialSpecialty: string;
+  initialLocation: string;
+}
+
+const SearchFormFields: React.FC<SearchFormFieldsProps> = ({
+  className,
+  initialSpecialty,
+  initialLocation,
+}) => {
   const navigate = useNavigate();
+
+  const [specialty, setSpecialty] = useState(initialSpecialty);
+  const [location, setLocation] = useState(initialLocation);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +45,7 @@ export const SearchForm: React.FC<SearchFormProps> = ({ className }) => {
     if (specialty.trim()) params.append("specialty", specialty.trim());
     if (location.trim()) params.append("location", location.trim());
 
-    navigate(`/?${params.toString()}`);
+    navigate(`/search?${params.toString()}`);
   };
 
   return (

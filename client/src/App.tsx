@@ -2,7 +2,7 @@ import "./App.scss";
 import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { MainLayout } from "./components/MainLayout";
 import { HomePage } from "./pages/HomePage/HomePage";
-import { DoctorProfilePage } from "./pages/DoctorPage";
+//import { DoctorProfilePage } from "./pages/DoctorPage";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
 //import { ProfilePage } from "./pages/ProfilePage/ProfilePage";
@@ -31,7 +31,7 @@ const AppRoutes = () => (
 
     <Route element={<MainLayout />}>
       <Route index element={<HomePage />} />
-      <Route path="/doctors/:id" element={<DoctorProfilePage />} />
+      {/* <Route path="/doctors/:id" element={<DoctorProfilePage />} /> */}
       <Route path="/search" element={<SearchPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/profile" element={<NotFound />} />
