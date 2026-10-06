@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 import com.teamproject254.pregnancycarefinder.dto.LoginRequest;
 import com.teamproject254.pregnancycarefinder.dto.LoginResponse;
 import com.teamproject254.pregnancycarefinder.dto.RegisterRequest;
+import com.teamproject254.pregnancycarefinder.exception.ResourceAlreadyExistsException;
 import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
 import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.model.enums.Role;
@@ -19,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -43,7 +45,7 @@ public class AuthenticationServiceImplTest {
     @Test
     void registerUser_ShouldSaveUser_WhenEmailIsUnique() {
 
-        RegisterRequest registerRequest = new RegisterRequest("test@example.com", "Password123!", Role.PATIENT);
+        RegisterRequest registerRequest = new RegisterRequest("test@example.com", "Password123!", "Password123!", Role.PATIENT, true);
 
         when(userRepository.existsByEmail(registerRequest.email())).thenReturn(false);
         when(passwordEncoder.encode(registerRequest.password())).thenReturn("encodedPassword");
@@ -60,11 +62,11 @@ public class AuthenticationServiceImplTest {
 
     @Test
     void registerUser_ShouldThrowException_WhenEmailAlreadyExist() {
-        RegisterRequest registerRequest = new RegisterRequest("test@example.com", "Password123!", Role.PATIENT);
+        RegisterRequest registerRequest = new RegisterRequest("test@example.com", "Password123!", "Password123!", Role.PATIENT, true);
 
         when(userRepository.existsByEmail(registerRequest.email())).thenReturn(true);
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, ()->
+        ResourceAlreadyExistsException exception = assertThrows(ResourceAlreadyExistsException.class, ()->
                 authenticationService.registerUser(registerRequest));
 
         assertEquals("User with this email already exist", exception.getMessage());
@@ -72,8 +74,25 @@ public class AuthenticationServiceImplTest {
     }
 
     @Test
+    void registerUser_ShouldThrowException_WhenPasswordsDoNotMatch() {
+        RegisterRequest registerRequest = new RegisterRequest(
+                "test@example.com",
+                "Password123!",
+                "DifferentPassword123!",
+                Role.PATIENT,
+                true
+        );
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                authenticationService.registerUser(registerRequest));
+
+        assertEquals("Passwords don't match", exception.getMessage());
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
     void loginUser_ShouldReturnToken_WhenCredentialsAreValid() {
-        LoginRequest loginRequest = new LoginRequest("test@example.com", "Password123!");
+        LoginRequest loginRequest = new LoginRequest("test@example.com", "Password123!", false);
         User user = User.builder()
                 .id(1L)
                 .email("test@example.com")
@@ -96,7 +115,7 @@ public class AuthenticationServiceImplTest {
 
     @Test
     void loginUser_ShouldThrownException_WhenUserNotFoundInDatabase() {
-        LoginRequest loginRequest = new LoginRequest("test@example.com", "Password123!");
+        LoginRequest loginRequest = new LoginRequest("test@example.com", "Password123!", false);
 
         when(userRepository.findByEmail(loginRequest.email())).thenReturn(Optional.empty());
 
@@ -104,6 +123,20 @@ public class AuthenticationServiceImplTest {
                 () -> authenticationService.loginUser(loginRequest));
 
         verify(authenticationManager, times(1)).authenticate(any());
+        verify(jwtService, never()).generateToken(anyString());
+    }
+
+    @Test
+    void loginUser_ShouldThrowException_WhenPasswordIsInvalid() {
+        LoginRequest loginRequest = new LoginRequest("test@example.com", "WrongPassword!", false);
+
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenThrow(new BadCredentialsException("Bad credentials"));
+
+        assertThrows(BadCredentialsException.class,
+                () -> authenticationService.loginUser(loginRequest));
+
+        verify(authenticationManager, times(1)).authenticate(any(UsernamePasswordAuthenticationToken.class));
         verify(jwtService, never()).generateToken(anyString());
     }
 }

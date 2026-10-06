@@ -3,6 +3,7 @@ package com.teamproject254.pregnancycarefinder.service;
 import com.teamproject254.pregnancycarefinder.dto.LoginRequest;
 import com.teamproject254.pregnancycarefinder.dto.LoginResponse;
 import com.teamproject254.pregnancycarefinder.dto.RegisterRequest;
+import com.teamproject254.pregnancycarefinder.exception.ResourceAlreadyExistsException;
 import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
 import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.repository.UserRepository;
@@ -27,7 +28,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Transactional
     public void registerUser(RegisterRequest registerRequest) {
         if(userRepository.existsByEmail(registerRequest.email())) {
-            throw new IllegalArgumentException("User with this email already exist");
+            throw new ResourceAlreadyExistsException("User with this email already exist");
+        }
+
+        if(!registerRequest.password().equals(registerRequest.confirmPassword())) {
+            throw new IllegalArgumentException("Passwords don't match");
         }
 
         String encodedPassword = passwordEncoder.encode(registerRequest.password());

@@ -47,7 +47,7 @@ public class AuthenticationControllerTest {
 
     @Test
     void registerUser_ShouldCallService() {
-        RegisterRequest registerRequest = new RegisterRequest("test@example.com", "Password123!", Role.PATIENT);
+        RegisterRequest registerRequest = new RegisterRequest("test@example.com", "Password123!", "Password123!", Role.PATIENT, true);
         authenticationController.registerUser(registerRequest);
 
         verify(authenticationService, times(1)).registerUser(registerRequest);
@@ -55,7 +55,7 @@ public class AuthenticationControllerTest {
 
     @Test
     void loginUser_ShouldReturnSuccessAndLoginResponse() {
-        LoginRequest loginRequest = new LoginRequest("test@example.com", "Password123!");
+        LoginRequest loginRequest = new LoginRequest("test@example.com", "Password123!", false);
 
         LoginResponse loginResponse = new LoginResponse(
                 "mock-jwt-token",
@@ -82,7 +82,7 @@ public class AuthenticationControllerTest {
 
     @Test
     void loginUser_ShouldThrowException_WhenCredentialsAreInvalid() {
-        LoginRequest loginRequest = new LoginRequest("test@example.com", "Password123!");
+        LoginRequest loginRequest = new LoginRequest("test@example.com", "Password123!", false);
         when(rateLimiterService.resolveBucket(anyString())).thenReturn(bucket);
         when(bucket.tryConsume(1)).thenReturn(true);
         when(authenticationService.loginUser(any(LoginRequest.class))).thenThrow(new BadCredentialsException("Invalid email or password."));
@@ -93,7 +93,7 @@ public class AuthenticationControllerTest {
 
     @Test
     void loginUser_ShouldThrowRateLimitExceededException_WhenLimitExceeded() {
-        LoginRequest loginRequest = new LoginRequest("test@example.com", "Password123!");
+        LoginRequest loginRequest = new LoginRequest("test@example.com", "Password123!", false);
         when(rateLimiterService.resolveBucket(anyString())).thenReturn(bucket);
         when(bucket.tryConsume(1)).thenReturn(false);
 

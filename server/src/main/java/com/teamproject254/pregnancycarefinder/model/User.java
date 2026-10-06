@@ -44,6 +44,9 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Role role;
 
+    @Column(nullable = false)
+    private boolean termsAccepted;
+
     @CreationTimestamp
     @Column(nullable = false, name = "created_at", updatable = false)
     private Instant createdAt;

@@ -14,37 +14,50 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
-        Map<String, String> response = new HashMap<>();
-        response.put("error", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", ex.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
+    public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException ex) {
+        Map<String, String> fieldErrors = new HashMap<>();
         ex.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(),error.getDefaultMessage()));
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
-    }
+                fieldErrors.put(error.getField(), error.getDefaultMessage()));
 
-    @ExceptionHandler(RateLimitExceededException.class)
-    public ResponseEntity<Map<String, String>> handleRateLimitExceeded(RateLimitExceededException ex) {
-        Map<String, String> response = new HashMap<>();
-        response.put("error", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(response);
-    }
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", "Validation failed");
+        response.put("validationErrors", fieldErrors);
 
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<Map<String, String>> handleBadCredentials(BadCredentialsException ex) {
-        Map<String, String> response = new HashMap<>();
-        response.put("error", "Invalid email or password.");
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleResourceNotFound(ResourceNotFoundException ex) {
-        Map<String, String> response = new HashMap<>();
-        response.put("error", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(RateLimitExceededException.class)
+    public ResponseEntity<Map<String, String>> handleRateLimitExceeded(RateLimitExceededException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(ResourceAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleResourceAlreadyExists(ResourceAlreadyExistsException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<Map<String, String>> handleBadCredentials(BadCredentialsException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", "Invalid email or password."));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleGeneralException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "An unexpected error occurred."));
     }
 }

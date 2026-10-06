@@ -8,9 +8,7 @@ import com.teamproject254.pregnancycarefinder.exception.RateLimitExceededExcepti
 import com.teamproject254.pregnancycarefinder.security.RateLimiterService;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -51,9 +49,6 @@ public class AuthenticationController {
 
     @PostMapping("/logout")
     public ResponseEntity<Map<String, String>> logoutUser() {
-        Map<String, String> result = new HashMap<>();
-        result.put("message", "Logged out successfully.");
-        return ResponseEntity.ok(result);
-
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully."));
     }
 }

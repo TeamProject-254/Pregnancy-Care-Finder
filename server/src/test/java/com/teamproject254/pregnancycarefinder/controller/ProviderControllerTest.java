@@ -1,10 +1,10 @@
 package com.teamproject254.pregnancycarefinder.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.teamproject254.pregnancycarefinder.dto.ProviderRequest;
+import com.teamproject254.pregnancycarefinder.dto.ProviderCreateRequest;
 import com.teamproject254.pregnancycarefinder.dto.ProviderResponse;
-import com.teamproject254.pregnancycarefinder.dto.ServiceRequest;
-import com.teamproject254.pregnancycarefinder.dto.ServiceResponse;
+import com.teamproject254.pregnancycarefinder.dto.ProviderUpdateRequest;
+import com.teamproject254.pregnancycarefinder.exception.ResourceAlreadyExistsException;
 import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
 import com.teamproject254.pregnancycarefinder.security.JwtService;
 import com.teamproject254.pregnancycarefinder.service.ProviderService;
@@ -18,17 +18,19 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.security.Principal;
-import java.util.List;
 import java.util.Set;
 
+import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ProviderController.class)
 @AutoConfigureMockMvc(addFilters = false)
-class ProviderControllerTest {
+public class ProviderControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -39,8 +41,8 @@ class ProviderControllerTest {
     @MockBean
     private JwtService jwtService;
 
-    @MockBean private
-    UserDetailsService userDetailsService;
+    @MockBean
+    private UserDetailsService userDetailsService;
 
     @MockBean
     private ProviderService providerService;
@@ -48,13 +50,12 @@ class ProviderControllerTest {
     private final Principal principal = () -> "test@provider.com";
 
     @Test
-    void getProviderProfile_shouldReturn200_whenProfileExists() throws Exception {
+    void getProviderProfile_ShouldReturnProfile_WhenProviderExists() throws Exception {
         String email = "test@provider.com";
         ProviderResponse response = new ProviderResponse(
-                1L, "Dr. Sarah Jenkins", "Obstetrics and Gynecology",
-                "123 Medical Ave, Warsaw", "Mon-Fri 08:00 - 16:00",
-                "Specialized in high-risk pregnancies.", "+48 500 600 700",
-                "MED-987654", Set.of("English", "Polish"), List.of()
+                1L, "Sarah", "Jenkins", "Obstetrician-Gynecologist", 5L,
+                "123456789", "Warsaw", "Gynecology",
+                "Specialized in high-risk pregnancies.", Set.of("pl"), "https://example.com/photo.jpg"
         );
 
         when(providerService.getProviderProfile(email)).thenReturn(response);
@@ -62,14 +63,24 @@ class ProviderControllerTest {
         mockMvc.perform(get("/providers/profile")
                         .principal(principal))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Dr. Sarah Jenkins"));
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.firstName").value("Sarah"))
+                .andExpect(jsonPath("$.lastName").value("Jenkins"))
+                .andExpect(jsonPath("$.professionalRole").value("Obstetrician-Gynecologist"))
+                .andExpect(jsonPath("$.yearsOfExperience").value(5L))
+                .andExpect(jsonPath("$.contactPhone").value("123456789"))
+                .andExpect(jsonPath("$.address").value("Warsaw"))
+                .andExpect(jsonPath("$.specialization").value("Gynecology"))
+                .andExpect(jsonPath("$.description").value("Specialized in high-risk pregnancies."))
+                .andExpect(jsonPath("$.languages", hasItem("pl")))
+                .andExpect(jsonPath("$.photoUrl").value("https://example.com/photo.jpg"));
     }
 
     @Test
-    void getProviderProfile_shouldReturn404_whenProfileNotFound() throws Exception {
+    void getProviderProfile_ShouldReturnNotFound_WhenProviderDoesNotExist() throws Exception {
         String email = "test@provider.com";
-        when(providerService.getProviderProfile(email))
-                .thenThrow(new ResourceNotFoundException("Provider not found"));
+
+        when(providerService.getProviderProfile(email)).thenThrow(new ResourceNotFoundException("Provider profile not found."));
 
         mockMvc.perform(get("/providers/profile")
                         .principal(principal))
@@ -77,51 +88,124 @@ class ProviderControllerTest {
     }
 
     @Test
-    void createOrUpdateProviderProfile_shouldReturn200_whenRequestIsValid() throws Exception {
+    void createProviderProfile_ShouldReturnCreatedProfile_WhenRequestIsValid() throws Exception {
         String email = "test@provider.com";
-        ProviderRequest request = new ProviderRequest(
-                "Dr. Sarah Jenkins", "Obstetrics and Gynecology",
-                "123 Medical Ave, Warsaw", "Mon-Fri 08:00 - 16:00",
-                "Specialized in high-risk pregnancies.", "+48 500 600 700",
-                "MED-987654", Set.of("English"), List.of(new ServiceRequest("Consultation", 30))
+        ProviderCreateRequest request = new ProviderCreateRequest(
+                "Sarah", "Jenkins", "Obstetrician-Gynecologist", 5L,
+                "123456789", "Warsaw", true
         );
-
         ProviderResponse response = new ProviderResponse(
-                1L, "Dr. Sarah Jenkins", "Obstetrics and Gynecology",
-                "123 Medical Ave, Warsaw", "Mon-Fri 08:00 - 16:00",
-                "Specialized in high-risk pregnancies.", "+48 500 600 700",
-                "MED-987654", Set.of("English"), List.of(new ServiceResponse(1L, "Consultation", 30))
+                1L, "Sarah", "Jenkins", "Obstetrician-Gynecologist", 5L,
+                "123456789", "Warsaw", null, null, null, null
         );
 
-        when(providerService.createOrUpdateProviderProfile(eq(email), any(ProviderRequest.class)))
-                .thenReturn(response);
+        when(providerService.createProviderProfile(eq(email), any(ProviderCreateRequest.class))).thenReturn(response);
+
+        mockMvc.perform(post("/providers/profile")
+                        .principal(principal)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.firstName").value("Sarah"))
+                .andExpect(jsonPath("$.lastName").value("Jenkins"))
+                .andExpect(jsonPath("$.professionalRole").value("Obstetrician-Gynecologist"));
+    }
+
+    @Test
+    void createProviderProfile_ShouldReturnBadRequest_WhenValidationFails() throws Exception {
+        ProviderCreateRequest invalidRequest = new ProviderCreateRequest("", "", "", null, "", "", false);
+
+        mockMvc.perform(post("/providers/profile")
+                        .principal(principal)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest());
+
+        verify(providerService, never()).createProviderProfile(any(), any());
+    }
+
+    @Test
+    void createProviderProfile_ShouldReturnConflict_WhenProfileAlreadyExists() throws Exception {
+        String email = "test@provider.com";
+        ProviderCreateRequest request = new ProviderCreateRequest(
+                "Sarah", "Jenkins", "Obstetrician-Gynecologist", 5L,
+                "123456789", "Warsaw", true
+        );
+
+        when(providerService.createProviderProfile(eq(email), any(ProviderCreateRequest.class)))
+                .thenThrow(new ResourceAlreadyExistsException("Provider profile already exists for this email."));
+
+        mockMvc.perform(post("/providers/profile")
+                        .principal(principal)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void createProviderProfile_ShouldReturnBadRequest_WhenConsentNotConfirmed() throws Exception {
+        String email = "test@provider.com";
+        ProviderCreateRequest request = new ProviderCreateRequest(
+                "Sarah", "Jenkins", "Obstetrician-Gynecologist", 5L,
+                "123456789", "Warsaw", false
+        );
+
+        when(providerService.createProviderProfile(eq(email), any(ProviderCreateRequest.class)))
+                .thenThrow(new IllegalArgumentException("Information accuracy consent must be confirmed."));
+
+        mockMvc.perform(post("/providers/profile")
+                        .principal(principal)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void updateProviderProfile_ShouldReturnUpdatedProfile_WhenRequestIsValid() throws Exception {
+        String email = "test@provider.com";
+        ProviderUpdateRequest request = new ProviderUpdateRequest(
+                "Sarah", "Jenkins", "Obstetrician-Gynecologist", 6L,
+                "987654321", "Cracow", "Advanced Gynecology",
+                "Updated description.", Set.of("pl", "en"), "https://example.com/new-photo.jpg"
+        );
+        ProviderResponse response = new ProviderResponse(
+                1L, "Sarah", "Jenkins", "Obstetrician-Gynecologist", 6L,
+                "987654321", "Cracow", "Advanced Gynecology",
+                "Updated description.", Set.of("pl", "en"), "https://example.com/new-photo.jpg"
+        );
+
+        when(providerService.updateProviderProfile(eq(email), any(ProviderUpdateRequest.class))).thenReturn(response);
 
         mockMvc.perform(patch("/providers/profile")
                         .principal(principal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    void getPublicProviderById_shouldReturn404_whenNotFound() throws Exception {
-        Long providerId = 42L;
-        when(providerService.getPublicProviderById(providerId))
-                .thenThrow(new ResourceNotFoundException("Provider not found"));
-
-        mockMvc.perform(get("/providers/{providerId}", providerId))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    void searchProviders_shouldReturnEmptyList_whenNoResultsFound() throws Exception {
-        when(providerService.searchProviders(any(), any(), any(), any()))
-                .thenReturn(List.of());
-
-        mockMvc.perform(get("/providers/search")
-                        .param("location", "NonexistentCity"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.size()").value(0));
+                .andExpect(jsonPath("$.address").value("Cracow"))
+                .andExpect(jsonPath("$.yearsOfExperience").value(6L))
+                .andExpect(jsonPath("$.specialization").value("Advanced Gynecology"))
+                .andExpect(jsonPath("$.description").value("Updated description."))
+                .andExpect(jsonPath("$.languages", hasItem("en")))
+                .andExpect(jsonPath("$.photoUrl").value("https://example.com/new-photo.jpg"));
+    }
+
+    @Test
+    void updateProviderProfile_ShouldReturnNotFound_WhenProviderDoesNotExist() throws Exception {
+        String email = "test@provider.com";
+        ProviderUpdateRequest request = new ProviderUpdateRequest(
+                "Sarah", "Jenkins", "Obstetrician-Gynecologist", 6L,
+                "987654321", "Cracow", "Advanced Gynecology",
+                "Updated description.", Set.of("pl", "en"), "https://example.com/new-photo.jpg"
+        );
+
+        when(providerService.updateProviderProfile(eq(email), any(ProviderUpdateRequest.class)))
+                .thenThrow(new ResourceNotFoundException("Provider profile not found."));
+
+        mockMvc.perform(patch("/providers/profile")
+                        .principal(principal)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNotFound());
     }
 }

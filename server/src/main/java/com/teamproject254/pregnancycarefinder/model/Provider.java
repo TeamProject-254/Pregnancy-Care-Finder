@@ -41,37 +41,49 @@ public class Provider {
     private User user;
 
     @Column(nullable = false)
-    private String name;
+    private String firstName;
 
     @Column(nullable = false)
-    private String specialization;
+    private String lastName;
+
+    @Column(nullable = false)
+    private String professionalRole;
+
+    @Column(name ="years_of_experience", nullable = false)
+    private Long yearsOfExperience;
+
+    @Column(name = "contact_phone", nullable = false)
+    private String contactPhone;
 
     @Column(nullable = false)
     private String address;
 
-    @Column(name = "working_hours", nullable = false)
-    private String workingHours;
+    @Column(nullable = false)
+    private boolean accurateInfoConsent;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "TEXT")
     private String description;
-
-    @Column(name = "contact_info", nullable = false)
-    private String contactInfo;
-
-    @Column(name = "license_number", nullable = false)
-    private String licenseNumber;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "provider_languages",
             joinColumns = @JoinColumn(name = "provider_id")
     )
-    @Column(name = "language", nullable = false)
+    @Column(name = "language")
     @Builder.Default
     private Set<String> languages = new HashSet<>();
+
+    @Column(nullable = false)
+    private String specialization;
+
+    private String photoUrl;
 
     @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<MedicalService> services = new ArrayList<>();
+
+    @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Availability> availabilities = new ArrayList<>();
 
 }
