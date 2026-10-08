@@ -105,7 +105,7 @@ public class PatientServiceImplTest {
         ResourceAlreadyExistsException exception = assertThrows(ResourceAlreadyExistsException.class,
                 () -> patientService.createPatientProfile(email, request));
 
-        assertEquals("Patient profile already exists for this email.", exception.getMessage());
+        assertEquals("Patient profile already exists for this email", exception.getMessage());
         verify(userRepository, never()).findByEmail(any());
         verify(patientRepository, never()).save(any());
     }
@@ -136,7 +136,7 @@ public class PatientServiceImplTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> patientService.createPatientProfile(email, request));
 
-        assertEquals("Explicit consent is required when pregnancy week is set.", exception.getMessage());
+        assertEquals("Explicit consent is required when pregnancy week is set", exception.getMessage());
         verify(patientRepository, never()).save(any());
     }
 
@@ -197,7 +197,7 @@ public class PatientServiceImplTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
                 () -> patientService.updatePatientProfile(email, request));
 
-        assertEquals("Explicit consent is required when pregnancy week is set.", exception.getMessage());
+        assertEquals("Explicit consent is required when pregnancy week is set", exception.getMessage());
         verify(patientMapper, never()).updatePatientFromRequest(any(), any());
         verify(patientRepository, never()).save(any());
     }

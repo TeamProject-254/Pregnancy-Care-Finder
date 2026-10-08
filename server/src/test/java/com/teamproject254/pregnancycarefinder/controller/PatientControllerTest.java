@@ -119,7 +119,7 @@ public class PatientControllerTest {
         PatientCreateRequest request = new PatientCreateRequest("Anna", "Smith", "Warsaw", Set.of("pl"), 12, true);
 
         when(patientService.createPatientProfile(eq(email), any(PatientCreateRequest.class)))
-                .thenThrow(new ResourceAlreadyExistsException("Patient profile already exists for this email."));
+                .thenThrow(new ResourceAlreadyExistsException("Patient profile already exists for this email"));
 
         mockMvc.perform(post("/patients/profile")
                         .principal(principal)
@@ -134,7 +134,7 @@ public class PatientControllerTest {
         PatientCreateRequest request = new PatientCreateRequest("Anna", "Smith", "Warsaw", Set.of("pl"), 12, false);
 
         when(patientService.createPatientProfile(eq(email), any(PatientCreateRequest.class)))
-                .thenThrow(new IllegalArgumentException("Explicit consent is required when pregnancy week is set."));
+                .thenThrow(new IllegalArgumentException("Explicit consent is required when pregnancy week is set"));
 
         mockMvc.perform(post("/patients/profile")
                         .principal(principal)
@@ -169,7 +169,7 @@ public class PatientControllerTest {
         PatientUpdateRequest request = new PatientUpdateRequest(null, null, null, null, 14, false, null);
 
         when(patientService.updatePatientProfile(eq(email), any(PatientUpdateRequest.class)))
-                .thenThrow(new IllegalArgumentException("Explicit consent is required when pregnancy week is set."));
+                .thenThrow(new IllegalArgumentException("Explicit consent is required when pregnancy week is set"));
 
         mockMvc.perform(patch("/patients/profile")
                         .principal(principal)

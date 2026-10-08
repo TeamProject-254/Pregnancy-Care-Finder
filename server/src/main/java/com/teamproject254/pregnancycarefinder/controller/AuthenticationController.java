@@ -12,10 +12,10 @@ import jakarta.validation.Valid;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,26 +29,38 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public void registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
-        authenticationService.registerUser(registerRequest);
+    public LoginResponse registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
+        return authenticationService.registerUser(registerRequest);
     }
+
     @PostMapping("/login")
-    public  ResponseEntity<LoginResponse> loginUser(@Valid @RequestBody LoginRequest loginRequest,
+    public LoginResponse loginUser(@Valid @RequestBody LoginRequest loginRequest,
                                                           HttpServletRequest httpServletRequest) {
 
         String clientIp = httpServletRequest.getRemoteAddr();
         Bucket bucket = rateLimiterService.resolveBucket(clientIp);
 
         if(!bucket.tryConsume(1)) {
-            throw new RateLimitExceededException("Too many login attempts. Please try again in 1 minute.");
+            throw new RateLimitExceededException("Too many login attempts. Please try again in 1 minute");
         }
 
-        LoginResponse loginResponse = authenticationService.loginUser(loginRequest);
-        return ResponseEntity.ok(loginResponse);
+        return authenticationService.loginUser(loginRequest);
+    }
+    @PostMapping("/logout")
+    public Map<String, String> logoutUser() {
+        return Map.of("message", "Logged out successfully");
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<Map<String, String>> logoutUser() {
-        return ResponseEntity.ok(Map.of("message", "Logged out successfully."));
+    @PostMapping("/forgot-password")
+    public Map<String, String> forgotPassword(@RequestParam String email) {
+        authenticationService.createAndSendToken(email);
+        return Map.of("message", "If an account with this email exists, a reset link has been sent");
+    }
+
+    @PostMapping("/reset-password")
+    public Map<String, String> resetPassword(@RequestParam String token,
+                                             @RequestParam String newPassword) {
+        authenticationService.resetPassword(token, newPassword);
+        return Map.of("message", "Password has been reset successfully");
     }
 }

@@ -6,6 +6,7 @@ import com.teamproject254.pregnancycarefinder.dto.LoginRequest;
 import com.teamproject254.pregnancycarefinder.dto.LoginResponse;
 import com.teamproject254.pregnancycarefinder.dto.RegisterRequest;
 import com.teamproject254.pregnancycarefinder.exception.RateLimitExceededException;
+import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
 import com.teamproject254.pregnancycarefinder.model.enums.Role;
 import com.teamproject254.pregnancycarefinder.security.RateLimiterService;
 import com.teamproject254.pregnancycarefinder.service.AuthenticationService;
@@ -17,8 +18,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.BadCredentialsException;
 
@@ -46,38 +45,41 @@ public class AuthenticationControllerTest {
     }
 
     @Test
-    void registerUser_ShouldCallService() {
+    void registerUser_ShouldReturnLoginResponse() {
         RegisterRequest registerRequest = new RegisterRequest("test@example.com", "Password123!", "Password123!", Role.PATIENT, true);
-        authenticationController.registerUser(registerRequest);
+        LoginResponse mockResponse = new LoginResponse("mock-jwt-token", 1L, "test@example.com", Role.PATIENT);
+
+        when(authenticationService.registerUser(registerRequest)).thenReturn(mockResponse);
+
+        LoginResponse response = authenticationController.registerUser(registerRequest);
 
         verify(authenticationService, times(1)).registerUser(registerRequest);
+        assertNotNull(response);
+        assertEquals("mock-jwt-token", response.token());
     }
 
     @Test
     void loginUser_ShouldReturnSuccessAndLoginResponse() {
         LoginRequest loginRequest = new LoginRequest("test@example.com", "Password123!", false);
 
-        LoginResponse loginResponse = new LoginResponse(
+        LoginResponse mockResponse = new LoginResponse(
                 "mock-jwt-token",
                 1L,
                 "test@example.com",
                 Role.PATIENT
-                );
+        );
 
         when(rateLimiterService.resolveBucket(anyString())).thenReturn(bucket);
         when(bucket.tryConsume(1)).thenReturn(true);
-        when(authenticationService.loginUser(any(LoginRequest.class)))
-                .thenReturn(loginResponse);
+        when(authenticationService.loginUser(any(LoginRequest.class))).thenReturn(mockResponse);
 
-        ResponseEntity<LoginResponse> responseEntity =
-                authenticationController.loginUser(loginRequest, request);
+        LoginResponse response = authenticationController.loginUser(loginRequest, request);
 
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        assertEquals("mock-jwt-token", responseEntity.getBody().token());
-        assertEquals(1L, responseEntity.getBody().userId());
-        assertEquals("test@example.com", responseEntity.getBody().email());
-        assertEquals(Role.PATIENT, responseEntity.getBody().role());
+        assertNotNull(response);
+        assertEquals("mock-jwt-token", response.token());
+        assertEquals(1L, response.userId());
+        assertEquals("test@example.com", response.email());
+        assertEquals(Role.PATIENT, response.role());
     }
 
     @Test
@@ -85,7 +87,7 @@ public class AuthenticationControllerTest {
         LoginRequest loginRequest = new LoginRequest("test@example.com", "Password123!", false);
         when(rateLimiterService.resolveBucket(anyString())).thenReturn(bucket);
         when(bucket.tryConsume(1)).thenReturn(true);
-        when(authenticationService.loginUser(any(LoginRequest.class))).thenThrow(new BadCredentialsException("Invalid email or password."));
+        when(authenticationService.loginUser(any(LoginRequest.class))).thenThrow(new BadCredentialsException("Invalid email or password"));
 
         assertThrows(BadCredentialsException.class, () ->
                 authenticationController.loginUser(loginRequest, request));
@@ -104,10 +106,44 @@ public class AuthenticationControllerTest {
 
     @Test
     void logoutUser_ShouldReturnSuccessMessage() {
-        ResponseEntity<Map<String, String>> responseEntity = authenticationController.logoutUser();
+        Map<String, String> response = authenticationController.logoutUser();
 
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        assertEquals("Logged out successfully.", responseEntity.getBody().get("message"));
+        assertNotNull(response);
+        assertEquals("Logged out successfully", response.get("message"));
+    }
+
+    @Test
+    void forgotPassword_ShouldCallServiceAndReturnMessage() {
+        String email = "test@example.com";
+
+        Map<String, String> response = authenticationController.forgotPassword(email);
+
+        verify(authenticationService, times(1)).createAndSendToken(email);
+        assertNotNull(response);
+        assertEquals("If an account with this email exists, a reset link has been sent", response.get("message"));
+    }
+
+    @Test
+    void resetPassword_ShouldThrowException_WhenTokenIsInvalidOrExpired() {
+        String token = "invalid-or-expired-token";
+        String newPassword = "NewPassword123!";
+
+        doThrow(new IllegalArgumentException("Invalid reset token"))
+                .when(authenticationService).resetPassword(token, newPassword);
+
+        assertThrows(IllegalArgumentException.class, () ->
+                authenticationController.resetPassword(token, newPassword));
+    }
+
+    @Test
+    void resetPassword_ShouldCallServiceAndReturnMessage() {
+        String token = "some-reset-token";
+        String newPassword = "NewPassword123!";
+
+        Map<String, String> response = authenticationController.resetPassword(token, newPassword);
+
+        verify(authenticationService, times(1)).resetPassword(token, newPassword);
+        assertNotNull(response);
+        assertEquals("Password has been reset successfully", response.get("message"));
     }
 }

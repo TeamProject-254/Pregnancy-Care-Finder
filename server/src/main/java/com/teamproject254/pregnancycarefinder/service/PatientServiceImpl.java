@@ -27,22 +27,22 @@ public class PatientServiceImpl implements PatientService{
     @Transactional(readOnly = true)
     public PatientResponse getPatientProfile(String email) {
        Patient patient = patientRepository.findByUserEmail(email)
-               .orElseThrow(() -> new ResourceNotFoundException("Patient not found."));
+               .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
        return patientMapper.toResponse(patient);
     }
 
     @Override
     public PatientResponse createPatientProfile(String email, PatientCreateRequest request) {
         if (patientRepository.existsByUserEmail(email)) {
-            throw new ResourceAlreadyExistsException("Patient profile already exists for this email.");
+            throw new ResourceAlreadyExistsException("Patient profile already exists for this email");
         }
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: ." + email));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
         boolean hasConsent = Boolean.TRUE.equals(request.explicitConsent());
         if (request.pregnancyWeek() != null && !hasConsent) {
-            throw new IllegalArgumentException("Explicit consent is required when pregnancy week is set.");
+            throw new IllegalArgumentException("Explicit consent is required when pregnancy week is set");
         }
 
         Patient patient = patientMapper.toEntity(request);
@@ -55,7 +55,7 @@ public class PatientServiceImpl implements PatientService{
     @Override
     public PatientResponse updatePatientProfile(String email, PatientUpdateRequest request) {
         Patient patient = patientRepository.findByUserEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Patient not found."));
+                .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
 
         Integer effectiveWeek = request.pregnancyWeek() != null
                 ? request.pregnancyWeek()
@@ -66,7 +66,7 @@ public class PatientServiceImpl implements PatientService{
                 : patient.getExplicitConsent();
 
         if (effectiveWeek != null && !effectiveConsent) {
-            throw new IllegalArgumentException("Explicit consent is required when pregnancy week is set.");
+            throw new IllegalArgumentException("Explicit consent is required when pregnancy week is set");
         }
 
         patientMapper.updatePatientFromRequest(request, patient);

@@ -6,7 +6,11 @@ import com.teamproject254.pregnancycarefinder.dto.RegisterRequest;
 
 public interface AuthenticationService {
 
-    void registerUser(RegisterRequest registerRequest);
+    LoginResponse registerUser(RegisterRequest registerRequest);
 
     LoginResponse loginUser(LoginRequest loginRequest);
+
+    void createAndSendToken(String email);
+
+    void resetPassword(String token, String newPassword);
 }

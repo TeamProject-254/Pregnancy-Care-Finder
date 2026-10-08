@@ -8,8 +8,15 @@ import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundExceptio
 import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.repository.UserRepository;
 import com.teamproject254.pregnancycarefinder.security.JwtService;
+import java.time.LocalDateTime;
+import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,18 +24,22 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final JavaMailSender javaMailSender;
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     @Override
-    @Transactional
-    public void registerUser(RegisterRequest registerRequest) {
+    public LoginResponse registerUser(RegisterRequest registerRequest) {
         if(userRepository.existsByEmail(registerRequest.email())) {
-            throw new ResourceAlreadyExistsException("User with this email already exist");
+            throw new ResourceAlreadyExistsException("User with this email already exists");
         }
 
         if(!registerRequest.password().equals(registerRequest.confirmPassword())) {
@@ -43,7 +54,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .role(registerRequest.role())
                 .build();
 
-        userRepository.save(user);
+        user = userRepository.save(user);
+
+        String token = jwtService.generateToken(user.getEmail());
+
+        return new LoginResponse(token, user.getId(), user.getEmail(), user.getRole());
     }
 
     @Override
@@ -57,7 +72,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         );
 
         var user = userRepository.findByEmail(loginRequest.email())
-                .orElseThrow(()-> new ResourceNotFoundException("The user wasn't found"));
+                .orElseThrow(()-> new BadCredentialsException("Bad credentials"));
 
         String token = jwtService.generateToken(user.getEmail());
 
@@ -65,5 +80,44 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 user.getId(),
                 user.getEmail(),
                 user.getRole());
+    }
+
+    @Override
+    public void createAndSendToken(String email) {
+        Optional<User> userOptional= userRepository.findByEmail(email);
+
+        if (userOptional.isEmpty()) {
+            return;
+        }
+
+        User user = userOptional.get();
+        String token = UUID.randomUUID().toString();
+        user.setResetToken(token);
+        user.setResetTokenExpiry(LocalDateTime.now().plusMinutes(30));
+        userRepository.save(user);
+
+        String resetLink = frontendUrl + "/reset-password?token=" + token;
+
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(user.getEmail());
+        message.setSubject("Password Reset Request - Pregnancy Care Finder");
+        message.setText("To reset your password, click the link below:\n" + resetLink);
+
+        javaMailSender.send(message);
+    }
+
+    @Override
+    public void resetPassword(String token, String newPassword) {
+        User user =  userRepository.findByResetToken(token)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid reset token"));
+
+        if(user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new IllegalArgumentException("Reset token has expired");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
+        userRepository.save(user);
     }
 }

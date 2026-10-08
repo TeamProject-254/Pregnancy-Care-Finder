@@ -27,22 +27,22 @@ public class ProviderServiceImpl implements ProviderService {
     @Transactional(readOnly = true)
     public ProviderResponse getProviderProfile(String email) {
         Provider provider = providerRepository.findByUserEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Provider profile not found."));
+                .orElseThrow(() -> new ResourceNotFoundException("Provider profile not found"));
         return providerMapper.toResponse(provider);
     }
 
     @Override
     public ProviderResponse createProviderProfile(String email, ProviderCreateRequest request) {
         if (providerRepository.existsByUserEmail(email)) {
-            throw new ResourceAlreadyExistsException("Provider profile already exists for this email.");
+            throw new ResourceAlreadyExistsException("Provider profile already exists for this email");
         }
 
         if(!Boolean.TRUE.equals(request.accurateInfoConsent())) {
-            throw new IllegalArgumentException("Information accuracy consent must be confirmed.");
+            throw new IllegalArgumentException("Information accuracy consent must be confirmed");
         }
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: ." + email));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
         Provider provider = providerMapper.toEntity(request);
         provider.setUser(user);
@@ -53,7 +53,7 @@ public class ProviderServiceImpl implements ProviderService {
     @Override
     public ProviderResponse updateProviderProfile(String email, ProviderUpdateRequest request) {
         Provider provider = providerRepository.findByUserEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Provider profile not found."));
+                .orElseThrow(() -> new ResourceNotFoundException("Provider profile not found"));
 
         providerMapper.updateProviderFromRequest(request, provider);
         Provider savedProvider = providerRepository.save(provider);

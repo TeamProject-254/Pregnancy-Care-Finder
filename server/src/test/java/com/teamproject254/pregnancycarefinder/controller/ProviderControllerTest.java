@@ -80,7 +80,7 @@ public class ProviderControllerTest {
     void getProviderProfile_ShouldReturnNotFound_WhenProviderDoesNotExist() throws Exception {
         String email = "test@provider.com";
 
-        when(providerService.getProviderProfile(email)).thenThrow(new ResourceNotFoundException("Provider profile not found."));
+        when(providerService.getProviderProfile(email)).thenThrow(new ResourceNotFoundException("Provider profile not found"));
 
         mockMvc.perform(get("/providers/profile")
                         .principal(principal))
@@ -134,7 +134,7 @@ public class ProviderControllerTest {
         );
 
         when(providerService.createProviderProfile(eq(email), any(ProviderCreateRequest.class)))
-                .thenThrow(new ResourceAlreadyExistsException("Provider profile already exists for this email."));
+                .thenThrow(new ResourceAlreadyExistsException("Provider profile already exists for this email"));
 
         mockMvc.perform(post("/providers/profile")
                         .principal(principal)
@@ -152,7 +152,7 @@ public class ProviderControllerTest {
         );
 
         when(providerService.createProviderProfile(eq(email), any(ProviderCreateRequest.class)))
-                .thenThrow(new IllegalArgumentException("Information accuracy consent must be confirmed."));
+                .thenThrow(new IllegalArgumentException("Information accuracy consent must be confirmed"));
 
         mockMvc.perform(post("/providers/profile")
                         .principal(principal)
@@ -200,7 +200,7 @@ public class ProviderControllerTest {
         );
 
         when(providerService.updateProviderProfile(eq(email), any(ProviderUpdateRequest.class)))
-                .thenThrow(new ResourceNotFoundException("Provider profile not found."));
+                .thenThrow(new ResourceNotFoundException("Provider profile not found"));
 
         mockMvc.perform(patch("/providers/profile")
                         .principal(principal)
