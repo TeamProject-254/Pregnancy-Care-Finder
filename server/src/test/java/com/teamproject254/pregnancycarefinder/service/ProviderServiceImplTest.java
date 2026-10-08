@@ -45,7 +45,8 @@ class ProviderServiceImplTest {
         ProviderResponse expectedResponse = new ProviderResponse(
                 1L, "Sarah", "Jenkins", "Obstetrician-Gynecologist", 5L,
                 "123456789", "Warsaw", "Gynecology",
-                "Specialized in high-risk pregnancies.", Set.of("pl"), "https://example.com/photo.jpg"
+                "Specialized in high-risk pregnancies.", Set.of("pl"),
+                "https://example.com/photo.jpg"
         );
 
         when(providerRepository.findByUserEmail(email)).thenReturn(Optional.of(provider));
@@ -63,7 +64,8 @@ class ProviderServiceImplTest {
         String email = "notfound@provider.com";
         when(providerRepository.findByUserEmail(email)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> providerService.getProviderProfile(email));
+        assertThrows(ResourceNotFoundException.class,
+                () -> providerService.getProviderProfile(email));
         verify(providerRepository).findByUserEmail(email);
     }
 

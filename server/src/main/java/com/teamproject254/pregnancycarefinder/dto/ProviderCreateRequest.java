@@ -25,5 +25,5 @@ public record ProviderCreateRequest(@NotBlank(message = "First name cannot be bl
                               String address,
 
                                     @AssertTrue(message = "Information accuracy consent must be confirmed")
-                              Boolean accurateInfoConsent
+                              boolean accurateInfoConsent
 ){}

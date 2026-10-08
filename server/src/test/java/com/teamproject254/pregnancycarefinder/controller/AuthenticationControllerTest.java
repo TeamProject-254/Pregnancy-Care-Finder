@@ -2,11 +2,12 @@ package com.teamproject254.pregnancycarefinder.controller;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.teamproject254.pregnancycarefinder.dto.ForgotPasswordRequest;
 import com.teamproject254.pregnancycarefinder.dto.LoginRequest;
 import com.teamproject254.pregnancycarefinder.dto.LoginResponse;
 import com.teamproject254.pregnancycarefinder.dto.RegisterRequest;
+import com.teamproject254.pregnancycarefinder.dto.ResetPasswordRequest;
 import com.teamproject254.pregnancycarefinder.exception.RateLimitExceededException;
-import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
 import com.teamproject254.pregnancycarefinder.model.enums.Role;
 import com.teamproject254.pregnancycarefinder.security.RateLimiterService;
 import com.teamproject254.pregnancycarefinder.service.AuthenticationService;
@@ -114,35 +115,33 @@ public class AuthenticationControllerTest {
 
     @Test
     void forgotPassword_ShouldCallServiceAndReturnMessage() {
-        String email = "test@example.com";
+        ForgotPasswordRequest request = new ForgotPasswordRequest("test@example.com");
 
-        Map<String, String> response = authenticationController.forgotPassword(email);
+        Map<String, String> response = authenticationController.forgotPassword(request);
 
-        verify(authenticationService, times(1)).createAndSendToken(email);
+        verify(authenticationService, times(1)).createAndSendToken("test@example.com");
         assertNotNull(response);
         assertEquals("If an account with this email exists, a reset link has been sent", response.get("message"));
     }
 
     @Test
     void resetPassword_ShouldThrowException_WhenTokenIsInvalidOrExpired() {
-        String token = "invalid-or-expired-token";
-        String newPassword = "NewPassword123!";
+        ResetPasswordRequest request = new ResetPasswordRequest("invalid-or-expired-token", "NewPassword123!");
 
         doThrow(new IllegalArgumentException("Invalid reset token"))
-                .when(authenticationService).resetPassword(token, newPassword);
+                .when(authenticationService).resetPassword(request.token(), request.newPassword());
 
         assertThrows(IllegalArgumentException.class, () ->
-                authenticationController.resetPassword(token, newPassword));
+                authenticationController.resetPassword(request));
     }
 
     @Test
     void resetPassword_ShouldCallServiceAndReturnMessage() {
-        String token = "some-reset-token";
-        String newPassword = "NewPassword123!";
+        ResetPasswordRequest request = new ResetPasswordRequest("some-reset-token", "NewPassword123!");
 
-        Map<String, String> response = authenticationController.resetPassword(token, newPassword);
+        Map<String, String> response = authenticationController.resetPassword(request);
 
-        verify(authenticationService, times(1)).resetPassword(token, newPassword);
+        verify(authenticationService, times(1)).resetPassword(request.token(), request.newPassword());
         assertNotNull(response);
         assertEquals("Password has been reset successfully", response.get("message"));
     }

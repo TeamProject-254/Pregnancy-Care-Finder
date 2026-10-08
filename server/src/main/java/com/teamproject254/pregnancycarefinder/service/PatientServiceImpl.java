@@ -48,6 +48,10 @@ public class PatientServiceImpl implements PatientService{
         Patient patient = patientMapper.toEntity(request);
         patient.setUser(user);
 
+        if (patient.getExplicitConsent() == null) {
+            patient.setExplicitConsent(false);
+        }
+
         Patient savedPatient = patientRepository.save(patient);
         return patientMapper.toResponse(savedPatient);
     }

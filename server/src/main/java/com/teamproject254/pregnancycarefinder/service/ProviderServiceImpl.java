@@ -37,7 +37,7 @@ public class ProviderServiceImpl implements ProviderService {
             throw new ResourceAlreadyExistsException("Provider profile already exists for this email");
         }
 
-        if(!Boolean.TRUE.equals(request.accurateInfoConsent())) {
+        if (!request.accurateInfoConsent()) {
             throw new IllegalArgumentException("Information accuracy consent must be confirmed");
         }
 

@@ -73,7 +73,6 @@ public class Provider {
     @Builder.Default
     private Set<String> languages = new HashSet<>();
 
-    @Column(nullable = false)
     private String specialization;
 
     private String photoUrl;

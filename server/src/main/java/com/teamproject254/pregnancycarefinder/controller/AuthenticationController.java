@@ -1,5 +1,7 @@
 package com.teamproject254.pregnancycarefinder.controller;
 
+import com.teamproject254.pregnancycarefinder.dto.ForgotPasswordRequest;
+import com.teamproject254.pregnancycarefinder.dto.ResetPasswordRequest;
 import com.teamproject254.pregnancycarefinder.service.AuthenticationService;
 import com.teamproject254.pregnancycarefinder.dto.LoginRequest;
 import com.teamproject254.pregnancycarefinder.dto.LoginResponse;
@@ -15,7 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -52,15 +53,14 @@ public class AuthenticationController {
     }
 
     @PostMapping("/forgot-password")
-    public Map<String, String> forgotPassword(@RequestParam String email) {
-        authenticationService.createAndSendToken(email);
+    public Map<String, String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authenticationService.createAndSendToken(request.email());
         return Map.of("message", "If an account with this email exists, a reset link has been sent");
     }
 
     @PostMapping("/reset-password")
-    public Map<String, String> resetPassword(@RequestParam String token,
-                                             @RequestParam String newPassword) {
-        authenticationService.resetPassword(token, newPassword);
+    public Map<String, String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authenticationService.resetPassword(request.token(), request.newPassword());
         return Map.of("message", "Password has been reset successfully");
     }
 }

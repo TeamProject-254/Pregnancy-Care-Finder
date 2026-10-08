@@ -64,6 +64,7 @@ public class AuthenticationServiceImplTest {
                 .email("test@example.com")
                 .password("encodedPassword")
                 .role(Role.PATIENT)
+                .termsAccepted(true)
                 .build();
 
         when(userRepository.existsByEmail(registerRequest.email())).thenReturn(false);
@@ -80,6 +81,7 @@ public class AuthenticationServiceImplTest {
         assertEquals("test@example.com", capturedUser.getEmail());
         assertEquals("encodedPassword", capturedUser.getPassword());
         assertEquals(Role.PATIENT, capturedUser.getRole());
+        assertTrue(capturedUser.isTermsAccepted());
 
         assertNotNull(response);
         assertEquals("mock-jwt-token", response.token());
@@ -110,10 +112,27 @@ public class AuthenticationServiceImplTest {
                 true
         );
 
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> authenticationService.registerUser(registerRequest));
+
+        assertEquals("Passwords don't match", exception.getMessage());
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void registerUser_ShouldThrowException_WhenTermsNotAccepted() {
+        RegisterRequest registerRequest = new RegisterRequest(
+                "test@example.com",
+                "Password123!",
+                "Password123!",
+                Role.PATIENT,
+                false
+        );
+
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
                 authenticationService.registerUser(registerRequest));
 
-        assertEquals("Passwords don't match", exception.getMessage());
+        assertEquals("Terms and conditions must be accepted", exception.getMessage());
         verify(userRepository, never()).save(any());
     }
 
@@ -207,8 +226,8 @@ public class AuthenticationServiceImplTest {
 
         when(userRepository.findByResetToken(token)).thenReturn(Optional.empty());
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                authenticationService.resetPassword(token, newPassword));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> authenticationService.resetPassword(token, newPassword));
 
         assertEquals("Invalid reset token", exception.getMessage());
         verify(userRepository, never()).save(any());
@@ -224,8 +243,8 @@ public class AuthenticationServiceImplTest {
 
         when(userRepository.findByResetToken(token)).thenReturn(Optional.of(user));
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
-                authenticationService.resetPassword(token, newPassword));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> authenticationService.resetPassword(token, newPassword));
 
         assertEquals("Reset token has expired", exception.getMessage());
         verify(userRepository, never()).save(any());
@@ -248,5 +267,24 @@ public class AuthenticationServiceImplTest {
         assertNull(user.getResetToken());
         assertNull(user.getResetTokenExpiry());
         verify(userRepository, times(1)).save(user);
+    }
+
+    @Test
+    void resetPassword_ShouldThrowException_WhenNewPasswordIsSameAsCurrent() {
+        String token = "valid-token";
+        String newPassword = "SamePassword123!";
+        User user = new User();
+        user.setResetToken(token);
+        user.setResetTokenExpiry(LocalDateTime.now().plusMinutes(15));
+        user.setPassword("encodedCurrentPassword");
+
+        when(userRepository.findByResetToken(token)).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches(newPassword, user.getPassword())).thenReturn(true);
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> authenticationService.resetPassword(token, newPassword));
+
+        assertEquals("New password cannot be the same as your current password", exception.getMessage());
+        verify(userRepository, never()).save(any());
     }
 }

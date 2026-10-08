@@ -4,7 +4,6 @@ import com.teamproject254.pregnancycarefinder.dto.LoginRequest;
 import com.teamproject254.pregnancycarefinder.dto.LoginResponse;
 import com.teamproject254.pregnancycarefinder.dto.RegisterRequest;
 import com.teamproject254.pregnancycarefinder.exception.ResourceAlreadyExistsException;
-import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
 import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.repository.UserRepository;
 import com.teamproject254.pregnancycarefinder.security.JwtService;
@@ -46,12 +45,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             throw new IllegalArgumentException("Passwords don't match");
         }
 
+        if (!registerRequest.termsAccepted()) {
+            throw new IllegalArgumentException("Terms and conditions must be accepted");
+        }
+
         String encodedPassword = passwordEncoder.encode(registerRequest.password());
 
         User user = User.builder()
                 .email(registerRequest.email())
                 .password(encodedPassword)
                 .role(registerRequest.role())
+                .termsAccepted(registerRequest.termsAccepted())
                 .build();
 
         user = userRepository.save(user);
@@ -113,6 +117,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         if(user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Reset token has expired");
+        }
+
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+            throw new IllegalArgumentException("New password cannot be the same as your current password");
         }
 
         user.setPassword(passwordEncoder.encode(newPassword));

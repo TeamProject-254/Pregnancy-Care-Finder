@@ -13,4 +13,4 @@ public record PatientUpdateRequest(String firstName,
                                    Integer pregnancyWeek,
                                    Boolean explicitConsent,
                                    String photoUrl
-) { }
+) {}
