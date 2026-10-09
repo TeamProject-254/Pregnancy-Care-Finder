@@ -9,9 +9,11 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ isLinksShown = true }) => {
-  const { isAuthenticated, user } = useAuth();
+  // Дістаємо logout (або твою функцію виходу) з контексту
+  const { isAuthenticated, user, logout } = useAuth();
 
   const isHealthcareProfessional = user?.role?.toUpperCase() === "PROVIDER";
+  const isPatient = isAuthenticated && !isHealthcareProfessional;
 
   const getLinkClass = ({ isActive }: { isActive: boolean }) => {
     return isActive
@@ -24,35 +26,41 @@ export const Header: React.FC<HeaderProps> = ({ isLinksShown = true }) => {
       <div className={styles.header__content}>
         <div className={styles.header__logo}>
           <img src={iconLogo} alt="Logo" />
-          <Link to="/">Pregnancy <span>Care</span> Finder</Link>
+          <Link to="/">Bloom<span>Care</span></Link>
         </div>
 
         {isLinksShown && (
           <div className={styles["header__left-section"]}>
             <nav className={styles.header__nav}>
-              {isAuthenticated && isHealthcareProfessional && (
-                <NavLink to="/professionals" className={styles.header__button}>
-                  For healthcare professionals
+              
+              {/* Search: показуємо тільки якщо це неавторизований юзер АБО пацієнт */}
+              {(!isAuthenticated || isPatient) && (
+                <NavLink to="/search" className={getLinkClass}>
+                  Search
                 </NavLink>
               )}
 
-              {isAuthenticated && !isHealthcareProfessional && (
-                <NavLink to="/search" className={getLinkClass}>
-                  Find a doctor
+              {/* Appointments: показуємо для всіх авторизованих (і лікарям, і пацієнтам) */}
+              {isAuthenticated && (
+                <NavLink to="/appointments" className={getLinkClass}>
+                  My appointments
                 </NavLink>
               )}
             </nav>
 
-            {/* Profile / Login */}
+            {/* Profile / Auth Button */}
             {isAuthenticated ? (
-              <Link to="/profile" className={styles.header__profile}>
+              <button 
+                onClick={logout} 
+                className={`${styles.header__profile} ${styles["header__profile--outline"]}`}
+              >
                 <img src={profileIcon} alt="Profile icon" />
-                Personal Cabinet
-              </Link>
+                Log out
+              </button>
             ) : (
               <Link to="/login" className={styles.header__profile}>
                 <img src={profileIcon} alt="Profile icon" />
-                Log in
+                Sign in
               </Link>
             )}
           </div>

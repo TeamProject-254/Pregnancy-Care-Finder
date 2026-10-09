@@ -29,6 +29,10 @@
     font-weight: 500;
     line-height: 1.2;
     color: var(--color-gray-40);
+
+    span {
+        color: var(--color-primary);
+      }
   }
 
   &__nav {

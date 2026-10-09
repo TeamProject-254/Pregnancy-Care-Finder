@@ -1,131 +1,302 @@
-@use "../../styles/typography" as typo;
-@use "../../styles/variables";
-@use "../../styles/mixins" as *;
-
 .register__wrapper {
-  width: 100%;
   display: flex;
-  justify-content: center;
-  padding: 1rem 4rem 4rem;
   flex-direction: column;
-  align-items: center;
+  padding: 2rem 4rem;
+  max-width: 1440px;
+  margin: 0 auto;
+  min-height: calc(100vh - 80px);
 }
 
 .bread__crumbs {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  width: 100%;
-  max-width: 1440px;
+  gap: 0.5rem;
   text-decoration: none;
-}
-
-.bread__crumbs__span {
+  color: var(--color-gray-70);
   font-size: 14px;
-  line-height: 135%;
-  font-weight: 400;
-  color: var(--color-gray-90);
+  font-weight: 500;
+  margin-bottom: 2rem;
+  transition: color 0.3s ease;
+
+  &:hover {
+    color: var(--color-gray-90);
+  }
 }
 
 .main__content {
-  width: 100%;
-  max-width: 1440px;
   display: flex;
-  gap: 40px;
-  margin-top: 20px;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 4rem;
+}
+
+.form__container {
+  flex: 1;
+  max-width: 520px;
+}
+
+.content__img {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 500px;
+  padding-top: 2rem;
+
+  img {
+    width: 100%;
+    height: auto;
+    margin-bottom: 2rem;
+  }
+
+  .img__title {
+    font-size: 28px;
+    font-weight: 600;
+    text-align: center;
+    color: var(--color-gray-90);
+  }
 }
 
 .register__form {
+  display: flex;
+  flex-direction: column;
   width: 100%;
-  max-width: 808px;
-  outline: 1px solid var(--color-gray-40);
+  background: #ffffff;
+  border: 1px solid #E5E7EB;
   border-radius: 12px;
-  background-color: var(--color-white);
-  padding: 32px 24px;
+  padding: 2.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); /* Легка тінь як на макеті */
+}
+
+.step__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  font-size: 14px;
+  font-weight: 500;
+
+  .step__title {
+    color: var(--color-gray-70);
+  }
+
+  .step__indicator {
+    color: var(--color-gray-90);
+
+    span {
+      color: var(--color-primary--second);
+      font-weight: 600;
+    }
+  }
 }
 
 .title__block {
+  margin-bottom: 2rem;
+
+  .form__title {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--color-gray-90);
+    margin-bottom: 0.75rem;
+  }
+
+  .form__desc {
+    font-size: 16px;
+    font-weight: 400;
+    color: var(--color-gray-70);
+    line-height: 1.5;
+  }
+}
+
+.inputs__block {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 24px;
+  gap: 1rem;
 }
 
-.form__title {
-  @include typo.font-h2;
-  margin: 0;
+.row__inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
 }
 
-.form__desc {
-  @include typo.font-h5;
-  color: var(--color-gray-80);
-  margin: 0;
+.optional__text {
+  color: var(--color-primary--second); 
+  font-weight: 400;
 }
 
-.role__section {
-  margin-bottom: 24px;
+.checkbox__block {
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+  font-size: 16px;
 }
 
-.role__label {
+.checkbox__error {
   display: block;
-  font-weight: 600;
+  color: #ef4444;
+  font-size: 12px;
+  margin-top: 0.5rem;
+}
+
+.policy__link {
+  color: var(--color-primary--second);
+  text-decoration: underline;
+
+  &:hover {
+    text-decoration: none;
+  }
+}
+
+.server__error {
+  color: #ef4444;
   font-size: 14px;
-  margin-bottom: 12px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* --- КНОПКИ (Submit та Back) --- */
+.action__block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.button__group {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+
+  .submit__button {
+    flex: 1; /* Робить кнопки Back і Create Account однакової ширини */
+  }
+}
+
+.submit__button {
+  width: 100%;
+  padding: 0.875rem;
+  border-radius: 8px;
+  background-color: var(--color-primary);
   color: var(--color-gray-90);
+  font-size: 16px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: opacity 0.3s ease, background-color 0.3s ease;
+
+  &:hover:not(:disabled) {
+    opacity: 0.9;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Модифікатор для прозорої кнопки Back */
+  &--outline {
+    background-color: transparent;
+    border: 1px solid var(--color-primary--second); /* кольоровий бордер */
+    color: var(--color-gray-90);
+
+    &:hover:not(:disabled) {
+      background-color: #FFF9F9;
+    }
+  }
+}
+
+.login__redirect {
+  font-size: 14px;
+  color: var(--color-gray-70);
+
+  .login__link {
+    color: var(--color-primary--second);
+    font-weight: 600;
+    text-decoration: underline;
+
+    &:hover {
+      text-decoration: none;
+    }
+  }
+}
+
+/* --- КАРТКИ ВАЛІДАЦІЇ РОЛІ (Тільки для AccountStep) --- */
+.role__section {
+  margin-bottom: 2rem;
+
+  .role__label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-gray-90);
+    margin-bottom: 0.75rem;
+  }
 }
 
 .role__cards {
   display: flex;
-  gap: 16px;
+  gap: 1rem;
 }
 
 .role__card {
   flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px;
-  border: 1px solid var(--color-gray-40);
+  border: 1px solid #E5E7EB;
   border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
   cursor: pointer;
   transition: all 0.2s ease;
 
+  img {
+    width: 24px;
+    height: 24px;
+  }
+
+  &:hover {
+    border-color: var(--color-primary--second);
+  }
+
   &.active {
-    border-color: var(--color-primary);
-    background-color: var(--color-background);
+    border-color: var(--color-primary--second);
+    background-color: #FFF9F9;
   }
 }
 
 .role__info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  flex-grow: 1;
-}
+  gap: 0.25rem;
 
-.role__title {
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--color-gray-90);
-}
+  .role__title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-gray-90);
+  }
 
-.role__desc {
-  font-size: 12px;
-  color: var(--color-gray-70);
+  .role__desc {
+    font-size: 12px;
+    color: var(--color-gray-70);
+  }
 }
 
 .radio__circle {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  border: 2px solid var(--color-gray-40);
+  border: 2px solid #D1D5DB;
+  margin-left: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: border-color 0.2s ease;
+  flex-shrink: 0;
 
   .active & {
-    border-color: var(--color-primary);
+    border-color: var(--color-primary--second);
   }
 }
 
@@ -133,131 +304,5 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: var(--color-primary);
-}
-
-.inputs__block {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.row__inputs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-
-.eye__btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px;
-}
-
-.checkbox__block {
-  margin-top: 24px;
-}
-
-.checkbox__error {
-  color: var(--color-error);
-  font-size: 12px;
-  margin-top: 4px;
-  display: block;
-}
-
-.policy__link {
-  text-decoration: underline;
-  color: var(--color-gray-90);
-}
-
-.action__block {
-  margin-top: 32px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-
-.submit__button {
-  @include typo.font-button;
-  width: 100%;
-  max-width: 392px;
-  height: 44px;
-  background-color: var(--color-primary);
-  text-align: center;
-  color: var(--color-gray-90);
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-
-  &:hover:not(:disabled) {
-    background-color: var(--color-primary--second);
-  }
-  
-  &:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-}
-
-.login__redirect {
-  font-size: 14px;
-  color: var(--color-gray-80);
-}
-
-.login__link {
-  @include smooth-transition;
-  display: inline-block;
-  position: relative;
-  color: var(--color-primary--second);
-  cursor: pointer;
-  text-decoration: none;
-
-  &::after {
-    content: "";
-    position: absolute;
-    bottom: -2px;
-    width: 100%;
-    left: 0;
-    height: 1px;
-    transform: scaleX(0);
-    transform-origin: center;
-    background-color: var(--color-primary--second);
-    @include smooth-transition(transform);
-  }
-
-  &:hover::after {
-    transform: scaleX(1);
-  }
-}
-
-.content__img {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 24px;
-  position: relative;
-  z-index: 1;
-  max-width: 500px;
-  width: 100%;
-}
-
-.img__title {
-  @include typo.font-h3;
-  text-align: center;
-  margin: 0;
-}
-
-.server__error {
-  
-  color: var(--color-error);
-  font-size: 14px;
-  margin-top: 16px;
-  text-align: center;
+  background-color: var(--color-primary--second);
 }

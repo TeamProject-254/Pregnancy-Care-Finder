@@ -1,0 +1,31 @@
+BLOOMCARE TERMS OF SERVICE
+Effective Date: October 2026
+
+1. ACCEPTANCE OF TERMS
+By accessing or using the BloomCare platform, you agree to comply with and be legally bound by these Terms of Service. If you do not agree to these terms, do not access or use our services.
+
+2. DESCRIPTION OF SERVICE
+BloomCare functions as an appointment scheduling and matching platform between patients and licensed healthcare professionals. BloomCare itself does not provide medical diagnoses, treatment, or emergency clinical interventions.
+
+3. MEDICAL EMERGENCY NOTICE
+IF YOU ARE EXPERIENCING A MEDICAL EMERGENCY, CALL YOUR LOCAL EMERGENCY SERVICES IMMEDIATELY (E.G., 112, 103, OR 911). DO NOT RELY ON THIS APPLICATION FOR URGENT OR CRITICAL MEDICAL NEEDS.
+
+4. USER RESPONSIBILITIES
+- You agree to provide accurate, truthful, and updated information during registration and appointment booking.
+- You are responsible for safeguarding your login credentials and preventing unauthorized access to your account.
+- Healthcare providers represent and warrant that they possess all active, necessary professional licenses and certifications required by applicable regulations.
+
+5. CANCELLATIONS & APPOINTMENTS
+- Appointments are subject to the individual schedules and cancellation policies of each healthcare provider.
+- We reserve the right to suspend or terminate accounts that repeatedly violate scheduling policies or engage in abusive conduct.
+
+6. LIMITATION OF LIABILITY
+BloomCare is not liable for medical advice, treatment quality, diagnostic outcomes, or disputes arising between patients and independent healthcare providers.
+
+7. GOVERNING LAW & AMENDMENTS
+We reserve the right to revise these Terms at any time. Continued use of the platform after modifications constitutes acceptance of the revised Terms.
+
+8. CONTACT
+Questions regarding these Terms of Service can be directed to:
+Email: legal@bloomcare.com
+Phone: +380 12 345 6789
