@@ -3,7 +3,7 @@ import cautionIcon from "../../assets/img/caution.svg";
 import styles from "./TextInput.module.scss";
 
 interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?: string;
+  label?: React.ReactNode;
   error?: string;
   isValid?: boolean;
   rightElement?: React.ReactNode;

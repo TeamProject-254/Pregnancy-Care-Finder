@@ -1,5 +1,7 @@
 package com.teamproject254.pregnancycarefinder.controller;
 
+import com.teamproject254.pregnancycarefinder.dto.ForgotPasswordRequest;
+import com.teamproject254.pregnancycarefinder.dto.ResetPasswordRequest;
 import com.teamproject254.pregnancycarefinder.service.AuthenticationService;
 import com.teamproject254.pregnancycarefinder.dto.LoginRequest;
 import com.teamproject254.pregnancycarefinder.dto.LoginResponse;
@@ -8,13 +10,10 @@ import com.teamproject254.pregnancycarefinder.exception.RateLimitExceededExcepti
 import com.teamproject254.pregnancycarefinder.security.RateLimiterService;
 import io.github.bucket4j.Bucket;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import java.util.HashMap;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -31,29 +30,37 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public void registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
-        authenticationService.registerUser(registerRequest);
+    public LoginResponse registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
+        return authenticationService.registerUser(registerRequest);
     }
+
     @PostMapping("/login")
-    public  ResponseEntity<LoginResponse> loginUser(@Valid @RequestBody LoginRequest loginRequest,
+    public LoginResponse loginUser(@Valid @RequestBody LoginRequest loginRequest,
                                                           HttpServletRequest httpServletRequest) {
 
         String clientIp = httpServletRequest.getRemoteAddr();
         Bucket bucket = rateLimiterService.resolveBucket(clientIp);
 
         if(!bucket.tryConsume(1)) {
-            throw new RateLimitExceededException("Too many login attempts. Please try again in 1 minute.");
+            throw new RateLimitExceededException("Too many login attempts. Please try again in 1 minute");
         }
 
-        LoginResponse loginResponse = authenticationService.loginUser(loginRequest);
-        return ResponseEntity.ok(loginResponse);
+        return authenticationService.loginUser(loginRequest);
+    }
+    @PostMapping("/logout")
+    public Map<String, String> logoutUser() {
+        return Map.of("message", "Logged out successfully");
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<Map<String, String>> logoutUser() {
-        Map<String, String> result = new HashMap<>();
-        result.put("message", "Logged out successfully.");
-        return ResponseEntity.ok(result);
+    @PostMapping("/forgot-password")
+    public Map<String, String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authenticationService.createAndSendToken(request.email());
+        return Map.of("message", "If an account with this email exists, a reset link has been sent");
+    }
 
+    @PostMapping("/reset-password")
+    public Map<String, String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authenticationService.resetPassword(request.token(), request.newPassword());
+        return Map.of("message", "Password has been reset successfully");
     }
 }

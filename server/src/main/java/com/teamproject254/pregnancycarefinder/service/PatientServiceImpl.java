@@ -1,7 +1,9 @@
 package com.teamproject254.pregnancycarefinder.service;
 
-import com.teamproject254.pregnancycarefinder.dto.PatientRequest;
+import com.teamproject254.pregnancycarefinder.dto.PatientCreateRequest;
 import com.teamproject254.pregnancycarefinder.dto.PatientResponse;
+import com.teamproject254.pregnancycarefinder.dto.PatientUpdateRequest;
+import com.teamproject254.pregnancycarefinder.exception.ResourceAlreadyExistsException;
 import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
 import com.teamproject254.pregnancycarefinder.mapper.PatientMapper;
 import com.teamproject254.pregnancycarefinder.model.Patient;
@@ -25,37 +27,54 @@ public class PatientServiceImpl implements PatientService{
     @Transactional(readOnly = true)
     public PatientResponse getPatientProfile(String email) {
        Patient patient = patientRepository.findByUserEmail(email)
-               .orElseThrow(() -> new ResourceNotFoundException("Patient not found."));
+               .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
        return patientMapper.toResponse(patient);
     }
 
     @Override
-    public PatientResponse updateOrCreatePatientProfile(String email,
-                                                        PatientRequest request) {
-        Patient patient = patientRepository.findByUserEmail(email).orElseGet(() -> {
-            User user =  userRepository.findByEmail(email)
-                    .orElseThrow(() -> new ResourceNotFoundException("Patient not found."));
+    public PatientResponse createPatientProfile(String email, PatientCreateRequest request) {
+        if (patientRepository.existsByUserEmail(email)) {
+            throw new ResourceAlreadyExistsException("Patient profile already exists for this email");
+        }
 
-            return Patient.builder()
-                    .user(user)
-                    .explicitConsent(false)
-                    .build();
-        });
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
-        Integer effectivePregnancyWeek = request.pregnancyWeek() != null
+        boolean hasConsent = Boolean.TRUE.equals(request.explicitConsent());
+        if (request.pregnancyWeek() != null && !hasConsent) {
+            throw new IllegalArgumentException("Explicit consent is required when pregnancy week is set");
+        }
+
+        Patient patient = patientMapper.toEntity(request);
+        patient.setUser(user);
+
+        if (patient.getExplicitConsent() == null) {
+            patient.setExplicitConsent(false);
+        }
+
+        Patient savedPatient = patientRepository.save(patient);
+        return patientMapper.toResponse(savedPatient);
+    }
+
+    @Override
+    public PatientResponse updatePatientProfile(String email, PatientUpdateRequest request) {
+        Patient patient = patientRepository.findByUserEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
+
+        Integer effectiveWeek = request.pregnancyWeek() != null
                 ? request.pregnancyWeek()
                 : patient.getPregnancyWeek();
 
         boolean effectiveConsent = request.explicitConsent() != null
                 ? request.explicitConsent()
-                : Boolean.TRUE.equals(patient.getExplicitConsent());
+                : patient.getExplicitConsent();
 
-        if (effectivePregnancyWeek != null && !effectiveConsent) {
-            throw new IllegalArgumentException("Explicit consent is required when pregnancy week is set.");
+        if (effectiveWeek != null && !effectiveConsent) {
+            throw new IllegalArgumentException("Explicit consent is required when pregnancy week is set");
         }
 
         patientMapper.updatePatientFromRequest(request, patient);
-        Patient savedPatient = patientRepository.save(patient);
-        return patientMapper.toResponse(savedPatient);
+        Patient updatedPatient = patientRepository.save(patient);
+        return patientMapper.toResponse(updatedPatient);
     }
 }

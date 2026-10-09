@@ -13,7 +13,14 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   registrationPendingConfirmation: boolean;
-  register: (email: string, password: string, role: UserRole) => Promise<void>;
+  // Додали нові аргументи, щоб задовольнити DTO бекенда
+  register: (
+    email: string,
+    password: string,
+    confirmPassword: string,
+    role: UserRole,
+    termsAccepted: boolean
+  ) => Promise<void>;
   completeRegistration: () => void;
   login: (
     email: string,
@@ -46,6 +53,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       return null;
     }
   });
+
   const [registrationPendingConfirmation, setRegistrationPendingConfirmation] =
     useState(false);
 
@@ -74,20 +82,37 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setUser(loggedUser);
   };
 
-  const register = async (email: string, password: string, role: UserRole) => {
-    await api.post("/auth/register", {
+  const register = async (
+    email: string,
+    password: string,
+    confirmPassword: string,
+    role: UserRole,
+    termsAccepted: boolean
+  ) => {
+    // 1. Відправляємо всі 5 полів на бекенд
+    const response = await api.post("/auth/register", {
       email,
       password,
+      confirmPassword,
       role,
+      termsAccepted,
     });
 
+    // 2. Оскільки бекенд тепер одразу повертає LoginResponse, 
+    // ми просто беремо ці дані і логінимо юзера (без додаткового запиту /auth/login)
+    const data = response.data;
+
+    const loggedUser: User = {
+      userId: data.userId,
+      email: data.email,
+      role: data.role,
+    };
+
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(loggedUser));
+
+    setUser(loggedUser);
     setRegistrationPendingConfirmation(true);
-    try {
-      await login(email, password, false);
-    } catch (error) {
-      setRegistrationPendingConfirmation(false);
-      throw error;
-    }
   };
 
   const completeRegistration = () => {

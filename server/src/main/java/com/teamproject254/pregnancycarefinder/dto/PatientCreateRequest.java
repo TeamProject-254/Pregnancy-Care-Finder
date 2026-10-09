@@ -1,0 +1,25 @@
+package com.teamproject254.pregnancycarefinder.dto;
+
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import java.util.Set;
+
+public record PatientCreateRequest(
+        @NotBlank(message = "First name is required")
+        String firstName,
+
+        @NotBlank(message = "Last name is required")
+        String lastName,
+
+        @NotBlank(message = "Location is required")
+        String location,
+
+        Set<String> languages,
+
+        @Min(value = 1, message = "Pregnancy week must be at least 1")
+        @Max(value = 42, message = "Pregnancy week cannot exceed 42")
+        Integer pregnancyWeek,
+
+        Boolean explicitConsent
+) {}
