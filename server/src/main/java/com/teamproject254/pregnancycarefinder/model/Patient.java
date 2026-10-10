@@ -36,6 +36,12 @@ public class Patient {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
+    @Column(name = "first_name")
+    private String firstName;
+
+    @Column(name = "last_name")
+    private String lastName;
+
     private String location;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -53,4 +59,6 @@ public class Patient {
     @Column(name = "explicit_consent", nullable = false)
     @Builder.Default
     private Boolean explicitConsent = false;
+
+    private String photoUrl;
 }

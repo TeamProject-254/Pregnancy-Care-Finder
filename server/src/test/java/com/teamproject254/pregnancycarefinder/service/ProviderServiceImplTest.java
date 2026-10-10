@@ -1,17 +1,16 @@
 package com.teamproject254.pregnancycarefinder.service;
 
-import com.teamproject254.pregnancycarefinder.dto.ProviderRequest;
+import com.teamproject254.pregnancycarefinder.dto.ProviderCreateRequest;
 import com.teamproject254.pregnancycarefinder.dto.ProviderResponse;
-import com.teamproject254.pregnancycarefinder.dto.ServiceRequest;
+import com.teamproject254.pregnancycarefinder.dto.ProviderUpdateRequest;
+import com.teamproject254.pregnancycarefinder.exception.ResourceAlreadyExistsException;
 import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
 import com.teamproject254.pregnancycarefinder.mapper.ProviderMapper;
-import com.teamproject254.pregnancycarefinder.model.MedicalService;
 import com.teamproject254.pregnancycarefinder.model.Provider;
 import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.repository.ProviderRepository;
 import com.teamproject254.pregnancycarefinder.repository.UserRepository;
-import java.util.ArrayList;
-import java.util.List;
+
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -40,20 +39,14 @@ class ProviderServiceImplTest {
     private ProviderServiceImpl providerService;
 
     @Test
-    void getProviderProfile_shouldReturnResponse_whenProviderExists() {
+    void getProviderProfile_ShouldReturnProfile_WhenProviderExists() {
         String email = "test@provider.com";
         Provider provider = new Provider();
         ProviderResponse expectedResponse = new ProviderResponse(
-                1L,
-                "Dr. Sarah Jenkins",
-                "Obstetrics and Gynecology",
-                "123 Medical Ave, Warsaw",
-                "Mon-Fri 08:00 - 16:00",
-                "Specialized in high-risk pregnancies.",
-                "+48 500 600 700",
-                "MED-987654",
-                Set.of("English", "Polish"),
-                List.of()
+                1L, "Sarah", "Jenkins", "Obstetrician-Gynecologist", 5L,
+                "123456789", "Warsaw", "Gynecology",
+                "Specialized in high-risk pregnancies.", Set.of("pl"),
+                "https://example.com/photo.jpg"
         );
 
         when(providerRepository.findByUserEmail(email)).thenReturn(Optional.of(provider));
@@ -67,221 +60,139 @@ class ProviderServiceImplTest {
     }
 
     @Test
-    void getProviderProfile_shouldThrowException_whenProviderNotFound() {
+    void getProviderProfile_ShouldThrowException_WhenProviderNotFound() {
         String email = "notfound@provider.com";
         when(providerRepository.findByUserEmail(email)).thenReturn(Optional.empty());
 
-        assertThrows(ResourceNotFoundException.class, () -> providerService.getProviderProfile(email));
+        assertThrows(ResourceNotFoundException.class,
+                () -> providerService.getProviderProfile(email));
+        verify(providerRepository).findByUserEmail(email);
     }
 
     @Test
-    void createOrUpdateProviderProfile_shouldCreateNewProvider_whenNotExists() {
+    void createProviderProfile_ShouldReturnCreatedProfile_WhenRequestIsValid() {
         String email = "test@provider.com";
         User user = new User();
-        user.setEmail(email);
-
-        ServiceRequest serviceReq = new ServiceRequest("Prenatal Consultation", 45);
-        ProviderRequest request = new ProviderRequest(
-                "Dr. Sarah Jenkins",
-                "Obstetrics and Gynecology",
-                "123 Medical Ave, Warsaw",
-                "Mon-Fri 08:00 - 16:00",
-                "Specialized in high-risk pregnancies.",
-                "+48 500 600 700",
-                "MED-987654",
-                Set.of("English", "Polish"),
-                List.of(serviceReq)
+        ProviderCreateRequest request = new ProviderCreateRequest(
+                "Sarah", "Jenkins", "Obstetrician-Gynecologist", 5L,
+                "123456789", "Warsaw", true
         );
-
+        Provider provider = new Provider();
+        Provider savedProvider = new Provider();
         ProviderResponse expectedResponse = new ProviderResponse(
-                1L,
-                "Dr. Sarah Jenkins",
-                "Obstetrics and Gynecology",
-                "123 Medical Ave, Warsaw",
-                "Mon-Fri 08:00 - 16:00",
-                "Specialized in high-risk pregnancies.",
-                "+48 500 600 700",
-                "MED-987654",
-                Set.of("English", "Polish"),
-                List.of()
+                1L, "Sarah", "Jenkins", "Obstetrician-Gynecologist", 5L,
+                "123456789", "Warsaw", null, null, null, null
         );
 
-        MedicalService mappedService = new MedicalService();
-
+        when(providerRepository.existsByUserEmail(email)).thenReturn(false);
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-        when(providerRepository.findByUserEmail(email)).thenReturn(Optional.empty());
-        when(providerMapper.toEntity(serviceReq)).thenReturn(mappedService);
-        when(providerRepository.save(any(Provider.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(providerMapper.toResponse(any(Provider.class))).thenReturn(expectedResponse);
+        when(providerMapper.toEntity(request)).thenReturn(provider);
+        when(providerRepository.save(provider)).thenReturn(savedProvider);
+        when(providerMapper.toResponse(savedProvider)).thenReturn(expectedResponse);
 
-        ProviderResponse response = providerService.createOrUpdateProviderProfile(email, request);
+        ProviderResponse actual = providerService.createProviderProfile(email, request);
 
-        assertNotNull(response);
+        assertNotNull(actual);
+        assertEquals(expectedResponse, actual);
+        verify(providerRepository).existsByUserEmail(email);
         verify(userRepository).findByEmail(email);
-        verify(providerRepository).save(any(Provider.class));
-        verify(providerMapper).updateProviderFromRequest(eq(request), any(Provider.class));
+        verify(providerRepository).save(provider);
     }
 
     @Test
-    void createOrUpdateProviderProfile_shouldClearOldServices_whenUpdatingExistingProvider() {
+    void createProviderProfile_ShouldThrowException_WhenProfileAlreadyExists() {
         String email = "test@provider.com";
-        User user = new User();
-
-        Provider existingProvider = new Provider();
-        List<MedicalService> oldServices = new ArrayList<>();
-        oldServices.add(new MedicalService());
-        existingProvider.setServices(oldServices);
-
-        ServiceRequest newServiceReq = new ServiceRequest("New Ultrasound", 60);
-        ProviderRequest request = new ProviderRequest(
-                "Dr. Sarah", "Gyn", "Address", "Hours", "Desc", "Contact", "LIC",
-                Set.of("English"), List.of(newServiceReq)
+        ProviderCreateRequest request = new ProviderCreateRequest(
+                "Sarah", "Jenkins", "Obstetrician-Gynecologist", 5L,
+                "123456789", "Warsaw", true
         );
 
-        MedicalService mappedService = new MedicalService();
+        when(providerRepository.existsByUserEmail(email)).thenReturn(true);
 
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-        when(providerRepository.findByUserEmail(email)).thenReturn(Optional.of(existingProvider));
-        when(providerMapper.toEntity(newServiceReq)).thenReturn(mappedService);
-        when(providerRepository.save(any(Provider.class))).thenAnswer(inv -> inv.getArgument(0));
-        when(providerMapper.toResponse(any(Provider.class))).thenReturn(mock(ProviderResponse.class));
-
-        providerService.createOrUpdateProviderProfile(email, request);
-
-        assertEquals(1, existingProvider.getServices().size());
-        verify(providerRepository).save(existingProvider);
+        assertThrows(ResourceAlreadyExistsException.class, () ->
+                providerService.createProviderProfile(email, request)
+        );
+        verify(providerRepository).existsByUserEmail(email);
+        verify(providerRepository, never()).save(any());
     }
 
     @Test
-    void createOrUpdateProviderProfile_shouldHandleNullServicesInRequest() {
+    void createProviderProfile_ShouldThrowException_WhenConsentNotConfirmed() {
         String email = "test@provider.com";
-        User user = new User();
-        user.setEmail(email);
-
-        ProviderRequest request = new ProviderRequest(
-                "Dr. Sarah", "Gyn", "Address", "Hours", "Desc", "Contact", "LIC",
-                Set.of("English"), null
+        ProviderCreateRequest request = new ProviderCreateRequest(
+                "Sarah", "Jenkins", "Obstetrician-Gynecologist", 5L,
+                "123456789", "Warsaw", false
         );
 
-        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-        when(providerRepository.findByUserEmail(email)).thenReturn(Optional.empty());
-        when(providerRepository.save(any(Provider.class))).thenAnswer(inv -> inv.getArgument(0));
-
-        assertDoesNotThrow(() -> providerService.createOrUpdateProviderProfile(email, request));
-        verify(providerRepository).save(any(Provider.class));
-    }
-
-    @Test
-    void createOrUpdateProviderProfile_shouldThrowException_whenUserNotFound() {
-        String email = "notfound@provider.com";
-        ProviderRequest request = new ProviderRequest(
-                "Dr. Sarah Jenkins",
-                "Obstetrics and Gynecology",
-                "123 Medical Ave, Warsaw",
-                "Mon-Fri 08:00 - 16:00",
-                "Specialized in high-risk pregnancies.",
-                "+48 500 600 700",
-                "MED-987654",
-                Set.of("English"),
-                List.of(new ServiceRequest("Checkup", 30))
-        );
-
-        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () ->
-                providerService.createOrUpdateProviderProfile(email, request)
+        when(providerRepository.existsByUserEmail(email)).thenReturn(false);
+        assertThrows(IllegalArgumentException.class, () ->
+                providerService.createProviderProfile(email, request)
         );
         verify(providerRepository, never()).save(any());
     }
 
     @Test
-    void getPublicProviderById_shouldReturnResponse_whenProviderExists() {
-        Long providerId = 1L;
-        Provider provider = new Provider();
-        ProviderResponse expectedResponse = new ProviderResponse(
-                1L,
-                "Dr. Sarah Jenkins",
-                "Obstetrics and Gynecology",
-                "123 Medical Ave, Warsaw",
-                "Mon-Fri 08:00 - 16:00",
-                "Specialized in high-risk pregnancies.",
-                "+48 500 600 700",
-                "MED-987654",
-                Set.of("English", "Polish"),
-                List.of()
+    void createProviderProfile_ShouldThrowException_WhenUserNotFound() {
+        String email = "notfound@provider.com";
+        ProviderCreateRequest request = new ProviderCreateRequest(
+                "Sarah", "Jenkins", "Obstetrician-Gynecologist", 5L,
+                "123456789", "Warsaw", true
         );
 
-        when(providerRepository.findById(providerId)).thenReturn(Optional.of(provider));
-        when(providerMapper.toResponse(provider)).thenReturn(expectedResponse);
+        when(providerRepository.existsByUserEmail(email)).thenReturn(false);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
-        ProviderResponse actual = providerService.getPublicProviderById(providerId);
+        assertThrows(ResourceNotFoundException.class, () ->
+                providerService.createProviderProfile(email, request)
+        );
+        verify(providerRepository, never()).save(any());
+    }
+
+    @Test
+    void updateProviderProfile_ShouldReturnUpdatedProfile_WhenRequestIsValid() {
+        String email = "test@provider.com";
+        ProviderUpdateRequest request = new ProviderUpdateRequest(
+                "Sarah", "Jenkins", "Obstetrician-Gynecologist", 6L,
+                "987654321", "Cracow", "Advanced Gynecology",
+                "Updated description.", Set.of("pl", "en"), "https://example.com/new.jpg"
+        );
+        Provider provider = new Provider();
+        Provider savedProvider = new Provider();
+        ProviderResponse expectedResponse = new ProviderResponse(
+                1L, "Sarah", "Jenkins", "Obstetrician-Gynecologist", 6L,
+                "987654321", "Cracow", "Advanced Gynecology",
+                "Updated description.", Set.of("pl", "en"), "https://example.com/new.jpg"
+        );
+
+        when(providerRepository.findByUserEmail(email)).thenReturn(Optional.of(provider));
+        doNothing().when(providerMapper).updateProviderFromRequest(request, provider);
+        when(providerRepository.save(provider)).thenReturn(savedProvider);
+        when(providerMapper.toResponse(savedProvider)).thenReturn(expectedResponse);
+
+        ProviderResponse actual = providerService.updateProviderProfile(email, request);
 
         assertNotNull(actual);
         assertEquals(expectedResponse, actual);
-        verify(providerRepository).findById(providerId);
+        verify(providerRepository).findByUserEmail(email);
+        verify(providerMapper).updateProviderFromRequest(request, provider);
+        verify(providerRepository).save(provider);
     }
 
     @Test
-    void getPublicProviderById_shouldThrowException_whenProviderNotFound() {
-        Long providerId = 42L;
-        when(providerRepository.findById(providerId)).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> providerService.getPublicProviderById(providerId));
-        verify(providerRepository).findById(providerId);
-    }
-
-    @Test
-    void searchProviders_shouldCleanFiltersAndCallRepository() {
-        String location = "  Warsaw ";
-        String specialization = " ";
-        String serviceName = " Ultrasound ";
-        String language = null;
-
-        ProviderResponse expectedResponse = new ProviderResponse(
-                1L,
-                "Dr. Sarah Jenkins",
-                "Obstetrics and Gynecology",
-                "123 Medical Ave, Warsaw",
-                "Mon-Fri 08:00 - 16:00",
-                "Specialized in high-risk pregnancies.",
-                "+48 500 600 700",
-                "MED-987654",
-                Set.of("English", "Polish"),
-                List.of()
+    void updateProviderProfile_ShouldThrowException_WhenProviderNotFound() {
+        String email = "notfound@provider.com";
+        ProviderUpdateRequest request = new ProviderUpdateRequest(
+                "Sarah", "Jenkins", "Obstetrician-Gynecologist", 6L,
+                "987654321", "Cracow", "Advanced Gynecology",
+                "Updated description.", Set.of("pl", "en"), "https://example.com/new.jpg"
         );
 
-        when(providerRepository.searchProviders(eq("Warsaw"), isNull(), eq("Ultrasound"), isNull()))
-                .thenReturn(List.of(new Provider()));
-        when(providerMapper.toResponse(any())).thenReturn(expectedResponse);
+        when(providerRepository.findByUserEmail(email)).thenReturn(Optional.empty());
 
-        List<ProviderResponse> results = providerService.searchProviders(location, specialization, serviceName, language);
-
-        assertNotNull(results);
-        assertEquals(1, results.size());
-        verify(providerRepository).searchProviders("Warsaw", null, "Ultrasound", null);
-    }
-
-    @Test
-    void searchProviders_shouldReturnEmptyList_whenNoProvidersMatch() {
-        String location = "NonexistentCity";
-
-        when(providerRepository.searchProviders(eq("NonexistentCity"), isNull(), isNull(), isNull()))
-                .thenReturn(List.of());
-
-        List<ProviderResponse> results = providerService.searchProviders(location, null, null, null);
-
-        assertNotNull(results);
-        assertTrue(results.isEmpty());
-        verify(providerRepository).searchProviders("NonexistentCity", null, null, null);
-    }
-
-    @Test
-    void searchProviders_shouldCleanAllBlankFiltersToNull() {
-        when(providerRepository.searchProviders(isNull(), isNull(), isNull(), isNull()))
-                .thenReturn(List.of());
-
-        providerService.searchProviders("   ", "   ", "   ", "   ");
-
-        verify(providerRepository).searchProviders(null, null, null, null);
+        assertThrows(ResourceNotFoundException.class, () ->
+                providerService.updateProviderProfile(email, request)
+        );
+        verify(providerRepository).findByUserEmail(email);
+        verify(providerRepository, never()).save(any());
     }
 }

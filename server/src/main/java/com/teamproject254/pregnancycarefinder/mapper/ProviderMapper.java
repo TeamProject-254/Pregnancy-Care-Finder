@@ -1,16 +1,16 @@
 package com.teamproject254.pregnancycarefinder.mapper;
 
-import com.teamproject254.pregnancycarefinder.dto.ProviderRequest;
+import com.teamproject254.pregnancycarefinder.dto.ProviderCreateRequest;
 import com.teamproject254.pregnancycarefinder.dto.ProviderResponse;
-import com.teamproject254.pregnancycarefinder.dto.ServiceRequest;
+import com.teamproject254.pregnancycarefinder.dto.ProviderUpdateRequest;
 import com.teamproject254.pregnancycarefinder.model.Provider;
-import com.teamproject254.pregnancycarefinder.model.MedicalService;
+import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+@Mapper(componentModel = "spring")
 public interface ProviderMapper {
 
     ProviderResponse toResponse(Provider provider);
@@ -18,9 +18,13 @@ public interface ProviderMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "user", ignore = true)
     @Mapping(target = "services", ignore = true)
-    void updateProviderFromRequest(ProviderRequest request, @MappingTarget Provider provider);
+    @Mapping(target = "availabilities", ignore = true)
+    Provider toEntity(ProviderCreateRequest request);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "provider", ignore = true)
-    MedicalService toEntity(ServiceRequest serviceRequest);
+    @Mapping(target = "user", ignore = true)
+    @Mapping(target = "services", ignore = true)
+    @Mapping(target = "availabilities", ignore = true)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateProviderFromRequest(ProviderUpdateRequest request, @MappingTarget Provider provider);
 }

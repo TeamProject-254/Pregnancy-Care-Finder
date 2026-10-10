@@ -1,16 +1,20 @@
 package com.teamproject254.pregnancycarefinder.controller;
 
-import com.teamproject254.pregnancycarefinder.dto.PatientRequest;
+import com.teamproject254.pregnancycarefinder.dto.PatientCreateRequest;
 import com.teamproject254.pregnancycarefinder.dto.PatientResponse;
+import com.teamproject254.pregnancycarefinder.dto.PatientUpdateRequest;
 import com.teamproject254.pregnancycarefinder.service.PatientService;
 import jakarta.validation.Valid;
 import java.security.Principal;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -28,10 +32,21 @@ public class PatientController {
     }
 
     @PreAuthorize("hasRole('PATIENT')")
-    @PatchMapping("/profile")
-    public PatientResponse updateOrCreatePatientProfile(Principal principal,
-                                                        @RequestBody @Valid PatientRequest request) {
+    @PostMapping("/profile")
+    @ResponseStatus(HttpStatus.CREATED)
+    public PatientResponse createPatientProfile(Principal principal,
+                                                        @RequestBody @Valid
+                                                        PatientCreateRequest request) {
         String email =  principal.getName();
-        return patientService.updateOrCreatePatientProfile(email, request);
+        return patientService.createPatientProfile(email, request);
+    }
+
+    @PreAuthorize("hasRole('PATIENT')")
+    @PatchMapping("/profile")
+    public PatientResponse updatePatientProfile(Principal principal,
+                                                @RequestBody @Valid
+                                                PatientUpdateRequest request) {
+        String email =  principal.getName();
+        return patientService.updatePatientProfile(email, request);
     }
 }
