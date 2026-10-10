@@ -11,5 +11,14 @@ public record ProviderUpdateRequest(String firstName,
                                     String specialization,
                                     String description,
                                     Set<String> languages,
-                                    String photoUrl
-) {}
+                                    String photoUrl,
+                                    Boolean published
+) {
+    public ProviderUpdateRequest(String firstName, String lastName, String professionalRole,
+                                 Long yearsOfExperience, String contactPhone, String address,
+                                 String specialization, String description, Set<String> languages,
+                                 String photoUrl) {
+        this(firstName, lastName, professionalRole, yearsOfExperience, contactPhone, address,
+                specialization, description, languages, photoUrl, null);
+    }
+}

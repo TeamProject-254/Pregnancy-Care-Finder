@@ -18,6 +18,8 @@ export const RegisterPage = () => {
   const [step, setStep] = useState<1 | 2>(1);
   const [role, setRole] = useState<Role>("patient");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const isProviderProfileStep = step === 2 && role === "healthcare";
+  const isAccountStep = step === 1;
   
   const { completeRegistration } = useAuth();
   const navigate = useNavigate();
@@ -34,11 +36,18 @@ export const RegisterPage = () => {
   return (
     <>
       <Header isLinksShown={false} />
-      <main className={styles.register__wrapper}>
-        <Link to="/" className={styles.bread__crumbs}>
-          <img src={arrowLeftIcon} alt="Back" />
-          <span className={styles.bread__crumbs__span}>Back to main page</span>
-        </Link>
+      <main className={`${styles.register__wrapper} ${isProviderProfileStep ? styles.provider__registration : ""} ${isAccountStep ? styles.account__registration : ""}`}>
+        {step === 1 ? (
+          <Link to="/" className={styles.bread__crumbs}>
+            <img src={arrowLeftIcon} alt="Back" />
+            <span className={styles.bread__crumbs__span}>Back to main page</span>
+          </Link>
+        ) : (
+          <button type="button" className={styles.bread__crumbs} onClick={() => setStep(1)}>
+            <img src={arrowLeftIcon} alt="Back" />
+            <span className={styles.bread__crumbs__span}>Back to account details</span>
+          </button>
+        )}
 
         <div className={styles.main__content}>
           <div className={styles.form__container}>
@@ -70,7 +79,7 @@ export const RegisterPage = () => {
           role={role}
           onContinue={() => {
             completeRegistration();
-            navigate("/profile", { replace: true });
+            navigate(role === "healthcare" ? "/provider-dashboard" : "/profile", { replace: true });
           }}
         />
       )}

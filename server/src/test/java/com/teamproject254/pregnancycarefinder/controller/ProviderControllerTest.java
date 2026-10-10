@@ -92,7 +92,7 @@ public class ProviderControllerTest {
         String email = "test@provider.com";
         ProviderCreateRequest request = new ProviderCreateRequest(
                 "Sarah", "Jenkins", "Obstetrician-Gynecologist", 5L,
-                "123456789", "Warsaw", true
+                "123456789", "Warsaw", true, "Obstetrician-Gynecologist", Set.of("English")
         );
         ProviderResponse response = new ProviderResponse(
                 1L, "Sarah", "Jenkins", "Obstetrician-Gynecologist", 5L,
@@ -130,7 +130,7 @@ public class ProviderControllerTest {
         String email = "test@provider.com";
         ProviderCreateRequest request = new ProviderCreateRequest(
                 "Sarah", "Jenkins", "Obstetrician-Gynecologist", 5L,
-                "123456789", "Warsaw", true
+                "123456789", "Warsaw", true, "Obstetrician-Gynecologist", Set.of("English")
         );
 
         when(providerService.createProviderProfile(eq(email), any(ProviderCreateRequest.class)))
@@ -144,21 +144,25 @@ public class ProviderControllerTest {
     }
 
     @Test
-    void createProviderProfile_ShouldReturnBadRequest_WhenConsentNotConfirmed() throws Exception {
+    void createProviderProfile_ShouldAllowIncompleteProfileWithoutSpecialityOrLanguages() throws Exception {
         String email = "test@provider.com";
         ProviderCreateRequest request = new ProviderCreateRequest(
-                "Sarah", "Jenkins", "Obstetrician-Gynecologist", 5L,
-                "123456789", "Warsaw", false
+                "Sarah", "Jenkins", "Doctor", 0L,
+                "123456789", "Warsaw", true, null, null
         );
 
         when(providerService.createProviderProfile(eq(email), any(ProviderCreateRequest.class)))
-                .thenThrow(new IllegalArgumentException("Information accuracy consent must be confirmed"));
+                .thenReturn(new ProviderResponse(
+                        1L, "Sarah", "Jenkins", "Doctor", 0L,
+                        "123456789", "Warsaw", null, null, Set.of(), null, false
+                ));
 
         mockMvc.perform(post("/providers/profile")
                         .principal(principal)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.published").value(false));
     }
 
     @Test
@@ -167,12 +171,12 @@ public class ProviderControllerTest {
         ProviderUpdateRequest request = new ProviderUpdateRequest(
                 "Sarah", "Jenkins", "Obstetrician-Gynecologist", 6L,
                 "987654321", "Cracow", "Advanced Gynecology",
-                "Updated description.", Set.of("pl", "en"), "https://example.com/new-photo.jpg"
+                "Updated description.", Set.of("pl", "en"), "https://example.com/new-photo.jpg", true
         );
         ProviderResponse response = new ProviderResponse(
                 1L, "Sarah", "Jenkins", "Obstetrician-Gynecologist", 6L,
                 "987654321", "Cracow", "Advanced Gynecology",
-                "Updated description.", Set.of("pl", "en"), "https://example.com/new-photo.jpg"
+                "Updated description.", Set.of("pl", "en"), "https://example.com/new-photo.jpg", true
         );
 
         when(providerService.updateProviderProfile(eq(email), any(ProviderUpdateRequest.class))).thenReturn(response);
@@ -187,7 +191,8 @@ public class ProviderControllerTest {
                 .andExpect(jsonPath("$.specialization").value("Advanced Gynecology"))
                 .andExpect(jsonPath("$.description").value("Updated description."))
                 .andExpect(jsonPath("$.languages", hasItem("en")))
-                .andExpect(jsonPath("$.photoUrl").value("https://example.com/new-photo.jpg"));
+                .andExpect(jsonPath("$.photoUrl").value("https://example.com/new-photo.jpg"))
+                .andExpect(jsonPath("$.published").value(true));
     }
 
     @Test

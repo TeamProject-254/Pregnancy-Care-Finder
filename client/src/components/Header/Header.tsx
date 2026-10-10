@@ -42,7 +42,7 @@ export const Header: React.FC<HeaderProps> = ({ isLinksShown = true }) => {
 
               {/* Appointments: показуємо для всіх авторизованих (і лікарям, і пацієнтам) */}
               {isAuthenticated && (
-                <NavLink to="/appointments" className={getLinkClass}>
+                <NavLink to={isHealthcareProfessional ? "/provider-dashboard" : "/patient-dashboard"} className={getLinkClass}>
                   My appointments
                 </NavLink>
               )}

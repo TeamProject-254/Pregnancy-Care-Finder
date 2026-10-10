@@ -1,0 +1,777 @@
+.warningAlert {
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 2rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  background-color: #ffffff;
+  box-sizing: border-box;
+
+  img {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+
+  .warningTitle {
+    color: #111827;
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+
+  .warningSubtitle {
+    color: #6b7280;
+    font-size: 12px;
+  }
+}
+
+/* Форма редагування: робимо весь текст всередині полів жирним і стилізуємо селекти */
+.editForm {
+  input,
+  select,
+  textarea {
+    font-weight: 500;
+    color: #111827;
+  }
+
+  /* Кастомні стрілочки для всіх селектів у формі */
+  select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('../../../../assets/img/arrow-down.svg');
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 40px; /* Місце під іконку */
+    cursor: pointer;
+  }
+}
+
+.photoSection {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 2.5rem;
+  align-items: flex-start; /* ПРИТИСКАЄ КНОПКУ ДО ВЕРХУ, ЯК НА ФОТО */
+}
+
+.photoPreview {
+  position: relative;
+  width: 184px;
+  height: 184px;
+  flex-shrink: 0;
+  border-radius: 8px;
+
+  /* Це залишаємо для реальних фото */
+  .mainImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  /* === ДОДАЙ ЦЕ ДЛЯ СІРОЇ ЗАГЛУШКИ === */
+  .placeholderImage {
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Картинка повністю влазить в коробку */
+    border-radius: 8px;
+    padding: 1.5rem; /* Відступи від країв */
+    box-sizing: border-box;
+    background-color: #f9fafb; /* Легкий сірий фон, щоб було видно межі коробки */
+    border: 1px solid #e5e7eb; /* Рамочка */
+  }
+
+  .removeBtn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    border-radius: 8%;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4b5563;
+    font-size: 14px;
+    transition: background 0.2s;
+
+    &:hover {
+      background: #ffffff;
+    }
+  }
+}
+
+.photoUpload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  width: 240px;
+  height: 80px;
+  background-color: #ffffff;
+  transition: all 0.2s;
+  box-sizing: border-box;
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
+
+  .uploadTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    font-weight: 500;
+    font-size: 14px;
+    color: #111827;
+
+    img {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .uploadSubtitle {
+    font-size: 12px;
+    color: #6b7280;
+  }
+}
+
+.divider {
+  border: none;
+  border-top: 2px solid #e5e7eb;
+  margin-bottom: 2.5rem;
+}
+
+.sectionContainer {
+  margin-bottom: 3rem;
+
+  .sectionHeader {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #111827;
+  }
+
+  .sectionHeaderFlex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+
+    h3 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #111827;
+      margin: 0;
+    }
+  }
+
+  .sectionSubtitle {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.serviceRow {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.selectInput {
+  padding: 0.625rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background-color: #fff;
+  color: #111827;
+  font-family: inherit;
+  box-sizing: border-box;
+  height: 42px;
+  outline: none;
+  transition: border-color 0.2s;
+  font-weight: 500; /* Робимо текст жирним */
+  
+  /* Кастомна стрілочка також для цих інпутів */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url('../../../../assets/img/arrow-down.svg');
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+
+  &:focus {
+    border-color: #fdba74;
+  }
+}
+
+.selectLarge {
+  flex: 2;
+}
+
+.selectSmall {
+  flex: 1;
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+
+  img {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    background-color: #fee2e2;
+  }
+}
+
+.actionBtn {
+  padding: 0.625rem 1.5rem;
+  font-weight: 500;
+  color: var(--color-gray-90);
+  border: 1px solid var(--color-primary);
+  border-radius: 8px;
+  background-color: var(--color-white);
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  margin-top: 0.5rem;
+
+  &:hover {
+    background-color: #F2D4CF;
+  }
+}
+
+.daysContainer {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.dayBtn {
+  padding: 0.5rem 0.75rem;
+  min-width: 48px;
+  text-align: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #9ca3af;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  box-sizing: border-box;
+
+  &.active {
+    border-color: #fdba74;
+    background: #fff7ed;
+    color: #111827;
+  }
+}
+
+.intervalRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.workingHoursLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 130px;
+  color: #4b5563;
+  font-size: 14px;
+
+  img {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.timeInputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  span {
+    color: #4b5563;
+    font-size: 14px;
+  }
+}
+
+.timeInput {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  color: #111827;
+  font-family: inherit;
+  box-sizing: border-box;
+  outline: none;
+  height: 42px;
+  transition: border-color 0.2s;
+  font-weight: 500;
+
+  /* Прибираємо стандартну іконку годинника в деяких браузерах, якщо потрібно */
+  &::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+  }
+
+  &:focus {
+    border-color: #fdba74;
+  }
+}
+
+.intervalFooter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+}
+
+.formFooter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.readOnlySection {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+
+  h3 {
+    font-size: 18px;
+    margin-bottom: 1rem;
+  }
+  
+  p {
+    color: #4b5563;
+    line-height: 1.6;
+  }
+}
+
+.readOnlyGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+.readOnlyRow {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+}
+
+.warningAlert {
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 2rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  background-color: #ffffff;
+  box-sizing: border-box;
+
+  img {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+
+  .warningTitle {
+    color: #111827;
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 2px;
+  }
+
+  .warningSubtitle {
+    color: #6b7280;
+    font-size: 12px;
+  }
+}
+
+/* === НОВІ КЛАСИ ДЛЯ ІДЕАЛЬНО РІВНИХ ІНПУТІВ === */
+.mainInput,
+.mainSelect,
+.mainTextarea {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-weight: 500; /* Жирний текст всередині полів */
+  color: #111827;
+  background-color: #ffffff;
+  box-sizing: border-box;
+  outline: none;
+  font-family: inherit;
+  font-size: 14px;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: #fdba74;
+  }
+}
+
+.mainInput, .mainSelect {
+  height: 48px; /* Жорстко фіксуємо висоту, щоб Select і MultiSelect були однакові */
+  padding: 0 1rem; /* Центруємо текст по вертикалі */
+}
+
+.mainTextarea {
+  padding: 0.75rem 1rem;
+  resize: vertical;
+}
+
+.mainSelect {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url('../../../../assets/img/arrow-down.svg'); /* Твоя стрілочка */
+  background-repeat: no-repeat;
+  background-position: right 14px center; /* Відстань 14px від правого краю */
+  padding-right: 40px; /* Відступ для тексту, щоб не налізав на іконку */
+}
+/* ================================================= */
+
+.photoSection {
+  display: flex;
+  gap: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 2.5rem;
+  align-items: flex-start;
+}
+
+.photoPreview {
+  position: relative;
+  width: 184px;
+  height: 184px;
+  flex-shrink: 0;
+  border-radius: 8px;
+
+  .mainImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+
+  .removeBtn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    border-radius: 8%;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4b5563;
+    font-size: 14px;
+    transition: background 0.2s;
+
+    &:hover {
+      background: #ffffff;
+    }
+  }
+}
+
+.photoUpload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  width: 240px;
+  height: 80px;
+  background-color: #ffffff;
+  transition: all 0.2s;
+  box-sizing: border-box;
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
+
+  .uploadTitle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+    font-weight: 500;
+    font-size: 14px;
+    color: #111827;
+
+    img {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .uploadSubtitle {
+    font-size: 12px;
+    color: #6b7280;
+  }
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid #e5e7eb;
+  margin-bottom: 2.5rem;
+}
+
+.sectionContainer {
+  margin-bottom: 3rem;
+
+  .sectionHeader {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #111827;
+  }
+
+  .sectionHeaderFlex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+
+    h3 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #111827;
+      margin: 0;
+    }
+  }
+
+  .sectionSubtitle {
+    color: #6b7280;
+    font-size: 14px;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.serviceRow {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.selectInput {
+  padding: 0 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background-color: #fff;
+  color: #111827;
+  font-family: inherit;
+  box-sizing: border-box;
+  height: 48px; /* Підігнав висоту під основні інпути */
+  outline: none;
+  transition: border-color 0.2s;
+  font-weight: 500; /* Жирний текст */
+  
+  /* Кастомна стрілочка для послуг */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url('../../../../assets/img/arrow-down.svg');
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+
+  &:focus {
+    border-color: #fdba74;
+  }
+}
+
+.selectLarge {
+  flex: 2;
+}
+
+.selectSmall {
+  flex: 1;
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+
+  img {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    background-color: #fee2e2;
+  }
+}
+
+.actionBtn {
+  padding: 0.625rem 1.5rem;
+  font-weight: 500;
+  color: #4b5563;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background-color: #ffffff;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  margin-top: 0.5rem;
+
+  &:hover {
+    background-color: #f9fafb;
+  }
+}
+
+.daysContainer {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.dayBtn {
+  padding: 0.5rem 0.75rem;
+  min-width: 48px;
+  text-align: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #9ca3af;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  box-sizing: border-box;
+
+  &.active {
+    border-color: #fdba74;
+    background: #fff7ed;
+    color: #111827;
+  }
+}
+
+.intervalRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.workingHoursLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 130px;
+  color: #4b5563;
+  font-size: 14px;
+
+  img {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.timeInputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  span {
+    color: #4b5563;
+    font-size: 14px;
+  }
+}
+
+.timeInput {
+  padding: 0 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  color: #111827;
+  font-family: inherit;
+  box-sizing: border-box;
+  outline: none;
+  height: 48px;
+  transition: border-color 0.2s;
+  font-weight: 500;
+
+  &::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+  }
+
+  &:focus {
+    border-color: #fdba74;
+  }
+}
+
+.intervalFooter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+}
+
+.formFooter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
+}
+
+.readOnlySection {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+
+  h3 {
+    font-size: 18px;
+    margin-bottom: 1rem;
+  }
+  
+  p {
+    color: #4b5563;
+    line-height: 1.6;
+  }
+}
+
+.readOnlyGrid {
+  display: grid;
+  gap: 1rem;
+}
+
+.readOnlyRow {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+}

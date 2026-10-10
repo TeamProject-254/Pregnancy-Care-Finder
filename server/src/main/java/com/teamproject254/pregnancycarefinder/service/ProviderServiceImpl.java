@@ -10,6 +10,7 @@ import com.teamproject254.pregnancycarefinder.model.Provider;
 import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.repository.ProviderRepository;
 import com.teamproject254.pregnancycarefinder.repository.UserRepository;
+import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,15 +38,15 @@ public class ProviderServiceImpl implements ProviderService {
             throw new ResourceAlreadyExistsException("Provider profile already exists for this email");
         }
 
-        if (!request.accurateInfoConsent()) {
-            throw new IllegalArgumentException("Information accuracy consent must be confirmed");
-        }
-
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
         Provider provider = providerMapper.toEntity(request);
         provider.setUser(user);
+        provider.setPublished(false);
+        if (provider.getLanguages() == null) {
+            provider.setLanguages(new HashSet<>());
+        }
         Provider savedProvider = providerRepository.save(provider);
         return providerMapper.toResponse(savedProvider);
     }
@@ -55,8 +56,30 @@ public class ProviderServiceImpl implements ProviderService {
         Provider provider = providerRepository.findByUserEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Provider profile not found"));
 
+        if (Boolean.TRUE.equals(request.published()) && !isComplete(request)) {
+            throw new IllegalArgumentException("All profile fields except the photo are required to publish");
+        }
+
         providerMapper.updateProviderFromRequest(request, provider);
         Provider savedProvider = providerRepository.save(provider);
         return providerMapper.toResponse(savedProvider);
+    }
+
+    private boolean isComplete(ProviderUpdateRequest request) {
+        return hasText(request.firstName())
+                && hasText(request.lastName())
+                && hasText(request.professionalRole())
+                && request.yearsOfExperience() != null
+                && request.yearsOfExperience() >= 0
+                && hasText(request.contactPhone())
+                && hasText(request.address())
+                && hasText(request.specialization())
+                && hasText(request.description())
+                && request.languages() != null
+                && !request.languages().isEmpty();
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 }
