@@ -7,14 +7,15 @@ interface CheckboxProps extends Omit<
   "type"
 > {
   label?: React.ReactNode;
+  compact?: boolean;
 }
 
 export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
-  ({ label, disabled, className = "", id, ...rest }, ref) => {
+  ({ label, disabled, compact = false, className = "", id, ...rest }, ref) => {
     return (
       <label
         htmlFor={id}
-        className={`${styles.checkbox} ${disabled ? styles["checkbox--disabled"] : ""} ${className}`}
+        className={`${styles.checkbox} ${compact ? styles["checkbox--compact"] : ""} ${disabled ? styles["checkbox--disabled"] : ""} ${className}`}
       >
         <input
           ref={ref}

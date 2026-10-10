@@ -94,6 +94,7 @@ class ProviderServiceImplTest {
 
         assertNotNull(actual);
         assertEquals(expectedResponse, actual);
+        assertFalse(provider.isPublished());
         verify(providerRepository).existsByUserEmail(email);
         verify(userRepository).findByEmail(email);
         verify(providerRepository).save(provider);
@@ -117,18 +118,28 @@ class ProviderServiceImplTest {
     }
 
     @Test
-    void createProviderProfile_ShouldThrowException_WhenConsentNotConfirmed() {
+    void createProviderProfile_ShouldCreateIncompleteProfile_WhenSpecialityAndLanguagesAreNotProvided() {
         String email = "test@provider.com";
         ProviderCreateRequest request = new ProviderCreateRequest(
-                "Sarah", "Jenkins", "Obstetrician-Gynecologist", 5L,
-                "123456789", "Warsaw", false
+                "Sarah", "Jenkins", "Obstetrician-Gynecologist", 0L,
+                "123456789", "Warsaw", true, null, null
         );
+        User user = new User();
+        Provider provider = new Provider();
 
         when(providerRepository.existsByUserEmail(email)).thenReturn(false);
-        assertThrows(IllegalArgumentException.class, () ->
-                providerService.createProviderProfile(email, request)
-        );
-        verify(providerRepository, never()).save(any());
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        when(providerMapper.toEntity(request)).thenReturn(provider);
+        when(providerRepository.save(provider)).thenReturn(provider);
+        when(providerMapper.toResponse(provider)).thenReturn(new ProviderResponse(
+                1L, "Sarah", "Jenkins", "Obstetrician-Gynecologist", null,
+                "123456789", "Warsaw", null, null, Set.of(), null, false
+        ));
+
+        providerService.createProviderProfile(email, request);
+
+        assertFalse(provider.isPublished());
+        verify(providerRepository).save(provider);
     }
 
     @Test
@@ -154,14 +165,14 @@ class ProviderServiceImplTest {
         ProviderUpdateRequest request = new ProviderUpdateRequest(
                 "Sarah", "Jenkins", "Obstetrician-Gynecologist", 6L,
                 "987654321", "Cracow", "Advanced Gynecology",
-                "Updated description.", Set.of("pl", "en"), "https://example.com/new.jpg"
+                "Updated description.", Set.of("pl", "en"), null, true
         );
         Provider provider = new Provider();
         Provider savedProvider = new Provider();
         ProviderResponse expectedResponse = new ProviderResponse(
                 1L, "Sarah", "Jenkins", "Obstetrician-Gynecologist", 6L,
                 "987654321", "Cracow", "Advanced Gynecology",
-                "Updated description.", Set.of("pl", "en"), "https://example.com/new.jpg"
+                "Updated description.", Set.of("pl", "en"), null, true
         );
 
         when(providerRepository.findByUserEmail(email)).thenReturn(Optional.of(provider));
@@ -176,6 +187,21 @@ class ProviderServiceImplTest {
         verify(providerRepository).findByUserEmail(email);
         verify(providerMapper).updateProviderFromRequest(request, provider);
         verify(providerRepository).save(provider);
+    }
+
+    @Test
+    void updateProviderProfile_ShouldRejectPublishing_WhenRequiredFieldsAreMissing() {
+        String email = "test@provider.com";
+        ProviderUpdateRequest request = new ProviderUpdateRequest(
+                "Sarah", "Jenkins", "Obstetrician-Gynecologist", null,
+                null, null, "Obstetrician-Gynecologist", null, Set.of("English"), null, true
+        );
+        when(providerRepository.findByUserEmail(email)).thenReturn(Optional.of(new Provider()));
+
+        assertThrows(IllegalArgumentException.class,
+                () -> providerService.updateProviderProfile(email, request));
+        verify(providerMapper, never()).updateProviderFromRequest(any(), any());
+        verify(providerRepository, never()).save(any());
     }
 
     @Test

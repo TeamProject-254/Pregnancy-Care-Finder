@@ -13,13 +13,12 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   registrationPendingConfirmation: boolean;
-  // Додали нові аргументи, щоб задовольнити DTO бекенда
   register: (
     email: string,
     password: string,
     confirmPassword: string,
     role: UserRole,
-    termsAccepted: boolean
+    termsAccepted: boolean,
   ) => Promise<void>;
   completeRegistration: () => void;
   login: (
@@ -54,13 +53,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   });
 
-  const [registrationPendingConfirmation, setRegistrationPendingConfirmation] =
-    useState(false);
+  const [registrationPendingConfirmation, setRegistrationPendingConfirmation] = useState(false);
 
   const login = async (
     email: string,
     password: string,
-    rememberMe: boolean,
+    rememberMe: boolean
   ) => {
     const response = await api.post("/auth/login", {
       email,
@@ -89,7 +87,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     role: UserRole,
     termsAccepted: boolean
   ) => {
-    // 1. Відправляємо всі 5 полів на бекенд
     const response = await api.post("/auth/register", {
       email,
       password,
@@ -98,8 +95,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       termsAccepted,
     });
 
-    // 2. Оскільки бекенд тепер одразу повертає LoginResponse, 
-    // ми просто беремо ці дані і логінимо юзера (без додаткового запиту /auth/login)
     const data = response.data;
 
     const loggedUser: User = {
@@ -122,6 +117,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+
+    // Чистимо кеш дашборду
+    localStorage.removeItem("dash_isPublished");
+    localStorage.removeItem("dash_isEditing");
+    localStorage.removeItem("dash_speciality");
+    localStorage.removeItem("dash_languages");
+    localStorage.removeItem("dash_description");
+    localStorage.removeItem("dash_photo");
+    // Також чистимо драфт профілю, якщо він є
+    if (user?.userId) {
+      localStorage.removeItem(`provider-profile:${user.userId}:draft`);
+    }
+
     setUser(null);
     setRegistrationPendingConfirmation(false);
   };

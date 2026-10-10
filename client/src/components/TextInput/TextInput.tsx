@@ -7,12 +7,14 @@ interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   isValid?: boolean;
   rightElement?: React.ReactNode;
+  compact?: boolean;
 }
 
 export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
-  ({ label, error, isValid, rightElement, id, ...rest }, ref) => {
+  ({ label, error, isValid, rightElement, compact = false, id, ...rest }, ref) => {
     const controlClasses = [
       styles.inputGroup__control,
+      compact ? styles["inputGroup__control--compact"] : "",
       error ? styles["inputGroup__control--error"] : "",
       isValid && !error ? styles["inputGroup__control--success"] : "",
     ]
@@ -20,7 +22,7 @@ export const TextInput = forwardRef<HTMLInputElement, TextInputProps>(
       .join(" ");
 
     return (
-      <div className={styles.inputGroup}>
+      <div className={`${styles.inputGroup} ${compact ? styles.inputGroup__compact : ""}`}>
         {label && (
           <label htmlFor={id} className={styles.inputGroup__label}>
             {label}

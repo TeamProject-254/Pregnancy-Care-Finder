@@ -49,13 +49,13 @@ public class Provider {
     @Column(nullable = false)
     private String professionalRole;
 
-    @Column(name ="years_of_experience", nullable = false)
+    @Column(name ="years_of_experience")
     private Long yearsOfExperience;
 
-    @Column(name = "contact_phone", nullable = false)
+    @Column(name = "contact_phone")
     private String contactPhone;
 
-    @Column(nullable = false)
+    @Column
     private String address;
 
     @Column(nullable = false)
@@ -75,7 +75,11 @@ public class Provider {
 
     private String specialization;
 
+    @Column(columnDefinition = "TEXT")
     private String photoUrl;
+
+    @Column(nullable = false)
+    private boolean published;
 
     @OneToMany(mappedBy = "provider", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

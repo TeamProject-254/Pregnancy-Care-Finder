@@ -10,7 +10,7 @@ import { EyeIcon } from "../../../../components/icons/EyeIcon";
 import type { Role } from "../../RegisterPage";
 
 import patientIcon from "../../../../assets/img/pregnant-woman.svg";
-import doctorIcon from "../../../../assets/img/doctor-icon-dark.svg";
+import doctorIcon from "../../../../assets/img/doctor-icon-pink.svg";
 import styles from "../../RegisterPage.module.scss";
 
 interface AccountFormInputs {
