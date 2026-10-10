@@ -2,13 +2,11 @@ import { useRef, useState, type FormEvent } from "react";
 import doctorDefaultImage from "../../../../assets/img/doctorImage.svg";
 import { MultiSelectDropdown } from "../../../../components/MultiSelectDropdown/MultiSelectDropdown";
 import { PROVIDER_LANGUAGES, PROVIDER_SPECIALTIES } from "../../../../constants/providerOptions";
-import { ServicesTab } from "./ServicesTab";
-import { AvailabilityTab } from "./AvailabilityTab";
 import caution from '../../../../assets/img/warning!-icon.svg';
 import camera from '../../../../assets/img/photo.svg';
 import clock from '../../../../assets/img/clock-icon.svg';
 import trash from '../../../../assets/img/trash-icon.svg';
-
+import success from '../../../../assets/img/success-icon.svg';
 import styles from './ProfessionalProfileTab.module.scss';
 
 interface ProviderProfile {
@@ -83,13 +81,13 @@ export const ProfessionalProfileTab = ({
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  if (isLoading) return <div className="tab__container">Loading...</div>;
+  if (isLoading) return <div className={styles.tabContainer}>Loading...</div>;
 
   if (isEditing) {
     return (
-      <div className="tab__container">
-        <h2>{profile.published ? "Edit professional profile" : "Complete your professional profile"}</h2>
-        <p className="tab__subtitle">Add the information patients need before your profile appears in search</p>
+      <div className={styles.tabContainer}>
+        <h2 className={styles.mainTitle}>{profile.published ? "Edit professional profile" : "Complete your professional profile"}</h2>
+        <p className={styles.tabSubtitle}>Add the information patients need before your profile appears in search</p>
 
         {!profile.published && (
           <div className={styles.warningAlert}>
@@ -115,7 +113,8 @@ export const ProfessionalProfileTab = ({
                 <div className="form-group"><label>Last name</label><input required className={styles.mainInput} value={profile.lastName} onChange={(e) => onUpdate("lastName", e.target.value)} /></div>
               </div>
               <div className="form-row">
-                <div className="form-group"><label>Professional role</label><input required className={styles.mainInput} value={profile.professionalRole} onChange={(e) => onUpdate("professionalRole", e.target.value)} /></div>
+                {/* ТУТ ДОДАНО ДОКТОР ЗА ЗАМОВЧУВАННЯМ */}
+                <div className="form-group"><label>Professional role</label><input required className={styles.mainInput} value={profile.professionalRole || "Doctor"} onChange={(e) => onUpdate("professionalRole", e.target.value)} /></div>
                 <div className="form-group"><label>Years of experience</label><input required className={styles.mainInput} type="number" min="0" value={profile.yearsOfExperience} onChange={(e) => onUpdate("yearsOfExperience", e.target.value)} /></div>
               </div>
               <div className="form-row">
@@ -128,7 +127,7 @@ export const ProfessionalProfileTab = ({
           <div className="form-row">
             <div className="form-group">
               <label>Speciality</label>
-              {/* Тут стрілочка і висота */}
+              {/* Цей селект має стрілочку через клас styles.mainSelect */}
               <select required className={styles.mainSelect} value={profile.speciality} onChange={(e) => onUpdate("speciality", e.target.value)}>
                 <option value="">Select speciality</option>
                 {PROVIDER_SPECIALTIES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -170,10 +169,9 @@ export const ProfessionalProfileTab = ({
 
           <hr className={styles.divider} />
 
-          {/* === СЕКЦІЯ SERVICES AND PRICES === */}
           <div className={styles.sectionContainer}>
-            <div className={styles.sectionHeaderFlex} style={{ marginBottom: '0' }}>
-              <h3 className={styles.sectionHeader}>Services and prices</h3>
+            <div className={styles.headerFlex} style={{ marginBottom: '0' }}>
+              <h3 className={styles.sectionTitle}>Services and prices</h3>
             </div>
             <p className={styles.sectionSubtitle}>
               Add the services you offer and set your prices. These will be visible to patients on your profile.
@@ -181,17 +179,17 @@ export const ProfessionalProfileTab = ({
 
             {services.map((service) => (
               <div key={service.id} className={styles.serviceRow}>
-                <select className={`${styles.selectInput} ${styles.selectLarge}`} defaultValue={service.name}>
+                <select className={`${styles.mainSelect} ${styles.selectLarge}`} defaultValue={service.name}>
                   <option>{service.name}</option>
                   <option>General checkup</option>
                   <option>Follow-up</option>
                 </select>
-                <select className={`${styles.selectInput} ${styles.selectSmall}`} defaultValue={service.duration}>
+                <select className={`${styles.mainSelect} ${styles.selectSmall}`} defaultValue={service.duration}>
                   <option>{service.duration}</option>
                   <option>30 min</option>
                   <option>60 min</option>
                 </select>
-                <select className={`${styles.selectInput} ${styles.selectSmall}`} defaultValue={service.price}>
+                <select className={`${styles.mainSelect} ${styles.selectSmall}`} defaultValue={service.price}>
                   <option>{service.price}</option>
                   <option>50$</option>
                   <option>80$</option>
@@ -207,11 +205,10 @@ export const ProfessionalProfileTab = ({
             </button>
           </div>
 
-          {/* === СЕКЦІЯ AVAILABILITY === */}
           <div className={styles.sectionContainer}>
-            <div className={styles.sectionHeaderFlex}>
-              <h3>Availability</h3>
-              <button type="button" onClick={() => onSwitchTab("availability")} className={styles.actionBtn} style={{ marginTop: 0 }}>
+            <div className={styles.headerFlex}>
+              <h3 className={styles.sectionTitle}>Availability</h3>
+              <button type="button" onClick={() => onSwitchTab("availability")} className={styles.actionBtnOutline}>
                 Manage availability
               </button>
             </div>
@@ -247,7 +244,7 @@ export const ProfessionalProfileTab = ({
             ))}
 
             <div className={styles.intervalFooter}>
-              <button type="button" onClick={addInterval} className={styles.actionBtn} style={{ marginTop: 0 }}>
+              <button type="button" onClick={addInterval} className={styles.actionBtn}>
                 Add time interval
               </button>
             </div>
@@ -256,7 +253,7 @@ export const ProfessionalProfileTab = ({
           {!canPublish && <p className="field-error" style={{ textAlign: 'right' }}>Complete all required profile fields to enable publishing.</p>}
           
           <div className={styles.formFooter}>
-            <button type="submit" className="btn-primary" disabled={isSaving}>
+            <button type="submit" className="btn-primary" disabled={!canPublish}>
               {isSaving ? "Saving..." : "Save and continue"}
             </button>
           </div>
@@ -265,44 +262,124 @@ export const ProfessionalProfileTab = ({
     );
   }
 
-  // РЕЖИМ ПЕРЕГЛЯДУ
   return (
-    <div className="tab__container">
-      <div className="tab__header-flex">
-        <h2>Professional profile</h2>
-        <button className="btn-outline" onClick={onEdit}>Edit profile</button>
+    <div className={styles.tabContainerTransparent}>
+      <div className={styles.headerFlex}>
+        <h2 className={styles.mainTitle}>Professional profile</h2>
+        <button className={styles.actionBtnOutline} onClick={onEdit}>Edit profile</button>
       </div>
-      <div className="alert alert--success">Your profile is published and visible in search results.</div>
+      
+      <div className={styles.successAlert}>
+        <img src={success} alt="success" className={styles.successImg} />
+        Your profile is published and visible in search results.
+      </div>
       
       <div className="form-row">
-        <div className="form-group"><label>First name</label><input readOnly value={profile.firstName} /></div>
-        <div className="form-group"><label>Last name</label><input readOnly value={profile.lastName} /></div>
-        <div className="form-group"><label>Email address</label><input readOnly value={email} /></div>
-        <div className="form-group"><label>Contact phone</label><input readOnly value={profile.contactPhone} /></div>
-        <div className="form-group"><label>Consultation city/address</label><input readOnly value={profile.address} /></div>
+        <div className="form-group">
+          <label>First name</label>
+          <input readOnly className={styles.mainInput} value={profile.firstName} placeholder="first name" />
+        </div>
+        <div className="form-group">
+          <label>Last name</label>
+          <input readOnly className={styles.mainInput} value={profile.lastName} placeholder="Last name" />
+        </div>
+      </div>
+      <div className="form-row">
+        <div className="form-group">
+          <label>Email address</label>
+          <input readOnly className={styles.mainInput} value={email} placeholder="you@example.com" />
+        </div>
+        <div className="form-group">
+          <label>Contact phone</label>
+          <input readOnly className={styles.mainInput} value={profile.contactPhone} placeholder="+380 00 000 00 00" />
+        </div>
+      </div>
+      <div className="form-row" style={{ gridTemplateColumns: '1fr' }}>
+        <div className="form-group">
+          <label>Consultation city/address</label>
+          <input readOnly className={styles.mainInput} value={profile.address} placeholder="Enter city and consultation address" />
+        </div>
       </div>
       
       <section className={styles.readOnlySection}>
-        <h3>About</h3>
+        <h3 className={styles.sectionTitle}>About</h3>
         <p>{profile.description}</p>
       </section>
       
       <section className={styles.readOnlySection}>
-        <h3>Professional information</h3>
+        <h3 className={styles.sectionTitle}>Professional information</h3>
         <div className={styles.readOnlyGrid}>
-          <div className={styles.readOnlyRow}><strong>Languages</strong><div>{profile.languages.join(", ")}</div></div>
-          <div className={styles.readOnlyRow}><strong>Speciality</strong><span>{profile.speciality}</span></div>
-          <div className={styles.readOnlyRow}><strong>Professional role</strong><span>{profile.professionalRole || "Doctor"}</span></div>
-          <div className={styles.readOnlyRow}><strong>Years of experience</strong><span>{profile.yearsOfExperience} years</span></div>
-          <div className={styles.readOnlyRow}><strong>Contact phone</strong><span>{profile.contactPhone}</span></div>
-          <div className={styles.readOnlyRow}><strong>Consultation location</strong><span>{profile.address}</span></div>
+          <div className={styles.readOnlyRow}>
+            <strong>Languages</strong>
+            <div className={styles.tagsWrapper}>
+              <div className={styles.tagsContainer}>
+                {profile.languages.map(lang => <span key={lang} className={styles.tag}>{lang}</span>)}
+              </div>
+              <button className={styles.actionBtnOutline} onClick={onEdit}>Edit</button>
+            </div>
+          </div>
+          <div className={styles.readOnlyRow}>
+            <strong>Specialty</strong>
+            <div className={styles.readOnlyValueBox}>{profile.speciality}</div>
+          </div>
+          <div className={styles.readOnlyRow}>
+            <strong>Professional role</strong>
+            <div className={styles.readOnlyValueBox}>{profile.professionalRole || "Doctor"}</div>
+          </div>
+          <div className={styles.readOnlyRow}>
+            <strong>Years of experience</strong>
+            <div className={styles.readOnlyValueBox}>{profile.yearsOfExperience} years</div>
+          </div>
+          <div className={styles.readOnlyRow}>
+            <strong>Contact phone</strong>
+            <div className={styles.readOnlyValueBox}>{profile.contactPhone}</div>
+          </div>
+          <div className={styles.readOnlyRow}>
+            <strong>Consultation location</strong>
+            <div className={styles.readOnlyValueBox}>{profile.address}</div>
+          </div>
         </div>
       </section>
       
-      <hr className={styles.divider} />
-      
-      <ServicesTab />
-      <AvailabilityTab />
+      <section className={styles.readOnlySection}>
+        <div className={styles.headerFlex}>
+          <h3 className={styles.sectionTitle} style={{ margin: 0 }}>Services and prices</h3>
+          <button className={styles.actionBtnOutline} onClick={() => onSwitchTab("services")}>Manage services</button>
+        </div>
+        <div className={styles.servicesTable}>
+          <div className={styles.servicesHeader}>
+            <span className={styles.selectLarge}>Service</span>
+            <span className={styles.selectSmall}>Duration</span>
+            <span className={styles.selectSmall}>Price</span>
+          </div>
+          <div className={styles.servicesBody}>
+            {services.map((service) => (
+              <div key={service.id} className={styles.serviceDisplayRow}>
+                <div className={`${styles.serviceSelectBox} ${styles.selectLarge}`}>{service.name}</div>
+                <div className={`${styles.serviceSelectBox} ${styles.selectSmall}`}>{service.duration}</div>
+                <div className={`${styles.serviceSelectBox} ${styles.selectSmall}`}>{service.price}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.readOnlySection}>
+        <div className={styles.headerFlex}>
+          <h3 className={styles.sectionTitle} style={{ margin: 0 }}>Availability</h3>
+          <button className={styles.actionBtnOutline} onClick={() => onSwitchTab("availability")}>Manage Time</button>
+        </div>
+        <div className={styles.availabilityDisplay}>
+          <img src={clock} alt="clock" />
+          {activeDays.length > 0 ? (
+            <span>
+              {activeDays[0]} - {activeDays[activeDays.length - 1]}, {intervals.length > 0 ? `${intervals[0].start} - ${intervals[0].end}` : 'Time not set'}
+            </span>
+          ) : (
+            <span>Not set</span>
+          )}
+        </div>
+      </section>
     </div>
   );
 };

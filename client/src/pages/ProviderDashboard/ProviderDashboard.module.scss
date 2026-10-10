@@ -36,10 +36,15 @@
     min-height: 500px;
     border: 1px solid #E5E7EB;
     padding-bottom: 2rem;
+    transition: all 0.3s ease;
+
+    &--transparent {
+      background: transparent;
+      border: none;
+      padding: 0;
+    }
   }
 
-
-  /* ================= SIDEBAR ================= */
   .sidebar {
     width: 280px;
     background: #ffffff;
@@ -102,8 +107,6 @@
     border: 1px solid #FECACA;
   }
 
-
-  /* ================= PROGRESS BAR ================= */
   .sidebar__progress {
     display: flex;
     flex-direction: row;
@@ -137,8 +140,6 @@
     white-space: nowrap;
   }
 
-
-  /* ================= NAVIGATION ================= */
   .sidebar__nav {
     display: flex;
     flex-direction: column;
@@ -167,14 +168,12 @@
     }
 
     &.active {
-      background: #FDBA74;
+      background: var(--color-primary);
       color: #111827;
       font-weight: 600;
     }
   }
 
-
-  /* ================= TABS & FORMS ================= */
   .tab__container {
     padding: 2.5rem;
 
@@ -217,9 +216,7 @@
       color: #374151;
     }
 
-    input,
-    select,
-    textarea {
+    input, select, textarea {
       padding: 0.75rem 1rem;
       border: 1px solid #D1D5DB;
       border-radius: 8px;
@@ -231,15 +228,13 @@
       background: #ffffff;
 
       &:focus {
-        border-color: #FDBA74;
+        border-color: var(--color-primary);
       }
     }
 
-    /* Візуальне виділення полів, які не можна редагувати */
     input[readOnly] {
-      background-color: #F9FAFB;
-      color: #6B7280;
-      cursor: not-allowed;
+      background-color: #ffffff;
+      color: #111827;
     }
   }
 
@@ -249,18 +244,13 @@
     margin-top: 0.25rem;
   }
 
-
-  /* ================= BUTTONS ================= */
-  .btn-primary,
-  .btn-outline,
-  .btn-danger,
-  .btn-outline-danger {
-    padding: 0.75rem 1.5rem;
+  .btn-primary, .btn-outline, .btn-danger, .btn-outline-danger {
+    padding: 0.625rem 1.5rem;
     border-radius: 8px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
-    font-size: 15px;
+    font-size: 14px;
     font-family: inherit;
     display: inline-flex;
     align-items: center;
@@ -268,14 +258,13 @@
   }
 
   .btn-primary {
-    background: #FDBA74;
-    border: 1px solid #FDBA74;
+    background: var(--color-primary);
+    border: 1px solid var(--color-primary);
     color: #111827;
 
     &:hover:not(:disabled) {
-      background: #F97316;
-      border-color: #F97316;
-      color: #ffffff;
+      background: #F6C5B8;
+      border-color: var(--color-primary);
     }
 
     &:disabled {
@@ -290,13 +279,11 @@
     color: #374151;
 
     &:hover:not(:disabled) {
-      background: #F3F4F6;
+      background: #F9FAFB;
       color: #111827;
     }
   }
 
-
-  /* ================= ALERTS ================= */
   .alert {
     padding: 1rem 1.25rem;
     border-radius: 8px;
