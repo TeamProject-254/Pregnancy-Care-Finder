@@ -71,11 +71,11 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  background: #ffffff;
+  background: var(--color-white);
   border: 1px solid #E5E7EB;
   border-radius: 12px;
   padding: 2.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); /* Легка тінь як на макеті */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
 .provider__register__form {
@@ -209,20 +209,19 @@
 
 .provider__select {
   width: 100%;
-  max-width: 100%; /* Не дає полю вилізти за межі контейнера */
-  height: 48px; /* Фіксуємо висоту ідентично до TextInput */
-  padding: 0 1rem; /* Вирівнюємо внутрішні відступи */
+  max-width: 100%;
+  height: 48px;
+  padding: 0 1rem;
   border: 1px solid var(--color-gray-40);
   border-radius: 8px;
-  background: #fff;
+  background: var(--color-white);
   color: var(--color-gray-90);
   font: inherit;
   font-weight: 500;
   outline: none;
   transition: border-color 0.2s;
-  box-sizing: border-box; /* КРИТИЧНО: падінги тепер всередині, а не ззовні */
+  box-sizing: border-box;
 
-  /* Кастомна стрілочка */
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -339,7 +338,6 @@
   text-align: center;
 }
 
-/* --- КНОПКИ (Submit та Back) --- */
 .action__block {
   display: flex;
   flex-direction: column;
@@ -354,7 +352,7 @@
   width: 100%;
 
   .submit__button {
-    flex: 1; /* Робить кнопки Back і Create Account однакової ширини */
+    flex: 1;
   }
 }
 
@@ -379,10 +377,9 @@
     cursor: not-allowed;
   }
 
-  /* Модифікатор для прозорої кнопки Back */
   &--outline {
     background-color: transparent;
-    border: 1px solid var(--color-primary--second); /* кольоровий бордер */
+    border: 1px solid var(--color-primary--second);
     color: var(--color-gray-90);
 
     &:hover:not(:disabled) {
@@ -406,7 +403,6 @@
   }
 }
 
-/* --- КАРТКИ ВАЛІДАЦІЇ РОЛІ (Тільки для AccountStep) --- */
 .role__section {
   margin-bottom: 2rem;
 

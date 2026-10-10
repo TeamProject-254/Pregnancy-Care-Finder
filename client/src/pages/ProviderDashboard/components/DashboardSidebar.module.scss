@@ -1,6 +1,6 @@
 .sidebar {
   width: 280px;
-  background: #ffffff;
+  background: var(--color-white);
   border: 1px solid #E5E7EB;
   border-radius: 8px;
   padding: 1.5rem;
@@ -66,7 +66,6 @@
   border: 1px solid #FECACA;
 }
 
-/* ================= PROGRESS BAR ================= */
 .progress {
   display: flex;
   flex-direction: row;
@@ -100,7 +99,6 @@
   white-space: nowrap;
 }
 
-/* ================= NAVIGATION ================= */
 .nav {
   display: flex;
   flex-direction: column;
@@ -116,7 +114,7 @@
   border: none;
   background: transparent;
   border-radius: 8px;
-  color: #4B5563;
+  color: var(--color-gray-90);
   font-size: 15px;
   font-weight: 500;
   cursor: pointer;
@@ -138,11 +136,11 @@
 
   &:hover {
     background: #F3F4F6;
-    color: #111827;
+    color: var(--color-gray-90);
   }
 
   &.active {
-    background: #FDBA74;
+    background: var(--color-primary);
     color: #111827;
     font-weight: 600;
   }

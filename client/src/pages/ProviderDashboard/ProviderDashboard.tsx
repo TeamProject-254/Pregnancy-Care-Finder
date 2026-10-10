@@ -115,7 +115,7 @@ export const ProviderDashboard = () => {
   useEffect(() => {
     if (!profileLoaded || !user?.userId) return;
     try { localStorage.setItem(profileDraftKey(user.userId), JSON.stringify(profile)); }
-    catch { /* empty */ }
+    catch { return; }
   }, [profile, profileLoaded, user?.userId]);
 
   const completionPercentage = useMemo(() => {

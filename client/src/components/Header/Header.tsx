@@ -9,7 +9,6 @@ interface HeaderProps {
 }
 
 export const Header: React.FC<HeaderProps> = ({ isLinksShown = true }) => {
-  // Дістаємо logout (або твою функцію виходу) з контексту
   const { isAuthenticated, user, logout } = useAuth();
 
   const isHealthcareProfessional = user?.role?.toUpperCase() === "PROVIDER";
@@ -32,15 +31,12 @@ export const Header: React.FC<HeaderProps> = ({ isLinksShown = true }) => {
         {isLinksShown && (
           <div className={styles["header__left-section"]}>
             <nav className={styles.header__nav}>
-              
-              {/* Search: показуємо тільки якщо це неавторизований юзер АБО пацієнт */}
               {(!isAuthenticated || isPatient) && (
                 <NavLink to="/search" className={getLinkClass}>
                   Search
                 </NavLink>
               )}
 
-              {/* Appointments: показуємо для всіх авторизованих (і лікарям, і пацієнтам) */}
               {isAuthenticated && (
                 <NavLink to={isHealthcareProfessional ? "/provider-dashboard" : "/patient-dashboard"} className={getLinkClass}>
                   My appointments
@@ -48,7 +44,6 @@ export const Header: React.FC<HeaderProps> = ({ isLinksShown = true }) => {
               )}
             </nav>
 
-            {/* Profile / Auth Button */}
             {isAuthenticated ? (
               <button 
                 onClick={logout} 

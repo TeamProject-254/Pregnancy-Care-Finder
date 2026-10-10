@@ -118,14 +118,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 
-    // Чистимо кеш дашборду
     localStorage.removeItem("dash_isPublished");
     localStorage.removeItem("dash_isEditing");
     localStorage.removeItem("dash_speciality");
     localStorage.removeItem("dash_languages");
     localStorage.removeItem("dash_description");
     localStorage.removeItem("dash_photo");
-    // Також чистимо драфт профілю, якщо він є
     if (user?.userId) {
       localStorage.removeItem(`provider-profile:${user.userId}:draft`);
     }
@@ -151,7 +149,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   );
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
 

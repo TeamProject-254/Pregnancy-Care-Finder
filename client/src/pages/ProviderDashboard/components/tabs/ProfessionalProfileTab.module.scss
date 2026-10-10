@@ -43,7 +43,7 @@
   display: flex;
   gap: 1rem;
   align-items: center;
-  background-color: #ffffff;
+  background-color: var(--color-white);
   box-sizing: border-box;
 }
 
@@ -93,7 +93,7 @@
   border-radius: 8px;
   font-weight: 500;
   color: #111827;
-  background-color: #ffffff;
+  background-color: var(--color-white);
   box-sizing: border-box;
   outline: none;
   font-family: inherit;
@@ -185,7 +185,7 @@
 }
 
 .removeBtn:hover {
-  background: #ffffff;
+  background: var(--color-white);
 }
 
 .photoUpload {
@@ -199,7 +199,7 @@
   cursor: pointer;
   width: 240px;
   height: 80px;
-  background-color: #ffffff;
+  background-color: var(--color-white);
   transition: all 0.2s;
   box-sizing: border-box;
 }
@@ -286,7 +286,7 @@
   color: var(--color-gray-90);
   border: 1px solid var(--color-primary--second);
   border-radius: 8px;
-  background-color: #ffffff;
+  background-color: var(--color-white);
   cursor: pointer;
   font-family: inherit;
   transition: all 0.2s;
@@ -327,7 +327,7 @@
   text-align: center;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
-  background: #ffffff;
+  background: var(--color-white);
   color: #9ca3af;
   font-weight: 500;
   cursor: pointer;
@@ -455,7 +455,7 @@
   color: #374151;
   font-size: 14px;
   font-weight: 500;
-  background: #ffffff;
+  background: var(--color-white);
   display: inline-block;
   min-width: 120px;
   text-align: left;
@@ -480,15 +480,13 @@
   border-radius: 8px;
   font-size: 13px;
   color: #6B7280;
-  background: #ffffff;
+  background: var(--color-white);
 }
 
-/* === ОНОВЛЕНІ СТИЛІ ТАБЛИЦІ ПОСЛУГ ДЛЯ РЕЖИМУ ПЕРЕГЛЯДУ === */
 .servicesTable {
   border: 1px solid #E5E7EB;
   border-radius: 8px;
   padding: 1.25rem;
-  /* Додали відступ всередині таблиці, щоб хедер не прилипав до країв */
 }
 
 .servicesHeader {
@@ -496,7 +494,6 @@
   background: var(--color-gray-20);
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
-  /* Відступ між хедером і послугами */
 }
 
 .servicesHeader span {
@@ -523,14 +520,11 @@
   font-size: 14px;
   font-weight: 500;
   color: #374151;
-  background-color: #ffffff;
+  background-color: var(--color-white);
   display: flex;
   align-items: center;
   box-sizing: border-box;
-  /* ПОВНІСТЮ ВИДАЛИЛИ СТРІЛОЧКУ ТА ЗАЙВИЙ ПАДІНГ */
 }
-
-/* ========================================================= */
 
 .availabilityDisplay {
   display: flex;

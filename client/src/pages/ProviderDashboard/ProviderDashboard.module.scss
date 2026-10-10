@@ -31,7 +31,7 @@
 
   .dashboard__main-panel {
     flex: 1;
-    background: #ffffff;
+    background: var(--color-white);
     border-radius: 12px;
     min-height: 500px;
     border: 1px solid #E5E7EB;
@@ -47,7 +47,7 @@
 
   .sidebar {
     width: 280px;
-    background: #ffffff;
+    background: var(--color-white);
     border: 1px solid #E5E7EB;
     border-radius: 8px;
     padding: 1.5rem;
@@ -225,7 +225,7 @@
       color: #111827;
       outline: none;
       transition: border-color 0.2s;
-      background: #ffffff;
+      background: var(--color-white);
 
       &:focus {
         border-color: var(--color-primary);
@@ -233,7 +233,7 @@
     }
 
     input[readOnly] {
-      background-color: #ffffff;
+      background-color: var(--color-white);
       color: #111827;
     }
   }

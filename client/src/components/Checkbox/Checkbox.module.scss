@@ -71,7 +71,7 @@
   }
 
   &__input:checked:disabled + &__box {
-    background-color: #ffffff;
+    background-color: var(--color-white);
     border-color: #94a3b8;
 
     .checkbox__icon {

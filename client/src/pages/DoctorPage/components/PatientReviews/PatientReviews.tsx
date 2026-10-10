@@ -27,7 +27,7 @@ export const PatientReviews = ({ reviews }: PatientReviewsProps) => {
           <article key={review.id}>
             <header>
               <div>
-                <div>{/* Тут аватарка юзера */}</div>
+                <div></div>
                 <div>
                   <h3>{review.name}</h3>
                   <span>{review.date}</span>

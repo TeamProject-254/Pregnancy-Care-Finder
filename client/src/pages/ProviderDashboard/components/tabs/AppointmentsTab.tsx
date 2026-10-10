@@ -19,11 +19,9 @@ export interface AppointmentItem {
 export const AppointmentsTab = () => {
   const [activeSubTab, setActiveSubTab] = useState<SubTab>("Upcoming");
   
-  // States for modals
   const [selectedAppointment, setSelectedAppointment] = useState<AppointmentItem | null>(null);
   const [modalType, setModalType] = useState<"details" | "confirm" | "cancel" | null>(null);
 
-  // Mock Data
   const appointments: AppointmentItem[] = [
     { id: "1", date: "Oct 14, 2026", time: "09:00", patientName: "Hanna Kovalenko", pregnancyWeek: "Week 18", service: "Cardiology consultation", duration: "45 min", status: "Pending" },
     { id: "2", date: "Sep 14, 2026", time: "09:00", patientName: "Maria Bondar", pregnancyWeek: "Week not shared", service: "Follow-up consultation", duration: "60 min", status: "Confirmed" },
@@ -44,7 +42,6 @@ export const AppointmentsTab = () => {
       <h2>Appointments</h2>
       <p className="tab__subtitle">Review and manage patient appointment requests.</p>
 
-      {/* Stats Cards */}
       <div className="stats-grid">
         <div className="stat-card stat-card--pending">
           <span className="stat-icon">🕒</span>
@@ -69,14 +66,12 @@ export const AppointmentsTab = () => {
         </div>
       </div>
 
-      {/* Sub Tabs */}
       <div className="subtabs">
         <button className={`subtab ${activeSubTab === "Upcoming" ? "active" : ""}`} onClick={() => setActiveSubTab("Upcoming")}>Upcoming (7)</button>
         <button className={`subtab ${activeSubTab === "Past" ? "active" : ""}`} onClick={() => setActiveSubTab("Past")}>Past (12)</button>
         <button className={`subtab ${activeSubTab === "Cancelled" ? "active" : ""}`} onClick={() => setActiveSubTab("Cancelled")}>Cancelled (12)</button>
       </div>
 
-      {/* Filters */}
       <div className="filters-bar">
         <div className="search-input">
           <input type="text" placeholder="Search by patient or service" />
@@ -85,7 +80,6 @@ export const AppointmentsTab = () => {
         <select><option>All statuses</option></select>
       </div>
 
-      {/* Table */}
       <div className="table-container">
         <table className="appointments-table">
           <thead>
@@ -149,7 +143,6 @@ export const AppointmentsTab = () => {
         </div>
       </div>
 
-      {/* Modals Rendering */}
       {modalType === "details" && selectedAppointment && <AppointmentDetailsModal appt={selectedAppointment} onClose={closeModal} />}
       {modalType === "confirm" && selectedAppointment && <ConfirmAppointmentModal appt={selectedAppointment} onClose={closeModal} />}
       {modalType === "cancel" && selectedAppointment && <CancelAppointmentModal onClose={closeModal} />}

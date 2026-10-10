@@ -134,7 +134,6 @@ export const ProviderProfileStep = ({ onBack, onSuccess }: ProviderProfileProps)
           />
         </div>
         
-        {/* === ОСЬ ТУТ НАШ СЕЛЕКТ ЗІ СТИЛЯМИ === */}
         <div className={styles.provider__field}>
           <label htmlFor="professionalRole">Speciality</label>
           <select
@@ -152,8 +151,6 @@ export const ProviderProfileStep = ({ onBack, onSuccess }: ProviderProfileProps)
             <span className={styles.provider__error}>{errors.professionalRole.message}</span>
           )}
         </div>
-        {/* ======================================== */}
-
         <div className={styles.row__inputs}>
           <TextInput
             id="yearsOfExperience"

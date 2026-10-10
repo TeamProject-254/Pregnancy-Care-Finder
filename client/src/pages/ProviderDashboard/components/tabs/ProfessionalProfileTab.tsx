@@ -113,7 +113,6 @@ export const ProfessionalProfileTab = ({
                 <div className="form-group"><label>Last name</label><input required className={styles.mainInput} value={profile.lastName} onChange={(e) => onUpdate("lastName", e.target.value)} /></div>
               </div>
               <div className="form-row">
-                {/* ТУТ ДОДАНО ДОКТОР ЗА ЗАМОВЧУВАННЯМ */}
                 <div className="form-group"><label>Professional role</label><input required className={styles.mainInput} value={profile.professionalRole || "Doctor"} onChange={(e) => onUpdate("professionalRole", e.target.value)} /></div>
                 <div className="form-group"><label>Years of experience</label><input required className={styles.mainInput} type="number" min="0" value={profile.yearsOfExperience} onChange={(e) => onUpdate("yearsOfExperience", e.target.value)} /></div>
               </div>
@@ -127,7 +126,6 @@ export const ProfessionalProfileTab = ({
           <div className="form-row">
             <div className="form-group">
               <label>Speciality</label>
-              {/* Цей селект має стрілочку через клас styles.mainSelect */}
               <select required className={styles.mainSelect} value={profile.speciality} onChange={(e) => onUpdate("speciality", e.target.value)}>
                 <option value="">Select speciality</option>
                 {PROVIDER_SPECIALTIES.map(s => <option key={s} value={s}>{s}</option>)}
