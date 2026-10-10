@@ -55,7 +55,6 @@ export const PatientProfileStep = ({ onBack, onSuccess }: PatientProfileProps) =
       onSuccess();
     } catch (error) {
       if (isAxiosError(error)) {
-        // Витягуємо конкретну помилку валідації з бекенда (наприклад, про 42 тижні)
         const responseData = error.response?.data as Record<string, string> | undefined;
         setServerError(
           responseData?.message || 
