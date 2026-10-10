@@ -18,6 +18,10 @@
   cursor: pointer;
   list-style: none;
   white-space: nowrap;
+
+  &:focus {
+        border-color: var(--color-primary);
+      }
 }
 
 .dropdown__trigger::-webkit-details-marker {

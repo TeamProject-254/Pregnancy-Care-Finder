@@ -44,7 +44,6 @@
 
 .content__img {
   flex: 0 0 524px;
-  width: 524px;
   max-width: 524px;
   display: flex;
   flex-direction: column;
@@ -210,27 +209,27 @@
 
 .provider__select {
   width: 100%;
-  padding: 0.875rem 1rem;
+  max-width: 100%; /* Не дає полю вилізти за межі контейнера */
+  height: 48px; /* Фіксуємо висоту ідентично до TextInput */
+  padding: 0 1rem; /* Вирівнюємо внутрішні відступи */
   border: 1px solid var(--color-gray-40);
   border-radius: 8px;
   background: #fff;
   color: var(--color-gray-90);
   font: inherit;
-  font-weight: 500; /* Робимо текст жирним */
+  font-weight: 500;
   outline: none;
   transition: border-color 0.2s;
-  height: 48px; /* Фіксуємо висоту */
-  box-sizing: border-box;
+  box-sizing: border-box; /* КРИТИЧНО: падінги тепер всередині, а не ззовні */
 
   /* Кастомна стрілочка */
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
-  /* Шлях до іконки відносно файлу RegisterPage.module.scss */
   background-image: url('../../assets/img/arrow-down.svg'); 
   background-repeat: no-repeat;
-  background-position: right 14px center; /* Відстань 14px від правого краю */
-  padding-right: 40px; /* Місце під іконку */
+  background-position: right 14px center;
+  padding-right: 40px;
 
   &:focus {
     border-color: var(--color-primary--second);

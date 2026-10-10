@@ -4,9 +4,6 @@ import { api } from "../../api/axios";
 import { useAuth } from "../../context/AuthContext";
 import { DashboardSidebar } from "./components/DashboardSidebar";
 import { ProfessionalProfileTab } from "./components/tabs/ProfessionalProfileTab";
-import { ServicesTab } from "./components/tabs/ServicesTab";
-import { AvailabilityTab } from "./components/tabs/AvailabilityTab";
-import { AppointmentsTab } from "./components/tabs/AppointmentsTab";
 import { PROVIDER_LANGUAGES } from "../../constants/providerOptions";
 import styles from "./ProviderDashboard.module.scss";
 
@@ -46,21 +43,15 @@ const profileErrorMessage = (error: unknown) => {
   return "An unexpected error occurred.";
 }
 
-// Повернули строгу перевірку ВСІХ полів
 const canPublishProfile = (profile: ProviderProfile) =>
-  profile.firstName.trim() !== "" &&
-  profile.lastName.trim() !== "" &&
-  profile.professionalRole.trim() !== "" &&
-  profile.yearsOfExperience.trim() !== "" &&
-  profile.contactPhone.trim() !== "" &&
-  profile.address.trim() !== "" &&
-  profile.speciality.trim() !== "" &&
-  profile.description.trim() !== "" &&
+  profile.firstName.trim() !== "" && profile.lastName.trim() !== "" &&
+  profile.professionalRole.trim() !== "" && profile.yearsOfExperience.trim() !== "" &&
+  profile.contactPhone.trim() !== "" && profile.address.trim() !== "" &&
+  profile.speciality.trim() !== "" && profile.description.trim() !== "" &&
   profile.languages.length > 0;
 
 export const ProviderDashboard = () => {
   const { user } = useAuth();
-
   const [activeTab, setActiveTab] = useState<DashboardTab>("profile");
   const [profile, setProfile] = useState<ProviderProfile>(emptyProfile);
   const [isEditing, setIsEditing] = useState(true);
@@ -68,7 +59,6 @@ export const ProviderDashboard = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [serverError, setServerError] = useState("");
   const [profileLoaded, setProfileLoaded] = useState(false);
-
   const [hasServerProfile, setHasServerProfile] = useState(false);
 
   useEffect(() => {
@@ -125,7 +115,7 @@ export const ProviderDashboard = () => {
   useEffect(() => {
     if (!profileLoaded || !user?.userId) return;
     try { localStorage.setItem(profileDraftKey(user.userId), JSON.stringify(profile)); }
-    catch { /* Ignore quota errors */ }
+    catch { /* empty */ }
   }, [profile, profileLoaded, user?.userId]);
 
   const completionPercentage = useMemo(() => {
@@ -144,7 +134,6 @@ export const ProviderDashboard = () => {
     try {
       let isProfileCreated = hasServerProfile;
 
-      // 1. СТВОРЮЄМО ПРОФІЛЬ РЕАЛЬНИМИ ДАНИМИ
       if (!isProfileCreated) {
         try {
           await api.post("/providers/profile", {
@@ -164,16 +153,11 @@ export const ProviderDashboard = () => {
             if (errMsg.includes("already exists") || postError.response?.status === 409 || postError.response?.status === 400) {
               isProfileCreated = true;
               setHasServerProfile(true);
-            } else {
-              throw postError;
-            }
-          } else {
-            throw postError;
-          }
+            } else throw postError;
+          } else throw postError;
         }
       }
 
-      // 2. ОНОВЛЮЄМО ВСІ ПОЛЯ
       await api.patch("/providers/profile", {
         firstName: profile.firstName,
         lastName: profile.lastName,
@@ -205,12 +189,12 @@ export const ProviderDashboard = () => {
             canPublish={completionPercentage >= 75 && canPublishProfile(profile)}
             serverError={serverError} email={user?.email || ""}
             onUpdate={updateProfile} onSave={handleSave} onEdit={() => setIsEditing(true)}
-            onSwitchTab={setActiveTab} /* ДОДАЛИ ОСЬ ЦЕЙ РЯДОК */
+            onSwitchTab={setActiveTab}
           />
         );
-      case "services": return <ServicesTab />;
-      case "availability": return <AvailabilityTab />;
-      case "appointments": return <AppointmentsTab />;
+      case "services": return <div>Services Tab Content</div>;
+      case "availability": return <div>Availability Tab Content</div>;
+      case "appointments": return <div>Appointments Tab Content</div>;
       default: return null;
     }
   };
@@ -228,7 +212,7 @@ export const ProviderDashboard = () => {
           photoPreview={profile.photoUrl} completionPercentage={completionPercentage}
           firstName={profile.firstName} lastName={profile.lastName}
         />
-        <div className="dashboard__main-panel">
+        <div className={`dashboard__main-panel ${!isEditing && activeTab === 'profile' ? 'dashboard__main-panel--transparent' : ''}`}>
           {renderTabContent()}
         </div>
       </div>

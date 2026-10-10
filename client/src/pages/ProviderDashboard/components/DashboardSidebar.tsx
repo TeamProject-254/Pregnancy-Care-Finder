@@ -7,6 +7,8 @@ import service from '../../../assets/img/services-icon.svg';
 import availability from '../../../assets/img/availability-icon.svg';
 import success from '../../../assets/img/success-sidebar-icon.svg';
 
+import styles from './DashboardSidebar.module.scss';
+
 interface SidebarProps {
   activeTab: DashboardTab;
   setActiveTab: (tab: DashboardTab) => void;
@@ -29,13 +31,13 @@ export const DashboardSidebar = ({
   const displayName = firstName && lastName ? `Dr. ${firstName} ${lastName}` : "Healthcare professional";
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar__profile">
-        <img src={photoPreview || doctorDefaultImage} alt={displayName} className="sidebar__photo" />
-        <h3 className="sidebar__name">{displayName}</h3>
-        <p className="sidebar__role">Healthcare professional</p>
+    <aside className={styles.sidebar}>
+      <div className={styles.profile}>
+        <img src={photoPreview || doctorDefaultImage} alt={displayName} className={styles.photo} />
+        <h3 className={styles.name}>{displayName}</h3>
+        <p className={styles.role}>Healthcare professional</p>
         
-        <div className={`sidebar__badge ${isPublished ? "sidebar__badge--published" : "sidebar__badge--incomplete"}`}>
+        <div className={`${styles.badge} ${isPublished ? styles.badgePublished : styles.badgeIncomplete}`}>
           {isPublished ? (
             <>
               <img src={success} alt="success icon" /> Profile published
@@ -48,42 +50,42 @@ export const DashboardSidebar = ({
         </div>
 
         {!isPublished && (
-          <div className="sidebar__progress">
-            <div className="progress-bar-container">
+          <div className={styles.progress}>
+            <div className={styles.progressBarContainer}>
               <div 
-                className="progress-bar-fill" 
+                className={styles.progressBarFill} 
                 style={{ 
                   width: `${completionPercentage}%`,
                   backgroundColor: completionPercentage >= 75 ? '#10B981' : '#F87171' 
                 }}
               ></div>
             </div>
-            <span className="progress-text">{completionPercentage}% complete</span>
+            <span className={styles.progressText}>{completionPercentage}% complete</span>
           </div>
         )}
       </div>
 
-      <nav className="sidebar__nav">
+      <nav className={styles.nav}>
         <button 
-          className={`sidebar__nav-item ${activeTab === "profile" ? "active" : ""}`}
+          className={`${styles.navItem} ${activeTab === "profile" ? styles.active : ""}`}
           onClick={() => setActiveTab("profile")}
         >
-          <span><img src={profileImage} alt="profileImage" /></span> Professional profile
+          <span><img src={profileImage} alt="profile" /></span> Professional profile
         </button>
         <button 
-          className={`sidebar__nav-item ${activeTab === "services" ? "active" : ""}`}
+          className={`${styles.navItem} ${activeTab === "services" ? styles.active : ""}`}
           onClick={() => setActiveTab("services")}
         >
-          <span><img src={service} alt="service"></img></span> Services & prices
+          <span><img src={service} alt="services" /></span> Services & prices
         </button>
         <button 
-          className={`sidebar__nav-item ${activeTab === "availability" ? "active" : ""}`}
+          className={`${styles.navItem} ${activeTab === "availability" ? styles.active : ""}`}
           onClick={() => setActiveTab("availability")}
         >
-          <span><img src={availability} alt="availability"></img></span> Availability
+          <span><img src={availability} alt="availability" /></span> Availability
         </button>
         <button 
-          className={`sidebar__nav-item ${activeTab === "appointments" ? "active" : ""}`}
+          className={`${styles.navItem} ${activeTab === "appointments" ? styles.active : ""}`}
           onClick={() => setActiveTab("appointments")}
         >
           <span><img src={appointments} alt="appointments" /></span> Appointments
