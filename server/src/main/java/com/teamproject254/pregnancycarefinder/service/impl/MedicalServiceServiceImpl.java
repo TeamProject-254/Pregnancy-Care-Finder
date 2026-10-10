@@ -1,4 +1,4 @@
-package com.teamproject254.pregnancycarefinder.service;
+package com.teamproject254.pregnancycarefinder.service.impl;
 
 import com.teamproject254.pregnancycarefinder.dto.medical.MedicalServiceRequest;
 import com.teamproject254.pregnancycarefinder.dto.medical.MedicalServiceResponse;
@@ -7,8 +7,9 @@ import com.teamproject254.pregnancycarefinder.model.MedicalService;
 import com.teamproject254.pregnancycarefinder.model.Provider;
 import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.model.enums.Role;
+import com.teamproject254.pregnancycarefinder.repository.MedicalServiceRepository;
 import com.teamproject254.pregnancycarefinder.repository.ProviderRepository;
-import com.teamproject254.pregnancycarefinder.repository.ServiceRepository;
+import com.teamproject254.pregnancycarefinder.service.MedicalServiceService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,7 +20,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class MedicalServiceServiceImpl implements MedicalServiceService {
-    private final ServiceRepository serviceRepository;
+    private final MedicalServiceRepository serviceRepository;
     private final MedicalServiceMapper serviceMapper;
     private final ProviderRepository providerRepository;
 
@@ -55,25 +56,6 @@ public class MedicalServiceServiceImpl implements MedicalServiceService {
     public Page<MedicalServiceResponse> getMyServices(Pageable pageable) {
         Provider provider = getCurrentProvider();
         return serviceRepository.findAllByProviderId(pageable, provider.getId())
-                .map(serviceMapper::toDto);
-    }
-
-    @Override
-    public MedicalServiceResponse getServiceById(Long serviceId) {
-        MedicalService service = serviceRepository.findById(serviceId)
-                .orElseThrow(() -> new EntityNotFoundException("Can't find service by id " + serviceId));
-        return serviceMapper.toDto(service);
-    }
-
-    @Override
-    public Page<MedicalServiceResponse> getAllServices(Pageable pageable) {
-        return serviceRepository.findAll(pageable)
-                .map(serviceMapper::toDto);
-    }
-
-    @Override
-    public Page<MedicalServiceResponse> searchServices(Pageable pageable, String name) {
-        return serviceRepository.findByNameContainingIgnoreCase(pageable, name)
                 .map(serviceMapper::toDto);
     }
 

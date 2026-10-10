@@ -4,6 +4,7 @@ import com.teamproject254.pregnancycarefinder.dto.medical.MedicalServiceRequest;
 import com.teamproject254.pregnancycarefinder.dto.medical.MedicalServiceResponse;
 import com.teamproject254.pregnancycarefinder.model.MedicalService;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
@@ -11,6 +12,7 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public interface MedicalServiceMapper {
     MedicalService toModel(MedicalServiceRequest request);
 
+    @Mapping(target = "providerId", source = "provider.id")
     MedicalServiceResponse toDto(MedicalService medicalService);
 
     void updateModel(

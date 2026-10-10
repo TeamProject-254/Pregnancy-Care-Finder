@@ -18,13 +18,15 @@ public class MedicalServiceController {
 
     @PostMapping
     @PreAuthorize("hasRole('PROVIDER')")
-    public MedicalServiceResponse createService(@Valid @RequestBody MedicalServiceRequest request) {
+    public MedicalServiceResponse createService(
+            @Valid @RequestBody MedicalServiceRequest request) {
         return medicalServiceService.createService(request);
     }
 
     @PutMapping("/{serviceId}")
     @PreAuthorize("hasRole('PROVIDER')")
-    public MedicalServiceResponse updateService(@PathVariable Long serviceId, @Valid @RequestBody MedicalServiceRequest request) {
+    public MedicalServiceResponse updateService(
+            @PathVariable Long serviceId, @Valid @RequestBody MedicalServiceRequest request) {
         return medicalServiceService.updateService(serviceId, request);
     }
 
@@ -38,20 +40,5 @@ public class MedicalServiceController {
     @PreAuthorize("hasRole('PROVIDER')")
     public Page<MedicalServiceResponse> getMyServices(Pageable pageable) {
         return medicalServiceService.getMyServices(pageable);
-    }
-
-    @GetMapping("/{serviceId}")
-    public MedicalServiceResponse getServiceById(@PathVariable Long serviceId) {
-        return medicalServiceService.getServiceById(serviceId);
-    }
-
-    @GetMapping
-    public Page<MedicalServiceResponse> getAllServices(Pageable pageable) {
-        return medicalServiceService.getAllServices(pageable);
-    }
-
-    @GetMapping("/search")
-    public Page<MedicalServiceResponse> searchServices(@RequestParam String name, Pageable pageable) {
-        return medicalServiceService.searchServices(pageable, name);
     }
 }

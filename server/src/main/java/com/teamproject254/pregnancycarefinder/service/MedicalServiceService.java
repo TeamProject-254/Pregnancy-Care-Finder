@@ -13,13 +13,4 @@ public interface MedicalServiceService {
     void deleteService(Long serviceId);
 
     Page<MedicalServiceResponse> getMyServices(Pageable pageable);
-
-    MedicalServiceResponse getServiceById(Long serviceId);
-
-    Page<MedicalServiceResponse> getAllServices(Pageable pageable);
-
-    Page<MedicalServiceResponse> searchServices(
-            Pageable pageable,
-            String name
-    );
 }
