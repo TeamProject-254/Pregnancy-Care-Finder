@@ -9,6 +9,9 @@ import trash from '../../../../assets/img/trash-icon.svg';
 import success from '../../../../assets/img/success-icon.svg';
 import styles from './ProfessionalProfileTab.module.scss';
 
+const CLOUDINARY_CLOUD_NAME = "gjckdqml";
+const CLOUDINARY_UPLOAD_PRESET = "BloomCare";
+
 interface ProviderProfile {
   firstName: string; lastName: string; professionalRole: string; yearsOfExperience: string;
   contactPhone: string; address: string; speciality: string; languages: string[];
@@ -32,6 +35,7 @@ export const ProfessionalProfileTab = ({
 }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [languagesError, setLanguagesError] = useState("");
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
 
   const [services, setServices] = useState<ServiceItem[]>([
     { id: 1, name: "Pregnancy consultation", duration: "45 min", price: "40$" },
@@ -61,7 +65,7 @@ export const ProfessionalProfileTab = ({
     onSave(event);
   };
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
@@ -69,11 +73,31 @@ export const ProfessionalProfileTab = ({
       window.alert("Please choose an image smaller than 5 MB.");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") onUpdate("photoUrl", reader.result);
-    };
-    reader.readAsDataURL(file);
+
+    setIsUploadingPhoto(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+
+    try {
+      const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await response.json();
+      
+      if (data.secure_url) {
+        onUpdate("photoUrl", data.secure_url);
+      } else {
+        window.alert("Failed to upload image.");
+      }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      window.alert("Error uploading image. Please check your connection.");
+    } finally {
+      setIsUploadingPhoto(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   const removePhoto = () => {
@@ -147,7 +171,7 @@ export const ProfessionalProfileTab = ({
             {profile.photoUrl ? (
               <div className={styles.photoPreview}>
                 <img src={profile.photoUrl} alt="Provider" className={styles.mainImage} />
-                <button type="button" onClick={removePhoto} className={styles.removeBtn}>✕</button>
+                <button type="button" onClick={removePhoto} className={styles.removeBtn} disabled={isUploadingPhoto}>✕</button>
               </div>
             ) : (
               <div className={styles.photoPreview}>
@@ -155,14 +179,14 @@ export const ProfessionalProfileTab = ({
               </div>
             )}
             
-            <div onClick={() => fileInputRef.current?.click()} className={styles.photoUpload}>
+            <div onClick={() => !isUploadingPhoto && fileInputRef.current?.click()} className={styles.photoUpload} style={{ opacity: isUploadingPhoto ? 0.6 : 1, cursor: isUploadingPhoto ? 'not-allowed' : 'pointer' }}>
               <div className={styles.uploadTitle}>
                 <img src={camera} alt="camera" />
-                <span>Change photo</span>
+                <span>{isUploadingPhoto ? "Uploading..." : "Change photo"}</span>
               </div>
               <span className={styles.uploadSubtitle}>JPG or PNG, max 5MB</span>
             </div>
-            <input type="file" accept="image/png, image/jpeg, image/jpg" ref={fileInputRef} style={{ display: "none" }} onChange={handleFileChange} />
+            <input type="file" accept="image/png, image/jpeg, image/jpg" ref={fileInputRef} style={{ display: "none" }} onChange={handleFileChange} disabled={isUploadingPhoto} />
           </div>
 
           <hr className={styles.divider} />
@@ -251,7 +275,7 @@ export const ProfessionalProfileTab = ({
           {!canPublish && <p className="field-error" style={{ textAlign: 'right' }}>Complete all required profile fields to enable publishing.</p>}
           
           <div className={styles.formFooter}>
-            <button type="submit" className="btn-primary" disabled={!canPublish}>
+            <button type="submit" className="btn-primary" disabled={!canPublish || isUploadingPhoto || isSaving}>
               {isSaving ? "Saving..." : "Save and continue"}
             </button>
           </div>
