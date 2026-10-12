@@ -1,0 +1,32 @@
+BLOOMCARE PRIVACY POLICY
+Effective Date: October 2026
+
+1. INTRODUCTION
+BloomCare ("we", "our", or "us") is dedicated to protecting the privacy of individuals seeking healthcare support and connecting with qualified healthcare providers. This Privacy Policy details how we collect, store, handle, and protect your information.
+
+2. INFORMATION WE COLLECT
+- Account Data: Name, email address, contact information, and role designation (Patient or Healthcare Provider).
+- Appointment Details: Requested consultation times, specialist preferences, and appointment status history.
+- Technical & Usage Data: IP address, device type, browser settings, and user interactions with our service.
+
+3. HOW WE USE YOUR DATA
+- To provide, operate, and maintain the BloomCare platform.
+- To facilitate appointment scheduling between patients and healthcare providers.
+- To verify credentials of licensed healthcare professionals.
+- To maintain security, troubleshoot bugs, and improve system performance.
+
+4. DATA PROTECTION & DISCLOSURE
+- We never sell or rent your personal information to third parties or advertising networks.
+- Information is shared exclusively with healthcare providers you choose to interact with on the platform.
+- We implement industry-standard encryption, role-based access control, and secure database protocols.
+
+5. USER RIGHTS
+You retain full rights to:
+- Access, review, or export your stored personal profile data.
+- Request the deletion or correction of inaccurate information.
+- Terminate your account and associated session tokens at any time.
+
+6. CONTACT
+For privacy inquiries or data requests, contact our compliance team:
+Email: privacy@bloomcare.com
+Phone: +380 12 345 6789
