@@ -26,6 +26,8 @@ interface AuthContextType {
     password: string,
     rememberMe: boolean,
   ) => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (token: string, newPassword: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -53,12 +55,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   });
 
-  const [registrationPendingConfirmation, setRegistrationPendingConfirmation] = useState(false);
+  const [registrationPendingConfirmation, setRegistrationPendingConfirmation] =
+    useState(false);
 
   const login = async (
     email: string,
     password: string,
-    rememberMe: boolean
+    rememberMe: boolean,
   ) => {
     const response = await api.post("/auth/login", {
       email,
@@ -85,7 +88,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     password: string,
     confirmPassword: string,
     role: UserRole,
-    termsAccepted: boolean
+    termsAccepted: boolean,
   ) => {
     const response = await api.post("/auth/register", {
       email,
@@ -112,6 +115,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const completeRegistration = () => {
     setRegistrationPendingConfirmation(false);
+  };
+
+  const forgotPassword = async (email: string) => {
+    await api.post("/auth/forgot-password", { email });
+  };
+
+  const resetPassword = async (token: string, newPassword: string) => {
+    await api.post("/auth/reset-password", { token, newPassword });
   };
 
   const logout = () => {
@@ -141,6 +152,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         register,
         completeRegistration,
         login,
+        forgotPassword,
+        resetPassword,
         logout,
       }}
     >

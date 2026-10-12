@@ -8,6 +8,8 @@ import { RegisterPage } from "./pages/RegisterPage";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { NotFound } from "./pages/NotFoundPage/NotFoundPage";
 import { SearchPage } from "./pages/SearchPage";
+import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
+import { ResetPasswordPage } from "./pages/ResetPasswordPage/ResetPasswordPage";
 
 const ProtectedRoute = () => {
   const { isAuthenticated } = useAuth();
@@ -22,7 +24,12 @@ const PublicRoute = () => {
 
   if (isAuthenticated && !showingRegistrationConfirmation) {
     const isProvider = user?.role?.toUpperCase() === "PROVIDER";
-    return <Navigate to={isProvider ? "/provider-dashboard" : "/patient-dashboard"} replace />;
+    return (
+      <Navigate
+        to={isProvider ? "/provider-dashboard" : "/patient-dashboard"}
+        replace
+      />
+    );
   }
 
   return <Outlet />;
@@ -33,12 +40,14 @@ const AppRoutes = () => (
     <Route element={<PublicRoute />}>
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
     </Route>
 
     <Route element={<MainLayout />}>
       <Route index element={<HomePage />} />
       <Route path="/search" element={<SearchPage />} />
-      
+
       <Route element={<ProtectedRoute />}>
         <Route path="/provider-dashboard" element={<ProviderDashboard />} />
       </Route>
