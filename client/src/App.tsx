@@ -10,6 +10,7 @@ import { NotFound } from "./pages/NotFoundPage/NotFoundPage";
 import { SearchPage } from "./pages/SearchPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage/ResetPasswordPage";
+import { PatientDashboard } from "./pages/PatientDashboard";
 
 const ProtectedRoute = () => {
   const { isAuthenticated } = useAuth();
@@ -50,6 +51,9 @@ const AppRoutes = () => (
 
       <Route element={<ProtectedRoute />}>
         <Route path="/provider-dashboard" element={<ProviderDashboard />} />
+      </Route>
+      <Route element={<ProtectedRoute />}>
+        <Route path="/patient-dashboard" element={<PatientDashboard />} />
       </Route>
     </Route>
 
