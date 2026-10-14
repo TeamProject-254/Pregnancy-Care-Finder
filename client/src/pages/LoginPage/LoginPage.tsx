@@ -134,7 +134,7 @@ export const LoginPage = () => {
                 label="Remember me"
                 {...register("rememberMe")}
               />
-              <Link className={styles.forgot__password} to="/">
+              <Link className={styles.forgot__password} to="/forgot-password">
                 Forgot password?
               </Link>
             </div>

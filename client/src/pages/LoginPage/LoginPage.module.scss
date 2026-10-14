@@ -5,7 +5,8 @@
 .login__wrapper {
   width: 100%;
   display: flex;
-  justify-content: center;
+  height: 100%;
+  justify-content: start;
   padding: 1rem 4rem 2rem;
   flex-direction: column;
   align-items: center;
@@ -46,7 +47,6 @@
 .content__img {
   position: relative;
   z-index: -1;
-  max-width: 520px;
 }
 
 .title__block {
@@ -99,7 +99,7 @@
   text-align: center;
   color: var(--color-gray-90);
   border-radius: 12px;
-  border: 1px solid transparent;
+  border: 2px solid transparent;
   cursor: pointer;
   outline: none;
 
