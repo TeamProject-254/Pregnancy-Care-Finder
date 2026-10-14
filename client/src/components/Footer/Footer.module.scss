@@ -29,6 +29,7 @@
     font-weight: 500;
     line-height: 1.2;
     color: var(--color-gray-40);
+    text-decoration: none;
 
     span {
         color: var(--color-primary);
@@ -66,5 +67,34 @@
     font-weight: 400;
     line-height: 1.5;
     color: var(--color-gray-40);
+  }
+}
+
+@media (max-width: 768px) {
+  .footer {
+    flex-direction: column;
+    padding: 2rem 1rem;
+    gap: 2rem;
+
+    &__logo {
+      gap: 1rem;
+    }
+
+    &__logoIcon {
+      width: 40px;
+      height: 40px;
+    }
+
+    &__logoText {
+      font-size: 24px;
+    }
+
+    &__nav, &__info {
+      gap: 1rem;
+    }
+
+    &__link, &__copyright {
+      font-size: 16px;
+    }
   }
 }

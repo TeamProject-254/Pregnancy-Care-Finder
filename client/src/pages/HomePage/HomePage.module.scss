@@ -1,7 +1,9 @@
 @use "../../styles/variables";
 
 .home {
-  padding: 4rem 4.5rem 6rem;
+  padding: 0 0 6rem;
+  width: 100%;
+  box-sizing: border-box;
 
   &__disclaimer {
     box-sizing: border-box;
@@ -26,5 +28,26 @@
     font-weight: 400;
     line-height: 1.2;
     color: var(--color-gray-90);
+  }
+}
+
+@media (max-width: 768px) {
+  .home {
+    padding: 0 0 3rem;
+
+    &__disclaimer {
+      padding: 1rem;
+      gap: 1rem;
+      align-items: flex-start;
+
+      img {
+        width: 24px;
+        height: 24px;
+      }
+    }
+
+    &__disclaimer-text {
+      font-size: 12px;
+    }
   }
 }
