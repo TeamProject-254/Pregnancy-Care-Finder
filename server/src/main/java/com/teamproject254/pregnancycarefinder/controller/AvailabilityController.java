@@ -30,9 +30,9 @@ public class AvailabilityController {
         return availabilityService.getMyUpcomingAvailabilities(pageable);
     }
 
-    @GetMapping("/filter")
+    @GetMapping("/date")
     @PreAuthorize("hasRole('PROVIDER')")
-    public Page<AvailabilityResponseDto> getMyAvailableSlots(Pageable pageable, LocalDate date) {
+    public Page<AvailabilityResponseDto> getMyAvailableSlotsPerDay(Pageable pageable, LocalDate date) {
         return availabilityService.getMyAvailableSlotsPerDay(pageable, date);
     }
 
