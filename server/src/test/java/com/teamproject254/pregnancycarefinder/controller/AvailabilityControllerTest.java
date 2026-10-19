@@ -152,7 +152,7 @@ public class AvailabilityControllerTest {
                 any(Pageable.class), eq(date)
         )).thenReturn(page);
 
-        mockMvc.perform(get("/availabilities/filter")
+        mockMvc.perform(get("/availabilities/date")
                         .principal(principal)
                         .param("page", "0")
                         .param("size", "10")
