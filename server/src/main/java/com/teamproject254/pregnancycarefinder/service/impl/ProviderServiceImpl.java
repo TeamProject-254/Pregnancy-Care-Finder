@@ -1,4 +1,4 @@
-package com.teamproject254.pregnancycarefinder.service;
+package com.teamproject254.pregnancycarefinder.service.impl;
 
 import com.teamproject254.pregnancycarefinder.dto.ProviderCreateRequest;
 import com.teamproject254.pregnancycarefinder.dto.ProviderResponse;
@@ -10,6 +10,7 @@ import com.teamproject254.pregnancycarefinder.model.Provider;
 import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.repository.ProviderRepository;
 import com.teamproject254.pregnancycarefinder.repository.UserRepository;
+import com.teamproject254.pregnancycarefinder.service.ProviderService;
 import java.util.HashSet;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

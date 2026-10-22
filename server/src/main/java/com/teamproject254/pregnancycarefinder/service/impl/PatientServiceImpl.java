@@ -1,4 +1,4 @@
-package com.teamproject254.pregnancycarefinder.service;
+package com.teamproject254.pregnancycarefinder.service.impl;
 
 import com.teamproject254.pregnancycarefinder.dto.PatientCreateRequest;
 import com.teamproject254.pregnancycarefinder.dto.PatientResponse;
@@ -10,6 +10,7 @@ import com.teamproject254.pregnancycarefinder.model.Patient;
 import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.repository.PatientRepository;
 import com.teamproject254.pregnancycarefinder.repository.UserRepository;
+import com.teamproject254.pregnancycarefinder.service.PatientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class PatientServiceImpl implements PatientService{
+public class PatientServiceImpl implements PatientService {
 
     private final PatientRepository patientRepository;
     private final UserRepository userRepository;
