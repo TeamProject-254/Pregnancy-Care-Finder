@@ -2,6 +2,7 @@ package com.teamproject254.pregnancycarefinder.service;
 
 import com.teamproject254.pregnancycarefinder.dto.medical.MedicalServiceRequest;
 import com.teamproject254.pregnancycarefinder.dto.medical.MedicalServiceResponse;
+import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
 import com.teamproject254.pregnancycarefinder.mapper.MedicalServiceMapper;
 import com.teamproject254.pregnancycarefinder.model.MedicalService;
 import com.teamproject254.pregnancycarefinder.model.Provider;
@@ -10,7 +11,6 @@ import com.teamproject254.pregnancycarefinder.model.enums.Role;
 import com.teamproject254.pregnancycarefinder.repository.MedicalServiceRepository;
 import com.teamproject254.pregnancycarefinder.repository.ProviderRepository;
 import com.teamproject254.pregnancycarefinder.service.impl.MedicalServiceServiceImpl;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -120,8 +120,8 @@ class MedicalServiceServiceImplTest {
 
         MedicalServiceRequest request = mock(MedicalServiceRequest.class);
 
-        EntityNotFoundException exception = assertThrows(
-                EntityNotFoundException.class,
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
                 () -> medicalServiceService.createService(request)
         );
 
@@ -156,8 +156,8 @@ class MedicalServiceServiceImplTest {
         when(serviceRepository.findByIdAndProviderId(serviceId, 1L))
                 .thenReturn(Optional.empty());
 
-        EntityNotFoundException exception = assertThrows(
-                EntityNotFoundException.class,
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
                 () -> medicalServiceService.updateService(serviceId, request)
         );
 
@@ -218,8 +218,8 @@ class MedicalServiceServiceImplTest {
         when(serviceRepository.findByIdAndProviderId(serviceId, 1L))
                 .thenReturn(Optional.empty());
 
-        EntityNotFoundException exception = assertThrows(
-                EntityNotFoundException.class,
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
                 () -> medicalServiceService.deleteService(serviceId)
         );
         assertEquals(
