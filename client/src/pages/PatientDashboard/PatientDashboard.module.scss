@@ -1,4 +1,5 @@
 @use "../../styles/typography" as typo;
+@use '../../styles/variables';
 
 .main__content {
   width: 100%;
@@ -91,7 +92,7 @@
 
 .user__role {
   @include typo.font-secondary;
-  color: #000;
+  color: var(--color-black);
   line-height: 120%;
 }
 
@@ -189,7 +190,7 @@
   transition: border-color 0.2s;
 
   &:focus {
-    border-color: #f19a86;
+    border-color: var(--color-primary);
   }
   &::-webkit-outer-spin-button,
   &::-webkit-inner-spin-button {

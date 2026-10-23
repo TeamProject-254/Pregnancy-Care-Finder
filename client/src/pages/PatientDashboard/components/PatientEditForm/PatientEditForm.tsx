@@ -6,10 +6,13 @@ import cameraIcon from "../../../../assets/img/camera-icon.svg";
 import { useAuth } from "../../../../context/AuthContext";
 import type { PatientResponse } from "../../PatientDashboard";
 import defaultAvatar from "../../../../assets/img/profile-icon.svg";
+import { CityAutocomplete } from "../CityAutocomplete/CityAutocomplete";
 import styles from "./PatientEditForm.module.scss";
 
 const CLOUDINARY_CLOUD_NAME = "gjckdqml";
 const CLOUDINARY_UPLOAD_PRESET = "BloomCare";
+
+const AVAILABLE_LANGUAGES = ["English", "Ukrainian", "Polish"] as const;
 
 interface PatientEditFormProps {
   initialData: PatientResponse | null;
@@ -23,7 +26,7 @@ interface FormValues {
   email: string;
   contactPhone: string;
   location: string;
-  languages: string;
+  languages: string[];
   explicitConsent: boolean;
 }
 
@@ -34,7 +37,7 @@ interface PatientUpdateRequestPayload {
   languages: string[];
   pregnancyWeek: number;
   explicitConsent: boolean;
-  photoUrl: string; 
+  photoUrl: string;
 }
 
 export const PatientEditForm = ({
@@ -56,6 +59,7 @@ export const PatientEditForm = ({
     register,
     handleSubmit,
     control,
+    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     defaultValues: {
@@ -64,10 +68,14 @@ export const PatientEditForm = ({
       email: user?.email || "",
       contactPhone: "",
       location: initialData?.location || "",
-      languages: initialData?.languages?.join(", ") || "",
+      languages: Array.isArray(initialData?.languages)
+        ? initialData.languages
+        : [],
       explicitConsent: initialData?.explicitConsent ?? false,
     },
   });
+
+  const selectedLanguages = watch("languages") || [];
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -120,13 +128,6 @@ export const PatientEditForm = ({
   const onSubmit = async (data: FormValues) => {
     setServerError("");
 
-    // Парсимо мови через кому в масив рядків
-    const parsedLanguages = data.languages
-      .split(",")
-      .map((lang) => lang.trim())
-      .filter(Boolean);
-
-    // Валідація тижня (Spring Boot @Min(1) @Max(42))
     const parsedWeek = Number(pregnancyWeek);
     const safePregnancyWeek = isNaN(parsedWeek)
       ? 1
@@ -136,7 +137,7 @@ export const PatientEditForm = ({
       firstName: data.firstName.trim(),
       lastName: data.lastName.trim(),
       location: data.location.trim(),
-      languages: parsedLanguages,
+      languages: data.languages || [],
       pregnancyWeek: safePregnancyWeek,
       explicitConsent: data.explicitConsent,
       photoUrl: photoPreview ? photoPreview : "",
@@ -147,6 +148,7 @@ export const PatientEditForm = ({
         "/patients/profile",
         payload,
       );
+
       onSuccess(response.data);
     } catch (error) {
       if (isAxiosError(error)) {
@@ -177,8 +179,6 @@ export const PatientEditForm = ({
   return (
     <div className={styles.form__container}>
       <h3 className={styles.form__title}>Personal profile</h3>
-
-      {/* Фото-секція */}
       <div className={styles.photo__section}>
         <div className={styles.photo__preview_wrapper}>
           <img
@@ -284,7 +284,6 @@ export const PatientEditForm = ({
           </div>
         </div>
 
-        {/* Email & Contact phone */}
         <div className={styles.row}>
           <div className={styles.field}>
             <label className={styles.label}>Email address</label>
@@ -307,34 +306,68 @@ export const PatientEditForm = ({
           </div>
         </div>
 
-        {/* Consultation city/address */}
         <div className={styles.field}>
-          <label className={styles.label}>Consultation city/address</label>
-          <input
-            type="text"
-            className={`${styles.input} ${
-              errors.location ? styles.input__error : ""
-            }`}
-            placeholder="e.g. Kyiv"
-            {...register("location", { required: "Location is required" })}
+          <Controller
+            name="location"
+            control={control}
+            rules={{ required: "Location is required" }}
+            render={({ field, fieldState }) => (
+              <CityAutocomplete
+                value={field.value}
+                onSelectCity={(city) => field.onChange(city)}
+                error={fieldState.error?.message}
+              />
+            )}
           />
-          {errors.location && (
-            <span className={styles.error_text}>{errors.location.message}</span>
+        </div>
+
+        <div className={styles.field}>
+          <label className={styles.label}>Spoken languages</label>
+
+          <div className={styles.languagesGroup}>
+            {AVAILABLE_LANGUAGES.map((lang) => {
+              const isChecked = selectedLanguages.includes(lang);
+
+              return (
+                <label key={lang} className={styles.checkboxLabel}>
+                  <input
+                    type="checkbox"
+                    value={lang}
+                    className={styles.real__checkbox}
+                    {...register("languages")}
+                  />
+                  <span className={styles.custom__checkbox}>
+                    {isChecked && (
+                      <svg
+                        width="12"
+                        height="10"
+                        viewBox="0 0 12 10"
+                        fill="none"
+                        className={styles.checkIcon}
+                      >
+                        <path
+                          d="M1 5L4.5 8.5L11 1.5"
+                          stroke="white"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    )}
+                  </span>
+                  <span className={styles.checkboxText}>{lang}</span>
+                </label>
+              );
+            })}
+          </div>
+
+          {errors.languages && (
+            <span className={styles.error_text}>
+              {errors.languages.message}
+            </span>
           )}
         </div>
 
-        {/* Spoken languages */}
-        <div className={styles.field}>
-          <label className={styles.label}>Spoken languages</label>
-          <input
-            type="text"
-            className={styles.input}
-            placeholder="English, Ukrainian"
-            {...register("languages")}
-          />
-        </div>
-
-        {/* Explicit Consent Checkbox */}
         <div className={styles.consent__row}>
           <Controller
             name="explicitConsent"
@@ -382,7 +415,6 @@ export const PatientEditForm = ({
           )}
         </div>
 
-        {/* Actions */}
         <div className={styles.actions}>
           <button
             type="submit"
