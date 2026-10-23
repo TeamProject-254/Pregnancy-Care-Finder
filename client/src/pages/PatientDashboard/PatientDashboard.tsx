@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { isAxiosError } from "axios";
 import { api } from "../../api/axios";
-import { useAuth } from "../../context/AuthContext";
 import { PatientEditForm } from "./components/PatientEditForm";
 import defaultAvatar from "../../assets/img/profile-icon.svg";
 import locationIcon from "../../assets/img/location-icon.svg";
@@ -20,7 +19,6 @@ export interface PatientResponse {
 }
 
 export const PatientDashboard = () => {
-  const { user } = useAuth();
   const [profile, setProfile] = useState<PatientResponse | null>(null);
   const [pregnancyWeek, setPregnancyWeek] = useState<number | string>(1);
   const [isEditing, setIsEditing] = useState(false);
@@ -72,7 +70,7 @@ export const PatientDashboard = () => {
   };
 
   const displayName =
-    profile?.firstName || user?.email?.split("@")[0] || "there";
+    profile?.firstName || "there";
 
   return (
     <div className={styles.main__content}>
@@ -89,7 +87,6 @@ export const PatientDashboard = () => {
         )}
 
         <div className={styles.dashboard__body}>
-          {/* Ліва колонка — картка пацієнта */}
           <aside className={styles.profile__card}>
             {isLoading ? (
               <div className={styles.loading__state}>Loading profile...</div>
@@ -149,7 +146,6 @@ export const PatientDashboard = () => {
                     Pregnancy week
                   </span>
 
-                  {/* Якщо режим редагування — показуємо плашку і інпут поруч */}
                   <div className={styles.pregnancy__control_wrapper}>
                     <div className={styles.pregnancy__badge}>
                       Week {pregnancyWeek || profile.pregnancyWeek || "—"}
@@ -204,8 +200,7 @@ export const PatientDashboard = () => {
                 }}
               />
             ) : (
-              <>
-              </>
+              <></>
             )}
           </section>
         </div>
