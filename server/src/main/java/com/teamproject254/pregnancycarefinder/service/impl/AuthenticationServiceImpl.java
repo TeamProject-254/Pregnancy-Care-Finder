@@ -1,4 +1,4 @@
-package com.teamproject254.pregnancycarefinder.service;
+package com.teamproject254.pregnancycarefinder.service.impl;
 
 import com.teamproject254.pregnancycarefinder.dto.LoginRequest;
 import com.teamproject254.pregnancycarefinder.dto.LoginResponse;
@@ -7,6 +7,7 @@ import com.teamproject254.pregnancycarefinder.exception.ResourceAlreadyExistsExc
 import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.repository.UserRepository;
 import com.teamproject254.pregnancycarefinder.security.JwtService;
+import com.teamproject254.pregnancycarefinder.service.AuthenticationService;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;

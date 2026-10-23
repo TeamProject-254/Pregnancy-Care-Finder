@@ -14,6 +14,7 @@ import com.teamproject254.pregnancycarefinder.model.Patient;
 import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.repository.PatientRepository;
 import com.teamproject254.pregnancycarefinder.repository.UserRepository;
+import com.teamproject254.pregnancycarefinder.service.impl.PatientServiceImpl;
 import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
