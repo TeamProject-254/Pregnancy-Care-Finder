@@ -2,12 +2,16 @@ package com.teamproject254.pregnancycarefinder.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.teamproject254.pregnancycarefinder.dto.ProviderCreateRequest;
+import com.teamproject254.pregnancycarefinder.dto.ProviderDetailResponse;
 import com.teamproject254.pregnancycarefinder.dto.ProviderResponse;
+import com.teamproject254.pregnancycarefinder.dto.ProviderSummaryResponse;
 import com.teamproject254.pregnancycarefinder.dto.ProviderUpdateRequest;
 import com.teamproject254.pregnancycarefinder.exception.ResourceAlreadyExistsException;
 import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
 import com.teamproject254.pregnancycarefinder.security.JwtService;
 import com.teamproject254.pregnancycarefinder.service.ProviderService;
+import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -21,6 +25,7 @@ import java.security.Principal;
 import java.util.Set;
 
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -85,6 +90,85 @@ public class ProviderControllerTest {
         mockMvc.perform(get("/providers/profile")
                         .principal(principal))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void getProviderById_ShouldReturnDetailResponse_WhenProviderExists() throws Exception {
+        Long providerId = 1L;
+        ProviderDetailResponse detailResponse = new ProviderDetailResponse(
+                providerId,
+                "Sarah",
+                "Mitchell",
+                "Obstetrician",
+                12L,
+                "+48123456789",
+                "Kyiv, Main St 1",
+                "Obstetrics",
+                "Experienced obstetrician",
+                Set.of("English", "Polish"),
+                "https://example.com/photo.jpg",
+                true,
+                Collections.emptyList(),
+                Collections.emptyList()
+        );
+
+        when(providerService.getProviderById(providerId)).thenReturn(detailResponse);
+
+        mockMvc.perform(get("/providers/{id}", providerId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(providerId))
+                .andExpect(jsonPath("$.firstName").value("Sarah"))
+                .andExpect(jsonPath("$.lastName").value("Mitchell"))
+                .andExpect(jsonPath("$.published").value(true));
+    }
+
+    @Test
+    void getProviderById_ShouldReturnNotFound_WhenProviderDoesNotExistOrNotPublished() throws Exception {
+        Long providerId = 99L;
+        when(providerService.getProviderById(providerId))
+                .thenThrow(new ResourceNotFoundException("Provider not found or not published"));
+
+        mockMvc.perform(get("/providers/{id}", providerId))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void searchProviders_ShouldReturnSummaryList_WhenProvidersMatch() throws Exception {
+        ProviderSummaryResponse summaryResponse = new ProviderSummaryResponse(
+                1L,
+                "Sarah",
+                "Mitchell",
+                "Obstetrician",
+                12L,
+                "Kyiv, Main St 1",
+                "Obstetrics",
+                Set.of("English", "Polish"),
+                "https://example.com/photo.jpg",
+                true
+        );
+
+        when(providerService.searchProviders(any(), any(), any(), any(), any(), any()))
+                .thenReturn(List.of(summaryResponse));
+
+        mockMvc.perform(get("/providers/search")
+                        .param("specializations", "Obstetrician")
+                        .param("location", "Kyiv"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].id").value(1L))
+                .andExpect(jsonPath("$[0].firstName").value("Sarah"))
+                .andExpect(jsonPath("$[0].published").value(true));
+    }
+
+    @Test
+    void searchProviders_ShouldReturnEmptyList_WhenNoProvidersMatch() throws Exception {
+        when(providerService.searchProviders(any(), any(), any(), any(), any(), any()))
+                .thenReturn(Collections.emptyList());
+
+        mockMvc.perform(get("/providers/search")
+                        .param("specializations", "Unknown"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
     }
 
     @Test

@@ -3,12 +3,15 @@ package com.teamproject254.pregnancycarefinder.repository;
 import com.teamproject254.pregnancycarefinder.model.Provider;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ProviderRepository extends JpaRepository<Provider, Long> {
+public interface ProviderRepository extends JpaRepository<Provider, Long>, JpaSpecificationExecutor<Provider> {
 
     Optional<Provider> findByUserEmail(String email);
+
+    Optional<Provider> findByIdAndPublishedTrue(Long id);
 
     boolean existsByUserEmail(String email);
 }

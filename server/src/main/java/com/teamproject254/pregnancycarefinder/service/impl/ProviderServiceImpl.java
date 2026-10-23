@@ -1,7 +1,9 @@
 package com.teamproject254.pregnancycarefinder.service.impl;
 
 import com.teamproject254.pregnancycarefinder.dto.ProviderCreateRequest;
+import com.teamproject254.pregnancycarefinder.dto.ProviderDetailResponse;
 import com.teamproject254.pregnancycarefinder.dto.ProviderResponse;
+import com.teamproject254.pregnancycarefinder.dto.ProviderSummaryResponse;
 import com.teamproject254.pregnancycarefinder.dto.ProviderUpdateRequest;
 import com.teamproject254.pregnancycarefinder.exception.ResourceAlreadyExistsException;
 import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
@@ -11,8 +13,12 @@ import com.teamproject254.pregnancycarefinder.model.User;
 import com.teamproject254.pregnancycarefinder.repository.ProviderRepository;
 import com.teamproject254.pregnancycarefinder.repository.UserRepository;
 import com.teamproject254.pregnancycarefinder.service.ProviderService;
+import com.teamproject254.pregnancycarefinder.specification.ProviderSpecification;
+import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +37,28 @@ public class ProviderServiceImpl implements ProviderService {
         Provider provider = providerRepository.findByUserEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Provider profile not found"));
         return providerMapper.toResponse(provider);
+    }
+
+    @Override
+    public ProviderDetailResponse getProviderById(Long id) {
+        Provider provider = providerRepository.findByIdAndPublishedTrue(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Provider profile not found"));
+        return providerMapper.toDetailResponse(provider);
+    }
+
+    @Override
+    public List<ProviderSummaryResponse> searchProviders(List<String> specializations, String location,
+                                                         List<String> services, List<String> languages,
+                                                         LocalDate availabilityDateFrom,
+                                                         LocalDate availabilityDateTo) {
+        Specification<Provider> specification = ProviderSpecification.filterByCriteria(
+                specializations, location, services, languages, availabilityDateFrom, availabilityDateTo);
+
+        List<Provider> providers = providerRepository.findAll(specification);
+
+        return providers.stream()
+                .map(providerMapper::toSummaryResponse)
+                .toList();
     }
 
     @Override

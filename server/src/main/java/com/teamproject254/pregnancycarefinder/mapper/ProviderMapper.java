@@ -1,7 +1,9 @@
 package com.teamproject254.pregnancycarefinder.mapper;
 
 import com.teamproject254.pregnancycarefinder.dto.ProviderCreateRequest;
+import com.teamproject254.pregnancycarefinder.dto.ProviderDetailResponse;
 import com.teamproject254.pregnancycarefinder.dto.ProviderResponse;
+import com.teamproject254.pregnancycarefinder.dto.ProviderSummaryResponse;
 import com.teamproject254.pregnancycarefinder.dto.ProviderUpdateRequest;
 import com.teamproject254.pregnancycarefinder.model.Provider;
 import org.mapstruct.BeanMapping;
@@ -27,4 +29,8 @@ public interface ProviderMapper {
     @Mapping(target = "availabilities", ignore = true)
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateProviderFromRequest(ProviderUpdateRequest request, @MappingTarget Provider provider);
+
+    ProviderSummaryResponse toSummaryResponse(Provider provider);
+
+    ProviderDetailResponse toDetailResponse(Provider provider);
 }
