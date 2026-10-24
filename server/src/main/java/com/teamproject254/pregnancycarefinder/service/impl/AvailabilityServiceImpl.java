@@ -50,6 +50,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
         return availabilityMapper.toDto(model);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Page<AvailabilityResponseDto> getMyUpcomingAvailabilities(Pageable pageable) {
         Provider provider = getCurrentProvider();
@@ -58,6 +59,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
                 .map(availabilityMapper::toDto);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Page<AvailabilityResponseDto> getMyAvailableSlotsPerDay(Pageable pageable, LocalDate date) {
         Provider provider = getCurrentProvider();
@@ -103,7 +105,7 @@ public class AvailabilityServiceImpl implements AvailabilityService {
 
         if (user.getRole() != Role.PROVIDER) {
             throw new IllegalArgumentException(
-                    "Only providers can manage medical services"
+                    "Only providers can create availability"
             );
         }
 

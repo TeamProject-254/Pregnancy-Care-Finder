@@ -54,6 +54,7 @@ public class MedicalServiceServiceImpl implements MedicalServiceService {
         serviceRepository.deleteById(medicalService.getId());
     }
 
+    @Transactional(readOnly = true)
     @Override
     public Page<MedicalServiceResponse> getMyServices(Pageable pageable) {
         Provider provider = getCurrentProvider();
