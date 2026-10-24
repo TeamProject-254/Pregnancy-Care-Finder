@@ -487,3 +487,63 @@
   border-radius: 50%;
   background-color: var(--color-primary--second);
 }
+
+@media (max-width: 760px) {
+  .register__wrapper,
+  .provider__registration {
+    padding: 1rem;
+  }
+
+  .main__content,
+  .provider__registration .main__content {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .form__container,
+  .provider__registration .form__container {
+    width: 100%;
+    flex: 1 1 auto;
+  }
+
+  .content__img,
+  .provider__registration .content__img {
+    display: none;
+  }
+
+  .register__form {
+    padding: 1.25rem;
+  }
+
+  .row__inputs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .role__cards {
+    flex-direction: column;
+  }
+
+  .button__group {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 420px) {
+  .register__wrapper,
+  .provider__registration {
+    padding: 0.75rem;
+  }
+
+  .register__form,
+  .provider__register__form {
+    padding: 1rem;
+  }
+
+  .title__block .form__title {
+    font-size: 26px;
+  }
+
+  .button__group .submit__button {
+    min-width: 0;
+  }
+}

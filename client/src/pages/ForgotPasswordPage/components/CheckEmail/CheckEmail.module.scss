@@ -107,3 +107,21 @@
   color: var(--color-gray-80);
   text-align: center;
 }
+
+@media (max-width: 480px) {
+  .card {
+    height: auto;
+    min-height: 0;
+    padding: 1.25rem;
+  }
+
+  .switchEmailBlock {
+    font-size: 16px;
+    text-align: center;
+  }
+
+  .link,
+  .backToLogin {
+    font-size: 16px;
+  }
+}

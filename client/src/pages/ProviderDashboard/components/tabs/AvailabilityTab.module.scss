@@ -1,0 +1,580 @@
+.container {
+  padding: 0.9rem 1.5rem 1.5rem;
+  color: #212529;
+}
+
+.title {
+  margin: 0 0 0.45rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.subtitle,
+.sectionDescription {
+  margin: 0;
+  color: #495057;
+  font-size: 0.7rem;
+}
+
+.sectionTitle {
+  margin: 0.8rem 0 0.35rem;
+  color: #212529;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.weekSchedule {
+  margin-top: 0.45rem;
+}
+
+.dayRow {
+  display: grid;
+  grid-template-columns: 5.7rem 2.6rem minmax(0, 1fr) auto 1.5rem;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 2.75rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.dayName {
+  color: #343a40;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.daySummary,
+.dayExpand {
+  display: none;
+}
+
+.switch {
+  position: relative;
+  display: inline-flex;
+  width: 2.4rem;
+  height: 1.35rem;
+  cursor: pointer;
+
+  input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+  }
+
+  span {
+    width: 100%;
+    border-radius: 999px;
+    background: #ced4da;
+    transition: background 0.15s;
+
+    &::after {
+      position: absolute;
+      top: 0.12rem;
+      left: 0.12rem;
+      width: 1.1rem;
+      height: 1.1rem;
+      border-radius: 50%;
+      background: #fff;
+      content: "";
+      transition: transform 0.15s;
+    }
+  }
+
+  input:checked + span {
+    background: #5dcc4a;
+
+    &::after {
+      transform: translateX(1.05rem);
+    }
+  }
+
+  input:focus-visible + span {
+    outline: 2px solid #228be6;
+    outline-offset: 2px;
+  }
+}
+
+.intervals {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.interval,
+.blockTimes {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #495057;
+  font-size: 0.65rem;
+
+  input {
+    width: 3.5rem;
+    min-height: 1.55rem;
+    box-sizing: border-box;
+    padding: 0.15rem 0.25rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.3rem;
+    color: #212529;
+    font: inherit;
+  }
+}
+
+.iconButton,
+.dayDelete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.1rem;
+  border: 0;
+  background: transparent;
+  color: #495057;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  img {
+    display: block;
+    width: 1rem;
+    height: 1rem;
+    filter: grayscale(1) brightness(0.35);
+  }
+}
+
+.addInterval {
+  padding: 0.15rem 0;
+  border: 0;
+  background: transparent;
+  color: #f08c78;
+  font: inherit;
+  font-size: 0.65rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.unavailable {
+  color: #868e96;
+  font-size: 0.65rem;
+}
+
+.blockSection {
+  margin-top: 1.25rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #dee2e6;
+}
+
+.blockSection .sectionTitle {
+  margin: 0 0 0.35rem;
+}
+
+.blockSection .sectionDescription {
+  margin-bottom: 0.55rem;
+}
+
+.blockDate {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  color: #343a40;
+
+  img {
+    flex: 0 0 auto;
+    width: 1rem;
+    height: 1rem;
+  }
+
+  input {
+    width: 100%;
+    min-width: 0;
+    min-height: 1.9rem;
+    box-sizing: border-box;
+    padding: 0.2rem 0.35rem;
+    border: 1px solid #dee2e6;
+    border-radius: 0.3rem;
+    font: inherit;
+    font-size: 0.7rem;
+  }
+}
+
+.blockTimes input {
+  width: 3.15rem;
+}
+
+.blockedList {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.6rem 0 0;
+}
+
+.blockedRow {
+  display: grid;
+  grid-template-columns: minmax(7rem, 1fr) minmax(5.5rem, 0.8fr) minmax(7rem, 1.5fr) 1.5rem;
+  grid-template-areas: "date range reason delete";
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem;
+  border: 1px solid #e9ecef;
+  border-radius: 0.4rem;
+  color: #343a40;
+  font-size: 0.7rem;
+}
+
+.blockedRowTimed {
+  grid-template-areas: "date range reason delete" "times times times delete";
+}
+
+.blockDate {
+  grid-area: date;
+}
+
+.blockedRow > select {
+  grid-area: range;
+}
+
+.blockedRow > select,
+.reasonInput {
+  width: 100%;
+  min-width: 0;
+  min-height: 1.9rem;
+  box-sizing: border-box;
+  padding: 0.25rem 0.45rem;
+  border: 1px solid #dee2e6;
+  border-radius: 0.3rem;
+  background: #fff;
+  color: #343a40;
+  font: inherit;
+  font-size: 0.7rem;
+}
+
+.reasonInput {
+  grid-area: reason;
+}
+
+.blockedRow .blockTimes {
+  grid-area: times;
+}
+
+.blockedRow > .iconButton {
+  grid-area: delete;
+}
+
+.addBlocked {
+  margin-top: 0.55rem;
+  padding: 0.2rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary--second);
+  font: inherit;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.upcoming ul {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.upcoming ul li {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem;
+  border: 1px solid #e9ecef;
+  border-radius: 0.4rem;
+  color: #343a40;
+  font-size: 0.65rem;
+}
+
+.blockDate {
+  font-size: 0.65rem;
+  white-space: nowrap;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.blockActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 0.7rem;
+}
+
+.cancelButton {
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #ff6b6b;
+  border-radius: 0.35rem;
+  background: #fff;
+  color: #e85959;
+  font: inherit;
+  font-size: 0.7rem;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+}
+
+.horizon {
+  margin-right: auto;
+  color: #868e96;
+  font-size: 0.65rem;
+}
+
+.saveButton {
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #f2a895;
+  border-radius: 0.35rem;
+  background: #f2a895;
+  color: #212529;
+  font: inherit;
+  font-size: 0.7rem;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+  }
+}
+
+.empty,
+.state {
+  color: #868e96;
+  font-size: 0.75rem;
+}
+
+.upcoming {
+  margin-top: 1.5rem;
+
+  ul li {
+    grid-template-columns: 1fr 1fr auto;
+  }
+}
+
+.warning,
+.error {
+  margin: 0.75rem 0;
+  padding: 0.65rem 0.8rem;
+  border-radius: 0.4rem;
+  font-size: 0.75rem;
+}
+
+.warning {
+  border: 1px solid #ffe8a1;
+  background: #fff9db;
+  color: #664d03;
+}
+
+.error {
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+
+  p {
+    margin: 0;
+  }
+
+  button {
+    margin-top: 0.5rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .container {
+    padding: 0.9rem 0.75rem;
+  }
+
+  .dayRow {
+    grid-template-columns: 4.5rem 2.4rem minmax(0, 1fr) 1.25rem;
+    gap: 0.35rem;
+    padding: 0.3rem 0;
+  }
+
+  .addInterval {
+    grid-column: 3;
+    justify-self: start;
+  }
+
+  .dayDelete {
+    grid-column: 4;
+    grid-row: 1;
+  }
+
+  .blockedRow {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr) 1.25rem;
+    grid-template-areas: "date range delete" "reason reason reason";
+  }
+
+  .blockedRowTimed {
+    grid-template-areas: "date range delete" "times times times" "reason reason reason";
+  }
+
+  .blockedRow .blockTimes {
+    justify-content: flex-start;
+  }
+
+  .blockedRow .reasonInput {
+    grid-column: auto;
+  }
+
+  .blockActions {
+    justify-content: flex-end;
+  }
+
+  .footer {
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 0.75rem 0.65rem;
+  }
+
+  .title {
+    margin-bottom: 0.35rem;
+    font-size: 1rem;
+  }
+
+  .subtitle,
+  .sectionDescription {
+    font-size: 0.62rem;
+    line-height: 1.35;
+  }
+
+  .sectionTitle {
+    margin-top: 0.75rem;
+    font-size: 0.82rem;
+  }
+
+  .dayRow {
+    grid-template-columns: minmax(3.4rem, 1fr) 2.2rem minmax(0, 1.5fr) 1.1rem;
+    gap: 0.3rem;
+    min-height: 2.5rem;
+    padding: 0.25rem 0.35rem;
+    border: 1px solid #dee2e6;
+    border-radius: 7px;
+    background: #fff;
+    margin-bottom: 0.35rem;
+  }
+
+  .dayName {
+    font-size: 0.65rem;
+  }
+
+  .daySummary {
+    display: block;
+    overflow: hidden;
+    color: #495057;
+    font-size: 0.6rem;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .dayExpand {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.5rem;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+
+    img {
+      width: 1rem;
+      height: 1rem;
+      transform: rotate(90deg);
+    }
+  }
+
+  .dayRowExpanded .dayExpand img {
+    transform: rotate(180deg);
+  }
+
+  .intervals {
+    display: none;
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: flex-start;
+    padding: 0.4rem 0 0.2rem;
+  }
+
+  .dayRowExpanded .intervals {
+    display: flex;
+  }
+
+  .dayRowExpanded .daySummary {
+    display: none;
+  }
+
+  .interval,
+  .blockTimes,
+  .unavailable {
+    font-size: 0.6rem;
+  }
+
+  .addInterval {
+    display: none;
+    grid-column: 1 / -1;
+    grid-row: 3;
+    margin: 0.15rem 0 0.25rem;
+  }
+
+  .dayRowExpanded .addInterval {
+    display: inline-flex;
+  }
+
+  .dayDelete {
+    display: none;
+  }
+
+  .interval input {
+    width: 3rem;
+  }
+
+  .blockForm {
+    gap: 0.4rem;
+  }
+
+  .blockSection {
+    margin-top: 0.9rem;
+  }
+
+  .footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .horizon {
+    margin-right: 0;
+    text-align: center;
+  }
+
+  .saveButton {
+    min-height: 40px;
+  }
+
+  .upcoming ul li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}

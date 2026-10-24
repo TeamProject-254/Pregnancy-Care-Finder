@@ -1,151 +1,377 @@
-import { useState } from "react";
-import { AppointmentDetailsModal } from "../modals/AppointmentDetailsModal.tsx";
-import { ConfirmAppointmentModal } from "../modals/ConfirmAppointmentModal.tsx";
-import { CancelAppointmentModal } from "../modals/CancelAppointmentModal.tsx";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  cancelProviderAppointment,
+  confirmProviderAppointment,
+  getProviderAppointments,
+  getProviderStats,
+  type ProviderStats,
+} from "../../../../api/appointments";
+import { useAuth } from "../../../../context/AuthContext";
+import { readStatusOverrides, saveStatusOverride } from "../appointmentStatusStore";
+import {
+  buildTabs,
+  DATE_FILTERS,
+  matchesDateFilter,
+  requestErrorMessage,
+  partitionProviderAppointments,
+  type AppointmentItem,
+  type AppointmentTab,
+  type DateFilter,
+} from "../appointmentUtils";
+import {
+  CalendarIcon,
+  CheckCircleIcon,
+  ChevronDownIcon,
+  ClockIcon,
+  FilterIcon,
+  SearchIcon,
+  TrashIcon,
+} from "../AppointmentIcons";
+import { AppointmentDetailsModal } from "../modals/AppointmentDetailsModal";
+import { ConfirmAppointmentModal } from "../modals/ConfirmAppointmentModal";
+import { CancelAppointmentModal } from "../modals/CancelAppointmentModal";
+import styles from "./AppointmentsTab.module.scss";
 
-type SubTab = "Upcoming" | "Past" | "Cancelled";
+export type { AppointmentItem } from "../appointmentUtils";
 
-export interface AppointmentItem {
-  id: string;
-  date: string;
-  time: string;
-  patientName: string;
-  pregnancyWeek: string;
-  service: string;
-  duration: string;
-  status: "Pending" | "Confirmed" | "Completed" | "Cancelled by patient" | "Cancelled by Doctor";
-}
+const TABS: AppointmentTab[] = ["Upcoming", "Past", "Cancelled"];
+const PAGE_SIZE = 5;
+const ALL_STATUSES = "All statuses";
+
+type ModalState =
+  | { type: "details"; appt: AppointmentItem }
+  | { type: "confirm"; appt: AppointmentItem }
+  | { type: "cancel"; appt: AppointmentItem }
+  | null;
+
+const EMPTY_TABS: Record<AppointmentTab, AppointmentItem[]> = { Upcoming: [], Past: [], Cancelled: [] };
+
+const emptyText: Record<AppointmentTab, string> = {
+  Upcoming: "You have no upcoming appointments yet.",
+  Past: "No past appointments yet.",
+  Cancelled: "No cancelled appointments.",
+};
+
+const statusClass = (status: AppointmentItem["status"]) => {
+  switch (status) {
+    case "Pending":
+      return styles.statusPending;
+    case "Cancelled by patient":
+      return styles.statusCancelledPatient;
+    case "Cancelled by Doctor":
+      return styles.statusCancelledDoctor;
+    default:
+      return styles.statusPlain;
+  }
+};
+
+const StatusBadge = ({ status }: { status: AppointmentItem["status"] }) => (
+  <span className={`${styles.status} ${statusClass(status)}`}>
+    {status === "Pending" && <ClockIcon size={13} />}
+    {(status === "Confirmed" || status === "Completed") && <span aria-hidden="true">✓</span>}
+    {status.startsWith("Cancelled") && <span aria-hidden="true">✕</span>}
+    {status}
+  </span>
+);
 
 export const AppointmentsTab = () => {
-  const [activeSubTab, setActiveSubTab] = useState<SubTab>("Upcoming");
-  
-  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentItem | null>(null);
-  const [modalType, setModalType] = useState<"details" | "confirm" | "cancel" | null>(null);
+  const { user } = useAuth();
+  const userId = user?.userId;
+  const [tabs, setTabs] = useState(EMPTY_TABS);
+  const [stats, setStats] = useState<ProviderStats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [reloadToken, setReloadToken] = useState(0);
+  const [loadError, setLoadError] = useState("");
+  const [notice, setNotice] = useState("");
 
-  const appointments: AppointmentItem[] = [
-    { id: "1", date: "Oct 14, 2026", time: "09:00", patientName: "Hanna Kovalenko", pregnancyWeek: "Week 18", service: "Cardiology consultation", duration: "45 min", status: "Pending" },
-    { id: "2", date: "Sep 14, 2026", time: "09:00", patientName: "Maria Bondar", pregnancyWeek: "Week not shared", service: "Follow-up consultation", duration: "60 min", status: "Confirmed" },
+  const [activeTab, setActiveTab] = useState<AppointmentTab>("Upcoming");
+  const [search, setSearch] = useState("");
+  const [dateFilter, setDateFilter] = useState<DateFilter>("All dates");
+  const [statusFilter, setStatusFilter] = useState(ALL_STATUSES);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [modal, setModal] = useState<ModalState>(null);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    const load = async () => {
+      try {
+        const [appointments, statsResult] = await Promise.all([
+          getProviderAppointments(),
+          getProviderStats().catch(() => null),
+        ]);
+        if (!isCurrent) return;
+        const overrides = readStatusOverrides(userId);
+        const { upcoming, past, cancelled } = partitionProviderAppointments(appointments, overrides);
+        setTabs(buildTabs(upcoming, past, cancelled, overrides));
+        setStats(statsResult);
+        setLoadError("");
+      } catch (error) {
+        if (!isCurrent) return;
+        setLoadError(requestErrorMessage(error, "Unable to load appointments. Please check your connection."));
+      } finally {
+        if (isCurrent) setIsLoading(false);
+      }
+    };
+
+    void load();
+    return () => {
+      isCurrent = false;
+    };
+  }, [reloadToken, userId]);
+
+  useEffect(() => {
+    if (!notice) return;
+    const timer = window.setTimeout(() => setNotice(""), 4000);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
+
+  const reload = () => setReloadToken((token) => token + 1);
+
+  const retry = () => {
+    setIsLoading(true);
+    reload();
+  };
+
+  const statusOptions = useMemo(
+    () => [ALL_STATUSES, ...Array.from(new Set(tabs[activeTab].map((item) => item.status)))],
+    [tabs, activeTab],
+  );
+
+  const filtered = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return tabs[activeTab].filter((item) => {
+      if (query && !`${item.patientName} ${item.service}`.toLowerCase().includes(query)) return false;
+      if (statusFilter !== ALL_STATUSES && item.status !== statusFilter) return false;
+      return matchesDateFilter(item.start, dateFilter);
+    });
+  }, [tabs, activeTab, search, statusFilter, dateFilter]);
+
+  const visible = filtered.slice(0, visibleCount);
+
+  const changeTab = (tab: AppointmentTab) => {
+    setActiveTab(tab);
+    setStatusFilter(ALL_STATUSES);
+    setVisibleCount(PAGE_SIZE);
+  };
+  const changeSearch = (value: string) => {
+    setSearch(value);
+    setVisibleCount(PAGE_SIZE);
+  };
+  const changeDate = (value: DateFilter) => {
+    setDateFilter(value);
+    setVisibleCount(PAGE_SIZE);
+  };
+  const changeStatus = (value: string) => {
+    setStatusFilter(value);
+    setVisibleCount(PAGE_SIZE);
+  };
+
+  const closeModal = useCallback(() => setModal(null), []);
+
+  const handleConfirm = async (appt: AppointmentItem, message?: string) => {
+    await confirmProviderAppointment(appt.id, message);
+    saveStatusOverride(userId, appt.id, "CONFIRMED");
+    setModal(null);
+    setNotice(`Appointment with ${appt.patientName} confirmed.`);
+    reload();
+  };
+
+  const handleCancel = async (appt: AppointmentItem, reason: string, message: string) => {
+    await cancelProviderAppointment(appt.id, reason, message);
+    saveStatusOverride(userId, appt.id, "CANCELLED_BY_PROVIDER");
+    setModal(null);
+    setNotice(`Appointment with ${appt.patientName} cancelled.`);
+    reload();
+  };
+
+  const isActionable = (item: AppointmentItem) =>
+    activeTab === "Upcoming" && (item.statusCode === "PENDING" || item.statusCode === "CONFIRMED");
+
+  const statCards = [
+    { key: "pending", label: "Pending", value: stats?.pendingCount, icon: <ClockIcon size={30} />, cls: styles.statPending },
+    { key: "confirmed", label: "Confirmed", value: stats?.confirmedCount, icon: <CheckCircleIcon size={30} />, cls: styles.statConfirmed },
+    { key: "today", label: "Today", value: stats?.todayCount, icon: <CalendarIcon size={30} />, cls: styles.statToday },
   ];
 
-  const openModal = (type: "details" | "confirm" | "cancel", appt: AppointmentItem) => {
-    setSelectedAppointment(appt);
-    setModalType(type);
-  };
-
-  const closeModal = () => {
-    setSelectedAppointment(null);
-    setModalType(null);
-  };
-
   return (
-    <div className="tab__container">
-      <h2>Appointments</h2>
-      <p className="tab__subtitle">Review and manage patient appointment requests.</p>
+    <div className={styles.container}>
+      <h2 className={styles.title}>Appointments</h2>
+      <p className={styles.subtitle}>Review and manage patient appointment requests.</p>
 
-      <div className="stats-grid">
-        <div className="stat-card stat-card--pending">
-          <span className="stat-icon">🕒</span>
-          <div className="stat-info">
-            <span className="stat-label">Pending</span>
-            <span className="stat-value">2</span>
-          </div>
+      {notice && (
+        <div className={styles.notice} role="status">
+          {notice}
         </div>
-        <div className="stat-card stat-card--confirmed">
-          <span className="stat-icon">✓</span>
-          <div className="stat-info">
-            <span className="stat-label">Confirmed</span>
-            <span className="stat-value">5</span>
+      )}
+
+      <div className={styles.stats}>
+        {statCards.map((card) => (
+          <div key={card.key} className={`${styles.statCard} ${card.cls}`}>
+            <span className={styles.statIcon}>{card.icon}</span>
+            <div>
+              <span className={styles.statLabel}>{card.label}</span>
+              <span className={styles.statValue}>{card.value ?? "–"}</span>
+            </div>
           </div>
-        </div>
-        <div className="stat-card stat-card--today">
-          <span className="stat-icon">📅</span>
-          <div className="stat-info">
-            <span className="stat-label">Today</span>
-            <span className="stat-value">3</span>
-          </div>
-        </div>
+        ))}
       </div>
 
-      <div className="subtabs">
-        <button className={`subtab ${activeSubTab === "Upcoming" ? "active" : ""}`} onClick={() => setActiveSubTab("Upcoming")}>Upcoming (7)</button>
-        <button className={`subtab ${activeSubTab === "Past" ? "active" : ""}`} onClick={() => setActiveSubTab("Past")}>Past (12)</button>
-        <button className={`subtab ${activeSubTab === "Cancelled" ? "active" : ""}`} onClick={() => setActiveSubTab("Cancelled")}>Cancelled (12)</button>
+      <div className={styles.tabs} role="tablist">
+        {TABS.map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === tab}
+            className={`${styles.tab} ${activeTab === tab ? styles.tabActive : ""}`}
+            onClick={() => changeTab(tab)}
+          >
+            {tab} ({tabs[tab].length})
+          </button>
+        ))}
       </div>
 
-      <div className="filters-bar">
-        <div className="search-input">
-          <input type="text" placeholder="Search by patient or service" />
-        </div>
-        <select><option>All dates</option></select>
-        <select><option>All statuses</option></select>
-      </div>
-
-      <div className="table-container">
-        <table className="appointments-table">
-          <thead>
-            <tr>
-              <th>Date & time</th>
-              <th>Patient</th>
-              <th>Service</th>
-              <th>Status</th>
-              <th>Action's</th>
-            </tr>
-          </thead>
-          <tbody>
-            {appointments.map((appt) => (
-              <tr key={appt.id}>
-                <td>
-                  <div className="date-cell">
-                    <strong>{appt.date}</strong>
-                    <span>{appt.time}</span>
-                  </div>
-                </td>
-                <td>
-                  <div className="patient-cell">
-                    <strong>{appt.patientName}</strong>
-                    <span>{appt.pregnancyWeek}</span>
-                  </div>
-                </td>
-                <td>
-                  <div className="service-cell">
-                    <strong>{appt.service}</strong>
-                    <span>{appt.duration}</span>
-                  </div>
-                </td>
-                <td>
-                  <span className={`status-badge status--${appt.status.split(' ')[0].toLowerCase()}`}>
-                    {appt.status}
-                  </span>
-                </td>
-                <td className="actions-cell">
-                  {appt.status === "Pending" ? (
-                    <div className="action-buttons-col">
-                      <button className="btn-primary-small" onClick={() => openModal("confirm", appt)}>Confirm</button>
-                      <button className="btn-outline-small" onClick={() => openModal("details", appt)}>View details</button>
-                    </div>
-                  ) : (
-                    <div className="action-buttons-row">
-                      <button className="btn-outline-small" onClick={() => openModal("details", appt)}>View details</button>
-                    </div>
-                  )}
-                  {appt.status !== "Completed" && !appt.status.includes("Cancelled") && (
-                     <button className="icon-btn delete-btn" onClick={() => openModal("cancel", appt)}>🗑️</button>
-                  )}
-                </td>
-              </tr>
+      <div className={styles.filters}>
+        <label className={`${styles.control} ${styles.controlSearch}`}>
+          <SearchIcon size={22} />
+          <input
+            type="text"
+            placeholder="Search by patient or service"
+            value={search}
+            onChange={(event) => changeSearch(event.target.value)}
+          />
+        </label>
+        <label className={styles.control}>
+          <CalendarIcon size={22} />
+          <select value={dateFilter} onChange={(event) => changeDate(event.target.value as DateFilter)} aria-label="Filter by date">
+            {DATE_FILTERS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
             ))}
-          </tbody>
-        </table>
-        
-        <div className="table-footer-center">
-          <span className="showing-text">Showing 3 of 6 appointments</span>
-          <button className="btn-outline">Load more appointments</button>
-        </div>
+          </select>
+          <ChevronDownIcon className={styles.chevron} />
+        </label>
+        <label className={styles.control}>
+          <FilterIcon size={22} />
+          <select value={statusFilter} onChange={(event) => changeStatus(event.target.value)} aria-label="Filter by status">
+            {statusOptions.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+          <ChevronDownIcon className={styles.chevron} />
+        </label>
       </div>
 
-      {modalType === "details" && selectedAppointment && <AppointmentDetailsModal appt={selectedAppointment} onClose={closeModal} />}
-      {modalType === "confirm" && selectedAppointment && <ConfirmAppointmentModal appt={selectedAppointment} onClose={closeModal} />}
-      {modalType === "cancel" && selectedAppointment && <CancelAppointmentModal onClose={closeModal} />}
+      {isLoading ? (
+        <p className={styles.state}>Loading appointments...</p>
+      ) : loadError ? (
+        <div className={`${styles.state} ${styles.stateError}`}>
+          <p>{loadError}</p>
+          <button type="button" className={styles.btnOutline} onClick={retry}>
+            Try again
+          </button>
+        </div>
+      ) : filtered.length === 0 ? (
+        <p className={styles.state}>
+          {tabs[activeTab].length === 0 ? emptyText[activeTab] : "No appointments match your filters."}
+        </p>
+      ) : (
+        <>
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th>Date &amp; time</th>
+                  <th>Patient</th>
+                  <th>Service</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map((appt) => (
+                  <tr key={appt.id}>
+                    <td data-label="Date & time">
+                      <strong className={styles.cellMain}>{appt.date}</strong>
+                      <span className={styles.cellSub}>{appt.time}</span>
+                    </td>
+                    <td data-label="Patient">
+                      <strong className={styles.cellName}>{appt.patientName}</strong>
+                      <span className={styles.cellSubDark}>{appt.pregnancyWeek}</span>
+                    </td>
+                    <td data-label="Service">
+                      <span className={styles.service}>
+                        {appt.service}, {appt.duration}
+                      </span>
+                    </td>
+                    <td data-label="Status">
+                      <StatusBadge status={appt.status} />
+                    </td>
+                    <td data-label="Actions">
+                      <div className={styles.actions}>
+                        <div className={styles.actionButtons}>
+                          {activeTab === "Upcoming" && appt.statusCode === "PENDING" && (
+                            <button type="button" className={styles.btnPrimarySmall} onClick={() => setModal({ type: "confirm", appt })}>
+                              Confirm
+                            </button>
+                          )}
+                          <button type="button" className={styles.btnOutlineSmall} onClick={() => setModal({ type: "details", appt })}>
+                            View details
+                          </button>
+                        </div>
+                        {isActionable(appt) && (
+                          <button
+                            type="button"
+                            className={styles.iconBtn}
+                            onClick={() => setModal({ type: "cancel", appt })}
+                            aria-label={`Cancel appointment with ${appt.patientName}`}
+                          >
+                            <TrashIcon size={22} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className={styles.footer}>
+            <span className={styles.showing}>
+              Showing <b>{visible.length}</b> of <b>{filtered.length}</b> appointments
+            </span>
+            {visible.length < filtered.length && (
+              <button type="button" className={styles.btnLoadMore} onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}>
+                Load more appointments
+              </button>
+            )}
+          </div>
+        </>
+      )}
+
+      {modal?.type === "details" && (
+        <AppointmentDetailsModal
+          appt={modal.appt}
+          onClose={closeModal}
+          onConfirm={handleConfirm}
+          onCancel={(appt) => setModal({ type: "cancel", appt })}
+        />
+      )}
+      {modal?.type === "confirm" && (
+        <ConfirmAppointmentModal appt={modal.appt} onClose={closeModal} onConfirm={() => handleConfirm(modal.appt)} />
+      )}
+      {modal?.type === "cancel" && (
+        <CancelAppointmentModal
+          appt={modal.appt}
+          onClose={closeModal}
+          onSubmit={(reason, message) => handleCancel(modal.appt, reason, message)}
+        />
+      )}
     </div>
   );
 };

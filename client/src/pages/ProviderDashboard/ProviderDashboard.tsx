@@ -1,9 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 import { isAxiosError } from "axios";
 import { api } from "../../api/axios";
+import {
+  getProviderAvailabilities,
+  type ProviderAvailability,
+} from "../../api/availabilities";
+import {
+  getMyMedicalServices,
+  type MedicalService,
+} from "../../api/medicalServices";
 import { useAuth } from "../../context/AuthContext";
 import { DashboardSidebar } from "./components/DashboardSidebar";
 import { ProfessionalProfileTab } from "./components/tabs/ProfessionalProfileTab";
+import { AppointmentsTab } from "./components/tabs/AppointmentsTab";
+import { AvailabilityTab } from "./components/tabs/AvailabilityTab";
+import { ServicesTab } from "./components/tabs/ServicesTab";
 import { PROVIDER_LANGUAGES } from "../../constants/providerOptions";
 import styles from "./ProviderDashboard.module.scss";
 
@@ -34,6 +45,12 @@ const readProfileDraft = (userId: number): Partial<ProviderProfile> | null => {
 
 const profileErrorMessage = (error: unknown) => {
   if (isAxiosError(error)) {
+    if (error.response?.status === 403) {
+      return "This account is not authorized to manage provider data. Sign in with a provider account and try again.";
+    }
+    if (error.response?.status === 401) {
+      return "Your session has expired. Sign in again.";
+    }
     const responseData = error.response?.data as {
       message?: string; error?: string; validationErrors?: Record<string, string>;
     } | undefined;
@@ -60,6 +77,15 @@ export const ProviderDashboard = () => {
   const [serverError, setServerError] = useState("");
   const [profileLoaded, setProfileLoaded] = useState(false);
   const [hasServerProfile, setHasServerProfile] = useState(false);
+  const [availabilities, setAvailabilities] = useState<ProviderAvailability[]>([]);
+  const [availabilityLoading, setAvailabilityLoading] = useState(true);
+  const [availabilityError, setAvailabilityError] = useState("");
+  const [availabilityReloadToken, setAvailabilityReloadToken] = useState(0);
+  const [canManageAvailability, setCanManageAvailability] = useState(false);
+  const [services, setServices] = useState<MedicalService[]>([]);
+  const [servicesLoading, setServicesLoading] = useState(true);
+  const [servicesError, setServicesError] = useState("");
+  const [servicesReloadToken, setServicesReloadToken] = useState(0);
 
   useEffect(() => {
     if (!user?.userId) return;
@@ -75,6 +101,7 @@ export const ProviderDashboard = () => {
         const draft = readProfileDraft(user.userId);
         const serverLanguages = Array.isArray(data.languages) ? supportedLanguages(data.languages) : [];
 
+        const isPublished = Boolean(data.published || draft?.published);
         setProfile({
           ...emptyProfile, ...draft,
           firstName: data.firstName || draft?.firstName || "",
@@ -87,10 +114,10 @@ export const ProviderDashboard = () => {
           languages: serverLanguages.length > 0 ? serverLanguages : supportedLanguages(draft?.languages || []),
           description: data.description || draft?.description || "",
           photoUrl: data.photoUrl || draft?.photoUrl || null,
-          published: data.firstName && data.description ? true : draft?.published || false,
+          published: isPublished,
         });
 
-        setIsEditing(!(data.firstName && data.description));
+        setIsEditing(!isPublished);
         setProfileLoaded(true);
       } catch {
         if (!isCurrent) return;
@@ -111,6 +138,53 @@ export const ProviderDashboard = () => {
     void loadProfile();
     return () => { isCurrent = false; };
   }, [user?.userId]);
+
+  useEffect(() => {
+    if (!user?.userId) return;
+    let isCurrent = true;
+
+    const loadAvailabilities = async () => {
+      setAvailabilityLoading(true);
+      setAvailabilityError("");
+      try {
+        const result = await getProviderAvailabilities();
+        if (isCurrent) {
+          setAvailabilities(result.availabilities);
+          setCanManageAvailability(result.canManage);
+        }
+      } catch (error) {
+        if (isCurrent) {
+          setAvailabilityError(profileErrorMessage(error));
+        }
+      } finally {
+        if (isCurrent) setAvailabilityLoading(false);
+      }
+    };
+
+    void loadAvailabilities();
+    return () => { isCurrent = false; };
+  }, [user?.userId, availabilityReloadToken]);
+
+  useEffect(() => {
+    if (!user?.userId) return;
+    let isCurrent = true;
+
+    const loadServices = async () => {
+      setServicesLoading(true);
+      setServicesError("");
+      try {
+        const result = await getMyMedicalServices();
+        if (isCurrent) setServices(result);
+      } catch (error) {
+        if (isCurrent) setServicesError(profileErrorMessage(error));
+      } finally {
+        if (isCurrent) setServicesLoading(false);
+      }
+    };
+
+    void loadServices();
+    return () => { isCurrent = false; };
+  }, [user?.userId, servicesReloadToken]);
 
   useEffect(() => {
     if (!profileLoaded || !user?.userId) return;
@@ -171,7 +245,7 @@ export const ProviderDashboard = () => {
         photoUrl: profile.photoUrl,
       });
 
-      setProfile({ ...profile, published: true });
+      setProfile((current) => ({ ...current, published: true }));
       setIsEditing(false);
     } catch (error) {
       setServerError(profileErrorMessage(error));
@@ -187,14 +261,37 @@ export const ProviderDashboard = () => {
           <ProfessionalProfileTab
             profile={profile} isEditing={isEditing} isLoading={isLoading} isSaving={isSaving}
             canPublish={completionPercentage >= 75 && canPublishProfile(profile)}
+            completionPercentage={completionPercentage}
             serverError={serverError} email={user?.email || ""}
+            availabilities={availabilities}
+            services={services}
             onUpdate={updateProfile} onSave={handleSave} onEdit={() => setIsEditing(true)}
             onSwitchTab={setActiveTab}
           />
         );
-      case "services": return <div>Services Tab Content</div>;
-      case "availability": return <div>Availability Tab Content</div>;
-      case "appointments": return <div>Appointments Tab Content</div>;
+      case "services":
+        return (
+          <ServicesTab
+            services={services}
+            isLoading={servicesLoading}
+            loadError={servicesError}
+            onServicesChange={setServices}
+            onRetry={() => setServicesReloadToken((token) => token + 1)}
+          />
+        );
+      case "availability":
+        return (
+          <AvailabilityTab
+            availabilities={availabilities}
+            isLoading={availabilityLoading}
+            loadError={availabilityError}
+            canManage={canManageAvailability}
+            scheduleStorageKey={String(user?.userId ?? "provider")}
+            onAvailabilityChange={setAvailabilities}
+            onRetry={() => setAvailabilityReloadToken((token) => token + 1)}
+          />
+        );
+      case "appointments": return <AppointmentsTab />;
       default: return null;
     }
   };
@@ -212,7 +309,7 @@ export const ProviderDashboard = () => {
           photoPreview={profile.photoUrl} completionPercentage={completionPercentage}
           firstName={profile.firstName} lastName={profile.lastName}
         />
-        <div className={`dashboard__main-panel ${!isEditing && activeTab === 'profile' ? 'dashboard__main-panel--transparent' : ''}`}>
+        <div className={`dashboard__main-panel ${!(isEditing && activeTab === 'profile') ? 'dashboard__main-panel--transparent' : ''}`}>
           {renderTabContent()}
         </div>
       </div>

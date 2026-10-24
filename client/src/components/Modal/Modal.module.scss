@@ -1,0 +1,362 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(33, 37, 41, 0.35);
+  backdrop-filter: blur(1px);
+  overflow-y: auto;
+}
+
+.modal {
+  position: relative;
+  width: 100%;
+  max-width: 440px;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 1.5rem;
+  background: var(--color-white);
+  border: 1px solid var(--color-gray-20);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  font-family: var(--font-family-base);
+  color: var(--color-gray-90);
+}
+
+.modalCentered {
+  text-align: center;
+  padding-top: 1.25rem;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+
+  h3 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 500;
+  }
+}
+
+.closeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  color: var(--color-gray-70);
+  cursor: pointer;
+  border-radius: 6px;
+
+  &:hover {
+    color: var(--color-gray-90);
+    background: var(--color-gray-1);
+  }
+}
+
+.closeTop {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+}
+
+.iconCenter {
+  display: flex;
+  justify-content: center;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.iconDanger {
+  color: #e8372c;
+}
+
+.iconSuccess {
+  color: var(--color-success);
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.text {
+  margin: 0 0 1.25rem;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--color-gray-70);
+
+  strong {
+    color: var(--color-gray-90);
+  }
+}
+
+.patient {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.patientPhoto {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--color-gray-1);
+  flex-shrink: 0;
+}
+
+.patientInfo {
+  h4 {
+    margin: 0 0 0.25rem;
+    font-size: 22px;
+    font-weight: 500;
+  }
+
+  p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--color-gray-80);
+    line-height: 1.5;
+  }
+}
+
+.details {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid var(--color-gray-40);
+    font-size: 12px;
+    color: var(--color-gray-80);
+
+    span {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--color-gray-90);
+      flex-shrink: 0;
+    }
+
+    strong {
+      font-weight: 400;
+      text-align: right;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.price {
+  color: var(--color-primary--second) !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+}
+
+.statusNote {
+  margin: 0.25rem 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: var(--color-gray-1);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-gray-80);
+
+  strong {
+    display: block;
+    margin-bottom: 2px;
+    font-size: 12px;
+    color: var(--color-gray-70);
+    font-weight: 500;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  text-align: left;
+
+  label {
+    font-size: 14px;
+    color: var(--color-gray-90);
+  }
+
+  select,
+  textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-gray-40);
+    border-radius: 8px;
+    background: var(--color-white);
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--color-gray-90);
+    outline: none;
+    transition: border-color 0.2s;
+
+    &:focus {
+      border-color: var(--color-primary--second);
+    }
+  }
+
+  textarea {
+    min-height: 76px;
+    resize: vertical;
+  }
+}
+
+.selectWrap {
+  position: relative;
+
+  select {
+    appearance: none;
+    padding-right: 2.5rem;
+  }
+
+  svg {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: var(--color-gray-90);
+  }
+}
+
+.alert {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #1c7ed6;
+  border-radius: 8px;
+  background: var(--color-white);
+  font-size: 13px;
+  text-align: left;
+  color: var(--color-gray-90);
+
+  svg {
+    flex-shrink: 0;
+    color: #1c7ed6;
+  }
+}
+
+.error {
+  margin: 0 0 1rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #f5b5a8;
+  border-radius: 8px;
+  background: #fff4f1;
+  font-size: 13px;
+  color: var(--color-error);
+  text-align: left;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.btnPrimary,
+.btnOutlineDanger {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.btnPrimary {
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-gray-90);
+
+  &:hover:not(:disabled) {
+    background: #f6c5b8;
+  }
+}
+
+.btnOutlineDanger {
+  border: 1px solid var(--color-primary--second);
+  background: var(--color-white);
+  color: #e8372c;
+
+  &:hover:not(:disabled) {
+    background: #fff4f1;
+  }
+}
+
+.btnPrimary:disabled,
+.btnOutlineDanger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .modal {
+    padding: 1.25rem 1rem;
+  }
+
+  .patientPhoto {
+    width: 72px;
+    height: 72px;
+  }
+}
+
+.btnOutline {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--color-primary--second);
+  border-radius: 8px;
+  background: var(--color-white);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-gray-90);
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover:not(:disabled) {
+    background: #fff4f1;
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.subtitle {
+  margin: -0.75rem 0 1rem;
+  font-size: 14px;
+  color: var(--color-gray-70);
+}
+
+.doctorName {
+  font-size: 22px !important;
+  font-weight: 500 !important;
+}

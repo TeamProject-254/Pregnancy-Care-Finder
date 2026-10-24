@@ -71,3 +71,32 @@
     border-color: var(--color-primary--second);
   }
 }
+
+@media (max-width: 760px) {
+  .search__form {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .search__field {
+    min-width: 0;
+    gap: 0.75rem;
+  }
+
+  .search__input {
+    min-width: 0;
+    font-size: 16px;
+    white-space: normal;
+  }
+
+  .search__divider {
+    display: none;
+  }
+
+  .search__button {
+    width: 100%;
+    font-size: 16px;
+  }
+}

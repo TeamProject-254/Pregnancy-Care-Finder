@@ -31,6 +31,13 @@
       transform: rotate(180deg);
     }
   }
+
+  @media (max-width: 760px) {
+    .filter {
+      grid-column: span 12;
+      gap: 0.5rem;
+    }
+  }
   &__collapse {
     display: grid;
     grid-template-rows: 0fr;

@@ -168,3 +168,59 @@
   margin-top: 16px;
   text-align: left;
 }
+
+@media (max-width: 900px) {
+  .login__wrapper {
+    padding: 1rem 1.25rem 2rem;
+  }
+
+  .main__content {
+    justify-content: center;
+  }
+
+  .content__img {
+    display: none;
+  }
+
+  .login__form {
+    width: min(100%, 600px);
+    height: auto;
+    min-height: 0;
+    box-sizing: border-box;
+  }
+
+  .login__button {
+    width: min(100%, 392px);
+  }
+}
+
+@media (max-width: 480px) {
+  .login__wrapper {
+    padding-inline: 1rem;
+  }
+
+  .login__form {
+    padding: 1.25rem;
+  }
+
+  .title__block {
+    gap: 0.75rem;
+  }
+
+  .inputs__block {
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .checkbox__block {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .login__block {
+    margin-top: 1.5rem;
+    text-align: center;
+  }
+}

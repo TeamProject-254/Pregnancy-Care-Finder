@@ -11,10 +11,18 @@ import { SearchPage } from "./pages/SearchPage";
 import { ForgotPasswordPage } from "./pages/ForgotPasswordPage";
 import { ResetPasswordPage } from "./pages/ResetPasswordPage/ResetPasswordPage";
 import { PatientDashboard } from "./pages/PatientDashboard";
+import { DoctorPage } from "./pages/DoctorPage";
 
 const ProtectedRoute = () => {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+};
+
+const ProviderRoute = () => {
+  const { user } = useAuth();
+  return user?.role?.toUpperCase() === "PROVIDER"
+    ? <Outlet />
+    : <Navigate to="/patient-dashboard" replace />;
 };
 
 const PublicRoute = () => {
@@ -48,9 +56,11 @@ const AppRoutes = () => (
     <Route element={<MainLayout />}>
       <Route index element={<HomePage />} />
       <Route path="/search" element={<SearchPage />} />
-
+      <Route path="/doctors/:id" element={<DoctorPage />} />
       <Route element={<ProtectedRoute />}>
-        <Route path="/provider-dashboard" element={<ProviderDashboard />} />
+        <Route element={<ProviderRoute />}>
+          <Route path="/provider-dashboard" element={<ProviderDashboard />} />
+        </Route>
       </Route>
       <Route element={<ProtectedRoute />}>
         <Route path="/patient-dashboard" element={<PatientDashboard />} />

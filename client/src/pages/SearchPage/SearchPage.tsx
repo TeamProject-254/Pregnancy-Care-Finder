@@ -4,6 +4,7 @@ import { FiltersSideBar } from "./components/FiltersSideBar";
 import styles from "./ShearchPage.module.scss";
 import blanckProfilePicture from "../../assets/img/blank-profile-picture-973460_1280.png";
 import { DoctorsCard } from "./components/DoctorsCard";
+import { useNavigate } from "react-router-dom";
 
 const MOCK_DOCTORS: Doctor[] = [
   {
@@ -92,6 +93,8 @@ const MOCK_DOCTORS: Doctor[] = [
 ];
 
 export const SearchPage = () => {
+  const navigate = useNavigate();
+
   return (
     <main className={styles.grid__wrapper}>
       <SearchForm className={styles.wide__form} />
@@ -110,7 +113,7 @@ export const SearchPage = () => {
 
         <div className={styles.cards__grid}>
           {MOCK_DOCTORS.map((doctor) => (
-            <DoctorsCard key={doctor.id} doctor={doctor} />
+            <DoctorsCard key={doctor.id} doctor={doctor}  onBook={(id) => navigate(`/doctors/${id}`)}/>
           ))}
         </div>
 

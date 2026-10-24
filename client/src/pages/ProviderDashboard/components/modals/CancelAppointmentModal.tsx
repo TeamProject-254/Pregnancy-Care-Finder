@@ -1,44 +1,87 @@
+import { useState } from "react";
+import { CANCEL_REASONS, requestErrorMessage, type AppointmentItem } from "../appointmentUtils";
+import { ChevronDownIcon, ClipboardCrossIcon, CloseIcon, InfoIcon } from "../AppointmentIcons";
+import { ModalOverlay } from "../../../../components/Modal";
+import styles from "../../../../components/Modal/Modal.module.scss";
+
 interface Props {
+  appt: AppointmentItem;
   onClose: () => void;
+  onSubmit: (reason: string, message: string) => Promise<void>;
 }
 
-export const CancelAppointmentModal = ({ onClose }: Props) => {
+export const CancelAppointmentModal = ({ appt, onClose, onSubmit }: Props) => {
+  const [reason, setReason] = useState<string>(CANCEL_REASONS[0]);
+  const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setError("");
+    try {
+      await onSubmit(reason, message.trim());
+    } catch (e) {
+      setError(requestErrorMessage(e, "Could not cancel the appointment. Please try again."));
+      setIsSubmitting(false);
+    }
+  };
+
   return (
-    <div className="modal-overlay">
-      <div className="modal-content modal-content--small">
-        <button className="close-btn modal-close-top" onClick={onClose}>✕</button>
-        
-        <div className="modal-icon-center">
-          <div className="circle-cross">✕</div>
-        </div>
+    <ModalOverlay onClose={onClose} labelledBy="appt-cancel-title" centered>
+      <button type="button" className={`${styles.closeBtn} ${styles.closeTop}`} onClick={onClose} aria-label="Close">
+        <CloseIcon />
+      </button>
 
-        <h3 className="modal-title-center">Cancel appointment?</h3>
-        <p className="modal-text-center">The time will become available for booking again.</p>
-
-        <form className="modal-form">
-          <div className="form-group full-width">
-            <label>Cancellation reason</label>
-            <select defaultValue="Doctor unavailable">
-              <option value="Doctor unavailable">Doctor unavailable</option>
-              <option value="Rescheduling needed">Rescheduling needed</option>
-            </select>
-          </div>
-
-          <div className="form-group full-width">
-            <label>Message to patient (optional)</label>
-            <textarea rows={3}></textarea>
-          </div>
-
-          <div className="alert alert--info alert--centered">
-            ℹ The patient will be notified.
-          </div>
-
-          <div className="modal-actions-stack">
-            <button type="button" className="btn-primary full-width">Cancel appointment</button>
-            <button type="button" className="btn-outline-danger full-width" onClick={onClose}>Keep appointment</button>
-          </div>
-        </form>
+      <div className={`${styles.iconCenter} ${styles.iconDanger}`}>
+        <ClipboardCrossIcon />
       </div>
-    </div>
+
+      <h3 id="appt-cancel-title" className={styles.title}>
+        Cancel appointment?
+      </h3>
+      <p className={styles.text}>
+        The time will become available for booking again.
+        <br />
+        <strong>
+          {appt.patientName}, {appt.date} at {appt.time}
+        </strong>
+      </p>
+
+      <div className={styles.field}>
+        <label htmlFor="cancel-reason">Cancellation reason</label>
+        <div className={styles.selectWrap}>
+          <select id="cancel-reason" value={reason} onChange={(event) => setReason(event.target.value)}>
+            {CANCEL_REASONS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+          <ChevronDownIcon />
+        </div>
+      </div>
+
+      <div className={styles.field}>
+        <label htmlFor="cancel-message">Message to patient (optional)</label>
+        <textarea id="cancel-message" rows={3} value={message} onChange={(event) => setMessage(event.target.value)} />
+      </div>
+
+      <div className={styles.alert}>
+        <InfoIcon />
+        <span>The patient will be notified.</span>
+      </div>
+
+      {error && <p className={styles.error}>{error}</p>}
+
+      <div className={styles.actions}>
+        <button type="button" className={styles.btnPrimary} onClick={handleSubmit} disabled={isSubmitting}>
+          {isSubmitting ? "Cancelling..." : "Cancel appointment"}
+        </button>
+        <button type="button" className={styles.btnOutlineDanger} onClick={onClose} disabled={isSubmitting}>
+          Keep appointment
+        </button>
+      </div>
+    </ModalOverlay>
   );
 };

@@ -149,3 +149,21 @@
     transform: scale(0.98);
   }
 }
+
+@media (max-width: 480px) {
+  .imageWrapper {
+    height: 200px;
+  }
+
+  .footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+  }
+
+  .bookButton {
+    width: 100%;
+  }
+}

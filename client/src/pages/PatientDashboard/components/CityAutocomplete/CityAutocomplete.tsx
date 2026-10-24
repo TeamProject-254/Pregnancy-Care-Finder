@@ -55,12 +55,13 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
   const [cyrillicWarning, setCyrillicWarning] = useState<boolean>(false);
   const [isCitySelected, setIsCitySelected] = useState<boolean>(Boolean(value));
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const [previousValue, setPreviousValue] = useState(value);
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+  if (value !== previousValue) {
+    setPreviousValue(value);
     setInputValue(value);
     setIsCitySelected(Boolean(value));
-  }, [value]);
+  }
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent): void => {

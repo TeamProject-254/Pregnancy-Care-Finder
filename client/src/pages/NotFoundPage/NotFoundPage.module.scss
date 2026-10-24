@@ -39,4 +39,29 @@
       background-color: var(--color-primary--second);
     }
   }
+
+}
+
+@media (max-width: 600px) {
+  .notFound {
+    min-height: 100vh;
+    height: auto;
+    padding: 1.5rem;
+
+    &__title {
+      font-size: clamp(4.5rem, 24vw, 7rem);
+    }
+
+    &__text {
+      margin: 1rem 0 1.75rem;
+      font-size: 18px;
+    }
+
+    &__button {
+      width: 100%;
+      max-width: 320px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+  }
 }

@@ -1,12 +1,15 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import type { ProviderAvailability } from "../../../../api/availabilities";
+import type { MedicalService } from "../../../../api/medicalServices";
 import doctorDefaultImage from "../../../../assets/img/doctorImage.svg";
 import { MultiSelectDropdown } from "../../../../components/MultiSelectDropdown/MultiSelectDropdown";
 import { PROVIDER_LANGUAGES, PROVIDER_SPECIALTIES } from "../../../../constants/providerOptions";
 import caution from '../../../../assets/img/warning!-icon.svg';
 import camera from '../../../../assets/img/photo.svg';
 import clock from '../../../../assets/img/clock-icon.svg';
-import trash from '../../../../assets/img/trash-icon.svg';
 import success from '../../../../assets/img/success-icon.svg';
+import successSidebar from '../../../../assets/img/success-sidebar-icon.svg';
+import circleBroken from '../../../../assets/circle-broken-icon.svg';
 import styles from './ProfessionalProfileTab.module.scss';
 
 const CLOUDINARY_CLOUD_NAME = "gjckdqml";
@@ -20,40 +23,42 @@ interface ProviderProfile {
 
 interface Props {
   profile: ProviderProfile; isEditing: boolean; isLoading: boolean; isSaving: boolean;
-  canPublish: boolean; serverError: string; email: string;
+  canPublish: boolean; completionPercentage: number; serverError: string; email: string;
+  availabilities: ProviderAvailability[];
+  services: MedicalService[];
   onUpdate: <K extends keyof ProviderProfile>(key: K, value: ProviderProfile[K]) => void;
   onSave: (event: FormEvent<HTMLFormElement>) => void;
   onEdit: () => void;
   onSwitchTab: (tab: "profile" | "services" | "availability" | "appointments") => void;
 }
 
-interface ServiceItem { id: number; name: string; duration: string; price: string; }
-interface TimeInterval { id: number; start: string; end: string; }
-
 export const ProfessionalProfileTab = ({
-  profile, isEditing, isLoading, isSaving, canPublish, serverError, email, onUpdate, onSave, onEdit, onSwitchTab
+  profile, isEditing, isLoading, isSaving, canPublish, completionPercentage, serverError, email, availabilities,
+  services, onUpdate, onSave, onEdit, onSwitchTab
 }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [languagesError, setLanguagesError] = useState("");
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(max-width: 600px)").matches,
+  );
+  const [basicDetailsOpen, setBasicDetailsOpen] = useState(false);
+  const [servicesDetailsOpen, setServicesDetailsOpen] = useState(false);
+  const [availabilityDetailsOpen, setAvailabilityDetailsOpen] = useState(false);
 
-  const [services, setServices] = useState<ServiceItem[]>([
-    { id: 1, name: "Pregnancy consultation", duration: "45 min", price: "40$" },
-    { id: 2, name: "2nd Trimester Anatomy Scan", duration: "45 min", price: "40$" }
-  ]);
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 600px)");
+    const updateViewport = () => setIsMobile(mediaQuery.matches);
+    updateViewport();
+    mediaQuery.addEventListener("change", updateViewport);
+    return () => mediaQuery.removeEventListener("change", updateViewport);
+  }, []);
 
-  const addService = () => setServices([...services, { id: Date.now(), name: "New Consultation", duration: "30 min", price: "20$" }]);
-  const removeService = (id: number) => setServices(services.filter(s => s.id !== id));
-
-  const allDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const [activeDays, setActiveDays] = useState<string[]>(['Mon', 'Tue', 'Wed', 'Thu', 'Fri']);
-  const [intervals, setIntervals] = useState<TimeInterval[]>([{ id: 1, start: "09:00", end: "17:00" }]);
-
-  const toggleDay = (day: string) => {
-    setActiveDays(activeDays.includes(day) ? activeDays.filter(d => d !== day) : [...activeDays, day]);
-  };
-  const addInterval = () => setIntervals([...intervals, { id: Date.now(), start: "10:00", end: "18:00" }]);
-  const removeInterval = (id: number) => setIntervals(intervals.filter(i => i.id !== id));
+  const availableSlots = availabilities
+    .filter((slot) => slot.status === "FREE")
+    .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
+  const formatAvailabilityDate = (date: string) =>
+    new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date(`${date}T00:00:00`));
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     if (profile.languages.length === 0) {
@@ -91,8 +96,7 @@ export const ProfessionalProfileTab = ({
       } else {
         window.alert("Failed to upload image.");
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
+    } catch {
       window.alert("Error uploading image. Please check your connection.");
     } finally {
       setIsUploadingPhoto(false);
@@ -127,9 +131,46 @@ export const ProfessionalProfileTab = ({
           </div>
         )}
 
+        {!profile.published && (
+          <div className={styles.mobileCompletion}>
+            <div className={styles.mobileProgressTrack}>
+              <span style={{ width: `${completionPercentage}%` }} />
+            </div>
+            <span>{completionPercentage}% complete</span>
+          </div>
+        )}
+
         {serverError && <div className="alert alert--warning">{serverError}</div>}
 
         <form onSubmit={handleSubmit}>
+          <details
+            className={styles.basicDetails}
+            open={profile.published || !isMobile || basicDetailsOpen}
+          >
+            {profile.published ? (
+              <summary className={styles.hiddenSummary} aria-hidden="true" />
+            ) : (
+              <summary
+                className={styles.incompleteSummary}
+                onClick={(event) => {
+                  event.preventDefault();
+                  setBasicDetailsOpen((isOpen) => !isOpen);
+                }}
+              >
+                <img
+                  className={styles.summaryStatus}
+                  src={canPublish ? successSidebar : circleBroken}
+                  alt=""
+                  aria-hidden="true"
+                />
+                <span className={styles.summaryText}>
+                  <strong>Basic information</strong>
+                  <small>Profile details and professional background</small>
+                </span>
+                <span className={styles.summaryChevron} aria-hidden="true">›</span>
+              </summary>
+            )}
+            <div className={styles.basicFields}>
           {profile.published && (
             <>
               <div className="form-row">
@@ -188,46 +229,87 @@ export const ProfessionalProfileTab = ({
             </div>
             <input type="file" accept="image/png, image/jpeg, image/jpg" ref={fileInputRef} style={{ display: "none" }} onChange={handleFileChange} disabled={isUploadingPhoto} />
           </div>
+            </div>
+          </details>
 
           <hr className={styles.divider} />
 
-          <div className={styles.sectionContainer}>
+          <details
+            className={`${styles.sectionContainer} ${styles.mobileSection}`}
+            open={profile.published || !isMobile || servicesDetailsOpen}
+          >
+            {profile.published ? (
+              <summary className={styles.hiddenSummary} aria-hidden="true" />
+            ) : (
+              <summary
+                className={styles.incompleteSummary}
+                onClick={(event) => {
+                  event.preventDefault();
+                  setServicesDetailsOpen((isOpen) => !isOpen);
+                }}
+              >
+                <img
+                  className={styles.summaryStatus}
+                  src={services.length > 0 ? successSidebar : circleBroken}
+                  alt=""
+                  aria-hidden="true"
+                />
+                <span className={styles.summaryText}>
+                  <strong>Services and prices</strong>
+                  <small>Add at least one service</small>
+                </span>
+                <span className={styles.summaryChevron} aria-hidden="true">›</span>
+              </summary>
+            )}
+            <div className={styles.mobileSectionContent}>
             <div className={styles.headerFlex} style={{ marginBottom: '0' }}>
               <h3 className={styles.sectionTitle}>Services and prices</h3>
+              <button type="button" onClick={() => onSwitchTab("services")} className={styles.actionBtnOutline}>
+                Manage services
+              </button>
             </div>
             <p className={styles.sectionSubtitle}>
-              Add the services you offer and set your prices. These will be visible to patients on your profile.
+              These saved services and prices are visible to patients on your profile.
             </p>
 
-            {services.map((service) => (
+            {services.length ? services.map((service) => (
               <div key={service.id} className={styles.serviceRow}>
-                <select className={`${styles.mainSelect} ${styles.selectLarge}`} defaultValue={service.name}>
-                  <option>{service.name}</option>
-                  <option>General checkup</option>
-                  <option>Follow-up</option>
-                </select>
-                <select className={`${styles.mainSelect} ${styles.selectSmall}`} defaultValue={service.duration}>
-                  <option>{service.duration}</option>
-                  <option>30 min</option>
-                  <option>60 min</option>
-                </select>
-                <select className={`${styles.mainSelect} ${styles.selectSmall}`} defaultValue={service.price}>
-                  <option>{service.price}</option>
-                  <option>50$</option>
-                  <option>80$</option>
-                </select>
-                <button type="button" onClick={() => removeService(service.id)} className={styles.iconBtn}>
-                  <img src={trash} alt="trash" />
-                </button>
+                <span className={`${styles.mainSelect} ${styles.selectLarge}`}>{service.name}</span>
+                <span className={`${styles.mainSelect} ${styles.selectSmall}`}>{service.durationMinutes} min</span>
+                <span className={`${styles.mainSelect} ${styles.selectSmall}`}>{Number(service.price)}$</span>
               </div>
-            ))}
+            )) : <p className={styles.sectionSubtitle}>No services added yet.</p>}
+            </div>
+          </details>
 
-            <button type="button" onClick={addService} className={styles.actionBtn}>
-              Add services
-            </button>
-          </div>
-
-          <div className={styles.sectionContainer}>
+          <details
+            className={`${styles.sectionContainer} ${styles.mobileSection}`}
+            open={profile.published || !isMobile || availabilityDetailsOpen}
+          >
+            {profile.published ? (
+              <summary className={styles.hiddenSummary} aria-hidden="true" />
+            ) : (
+              <summary
+                className={styles.incompleteSummary}
+                onClick={(event) => {
+                  event.preventDefault();
+                  setAvailabilityDetailsOpen((isOpen) => !isOpen);
+                }}
+              >
+                <img
+                  className={styles.summaryStatus}
+                  src={availableSlots.length > 0 ? successSidebar : circleBroken}
+                  alt=""
+                  aria-hidden="true"
+                />
+                <span className={styles.summaryText}>
+                  <strong>Availability</strong>
+                  <small>Set your working hours</small>
+                </span>
+                <span className={styles.summaryChevron} aria-hidden="true">›</span>
+              </summary>
+            )}
+            <div className={styles.mobileSectionContent}>
             <div className={styles.headerFlex}>
               <h3 className={styles.sectionTitle}>Availability</h3>
               <button type="button" onClick={() => onSwitchTab("availability")} className={styles.actionBtnOutline}>
@@ -235,42 +317,19 @@ export const ProfessionalProfileTab = ({
               </button>
             </div>
             <p className={styles.sectionSubtitle}>
-              Set the days and times when patients can book appointment
+              Add specific dates and time windows for patients to book.
             </p>
 
-            <div className={styles.daysContainer}>
-              {allDays.map((day) => (
-                <button key={day} type="button" onClick={() => toggleDay(day)} className={`${styles.dayBtn} ${activeDays.includes(day) ? styles.active : ''}`}>
-                  {day}
-                </button>
-              ))}
+            <div className={styles.availabilityDisplay}>
+              <img src={clock} alt="clock" />
+              <span>
+                {availableSlots.length > 0
+                  ? `${availableSlots.length} available slot${availableSlots.length === 1 ? "" : "s"} saved`
+                  : "No availability slots added yet."}
+              </span>
             </div>
-
-            {intervals.map((interval) => (
-              <div key={interval.id} className={styles.intervalRow}>
-                <div className={styles.workingHoursLabel}>
-                  <img src={clock} alt="clock" />
-                  Working hours
-                </div>
-                <div className={styles.timeInputs}>
-                  <input type="time" defaultValue={interval.start} className={styles.timeInput} />
-                  <span>to</span>
-                  <input type="time" defaultValue={interval.end} className={styles.timeInput} />
-                </div>
-                {intervals.length > 1 && (
-                  <button type="button" onClick={() => removeInterval(interval.id)} className={styles.iconBtn} style={{ marginLeft: '0.5rem' }}>
-                    <img src={trash} alt="trash" />
-                  </button>
-                )}
-              </div>
-            ))}
-
-            <div className={styles.intervalFooter}>
-              <button type="button" onClick={addInterval} className={styles.actionBtn}>
-                Add time interval
-              </button>
             </div>
-          </div>
+          </details>
 
           {!canPublish && <p className="field-error" style={{ textAlign: 'right' }}>Complete all required profile fields to enable publishing.</p>}
           
@@ -286,6 +345,12 @@ export const ProfessionalProfileTab = ({
 
   return (
     <div className={styles.tabContainerTransparent}>
+      <div className={styles.mobileProfileSummary}>
+        <img src={profile.photoUrl || doctorDefaultImage} alt="" />
+        <strong>Dr. {profile.firstName} {profile.lastName}</strong>
+        <span>{profile.speciality}</span>
+        <small><img src={success} alt="" /> Profile published</small>
+      </div>
       <div className={styles.headerFlex}>
         <h2 className={styles.mainTitle}>Professional profile</h2>
         <button className={styles.actionBtnOutline} onClick={onEdit}>Edit profile</button>
@@ -323,12 +388,12 @@ export const ProfessionalProfileTab = ({
         </div>
       </div>
       
-      <section className={styles.readOnlySection}>
+      <section className={`${styles.readOnlySection} ${styles.aboutSection}`}>
         <h3 className={styles.sectionTitle}>About</h3>
         <p>{profile.description}</p>
       </section>
       
-      <section className={styles.readOnlySection}>
+      <section className={`${styles.readOnlySection} ${styles.professionalSection}`}>
         <h3 className={styles.sectionTitle}>Professional information</h3>
         <div className={styles.readOnlyGrid}>
           <div className={styles.readOnlyRow}>
@@ -378,8 +443,8 @@ export const ProfessionalProfileTab = ({
             {services.map((service) => (
               <div key={service.id} className={styles.serviceDisplayRow}>
                 <div className={`${styles.serviceSelectBox} ${styles.selectLarge}`}>{service.name}</div>
-                <div className={`${styles.serviceSelectBox} ${styles.selectSmall}`}>{service.duration}</div>
-                <div className={`${styles.serviceSelectBox} ${styles.selectSmall}`}>{service.price}</div>
+                <div className={`${styles.serviceSelectBox} ${styles.selectSmall}`}>{service.durationMinutes} min</div>
+                <div className={`${styles.serviceSelectBox} ${styles.selectSmall}`}>{Number(service.price)}$</div>
               </div>
             ))}
           </div>
@@ -393,9 +458,12 @@ export const ProfessionalProfileTab = ({
         </div>
         <div className={styles.availabilityDisplay}>
           <img src={clock} alt="clock" />
-          {activeDays.length > 0 ? (
+          {availableSlots.length > 0 ? (
             <span>
-              {activeDays[0]} - {activeDays[activeDays.length - 1]}, {intervals.length > 0 ? `${intervals[0].start} - ${intervals[0].end}` : 'Time not set'}
+              {availableSlots.slice(0, 3).map((slot) =>
+                `${formatAvailabilityDate(slot.date)} ${slot.startTime.slice(0, 5)}–${slot.endTime.slice(0, 5)}`
+              ).join(" · ")}
+              {availableSlots.length > 3 ? ` · +${availableSlots.length - 3} more` : ""}
             </span>
           ) : (
             <span>Not set</span>

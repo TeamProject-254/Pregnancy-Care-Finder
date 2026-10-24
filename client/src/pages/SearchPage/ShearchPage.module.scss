@@ -63,3 +63,32 @@
   grid-template-columns: repeat(2, 1fr);
   gap: 24px;
 }
+
+@media (max-width: 1224px) {
+  .grid__wrapper {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    column-gap: 16px;
+    padding-inline: 1rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .grid__wrapper {
+    row-gap: 1.5rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .doctors__list {
+    grid-column: span 12;
+    gap: 1rem;
+  }
+
+  .cards__grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+
+  .search__info {
+    gap: 0.5rem;
+  }
+}
