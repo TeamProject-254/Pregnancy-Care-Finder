@@ -33,5 +33,6 @@ public interface AppointmentMapper {
     @Mapping(target = "serviceName", source = "medicalService.name")
     @Mapping(target = "durationMinutes", source = "medicalService.durationMinutes")
     @Mapping(target = "price", source = "medicalService.price")
+    @Mapping(target = "status", source = "appointment.appointmentStatus")
     AppointmentResponse toResponse(Appointment appointment);
 }
