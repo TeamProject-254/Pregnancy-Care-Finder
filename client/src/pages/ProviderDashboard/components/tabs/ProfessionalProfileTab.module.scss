@@ -311,6 +311,16 @@
   min-width: 180px;
 }
 
+.addServicesBtn {
+  margin-bottom: 2rem;
+}
+
+.availabilityLines {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
 .actionBtnOutline:hover {
   background-color: #F2D4CF;
 }

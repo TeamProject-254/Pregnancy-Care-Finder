@@ -42,6 +42,56 @@ export const getPublicProvider = async (id: string): Promise<PublicProviderDetai
   return data;
 };
 
+export interface ProviderProfileDto {
+  id: number;
+  firstName: string | null;
+  lastName: string | null;
+  professionalRole: string | null;
+  yearsOfExperience: number | null;
+  contactPhone: string | null;
+  address: string | null;
+  specialization: string | null;
+  description: string | null;
+  languages: string[] | null;
+  photoUrl: string | null;
+  published: boolean;
+}
+
+export interface ProviderProfilePayload {
+  firstName: string;
+  lastName: string;
+  professionalRole: string;
+  yearsOfExperience: number;
+  contactPhone: string;
+  address: string;
+  specialization: string;
+  description: string;
+  languages: string[];
+  photoUrl: string | null;
+}
+
+export const getMyProviderProfile = async (): Promise<ProviderProfileDto> => {
+  const { data } = await api.get<ProviderProfileDto>("/providers/profile");
+  return data;
+};
+
+export const createMyProviderProfile = async (
+  payload: ProviderProfilePayload,
+): Promise<ProviderProfileDto> => {
+  const { data } = await api.post<ProviderProfileDto>("/providers/profile", {
+    ...payload,
+    accurateInfoConsent: true,
+  });
+  return data;
+};
+
+export const updateMyProviderProfile = async (
+  payload: Partial<ProviderProfilePayload> & { published?: boolean },
+): Promise<ProviderProfileDto> => {
+  const { data } = await api.patch<ProviderProfileDto>("/providers/profile", payload);
+  return data;
+};
+
 export interface CreateAppointmentPayload {
   providerId: number;
   serviceId: number;

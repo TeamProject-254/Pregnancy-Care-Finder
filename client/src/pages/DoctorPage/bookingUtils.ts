@@ -1,5 +1,7 @@
 import type { PublicAvailability } from "../../api/providers";
 
+const SLOT_GRID_MINUTES = 15;
+
 const pad = (value: number) => String(value).padStart(2, "0");
 
 const toMinutes = (time: string): number => {
@@ -45,13 +47,14 @@ export const buildSlotsByDate = (
   const result: Record<string, Set<string>> = {};
   const today = todayString(now);
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  const step = Math.max(durationMinutes, 5);
+  const duration = Math.max(durationMinutes, 1);
 
   availabilities.forEach((slot) => {
-    if (slot.date < today) return;
+    if (slot.status !== "FREE" || slot.date < today) return;
     const start = toMinutes(slot.startTime);
     const end = toMinutes(slot.endTime);
-    for (let from = start; from + step <= end; from += step) {
+    const firstStart = (Math.floor(start / SLOT_GRID_MINUTES) + 1) * SLOT_GRID_MINUTES;
+    for (let from = firstStart; from + duration < end; from += SLOT_GRID_MINUTES) {
       if (slot.date === today && from <= nowMinutes) continue;
       (result[slot.date] ??= new Set()).add(minutesToTime(from));
     }

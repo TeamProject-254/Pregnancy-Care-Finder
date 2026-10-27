@@ -1,50 +1,53 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import type { ProviderAvailability } from "../../../../api/availabilities";
-import type { MedicalService } from "../../../../api/medicalServices";
+import { deleteMedicalService, type MedicalService } from "../../../../api/medicalServices";
 import doctorDefaultImage from "../../../../assets/img/doctorImage.svg";
 import { MultiSelectDropdown } from "../../../../components/MultiSelectDropdown/MultiSelectDropdown";
 import { PROVIDER_LANGUAGES, PROVIDER_SPECIALTIES } from "../../../../constants/providerOptions";
 import caution from '../../../../assets/img/warning!-icon.svg';
 import camera from '../../../../assets/img/photo.svg';
 import clock from '../../../../assets/img/clock-icon.svg';
+import calendar from '../../../../assets/img/calendar-icon.svg';
+import trash from '../../../../assets/img/trash-icon.svg';
 import success from '../../../../assets/img/success-icon.svg';
 import successSidebar from '../../../../assets/img/success-sidebar-icon.svg';
 import circleBroken from '../../../../assets/circle-broken-icon.svg';
+import type { DashboardTab, ProviderProfile } from "../../ProviderDashboard";
+import { WEEK, mainWorkingHours, summarizeAvailability, weeklyHours } from "../availabilitySummary";
 import styles from './ProfessionalProfileTab.module.scss';
 
 const CLOUDINARY_CLOUD_NAME = "gjckdqml";
 const CLOUDINARY_UPLOAD_PRESET = "BloomCare";
 
-interface ProviderProfile {
-  firstName: string; lastName: string; professionalRole: string; yearsOfExperience: string;
-  contactPhone: string; address: string; speciality: string; languages: string[];
-  description: string; photoUrl: string | null; published: boolean;
-}
-
 interface Props {
   profile: ProviderProfile; isEditing: boolean; isLoading: boolean; isSaving: boolean;
+  loadError: string; onRetryLoad: () => void; showBasicFields: boolean;
   canPublish: boolean; completionPercentage: number; serverError: string; email: string;
   availabilities: ProviderAvailability[];
   services: MedicalService[];
+  onServicesChange: (services: MedicalService[]) => void;
   onUpdate: <K extends keyof ProviderProfile>(key: K, value: ProviderProfile[K]) => void;
   onSave: (event: FormEvent<HTMLFormElement>) => void;
   onEdit: () => void;
-  onSwitchTab: (tab: "profile" | "services" | "availability" | "appointments") => void;
+  onSwitchTab: (tab: DashboardTab) => void;
 }
 
 export const ProfessionalProfileTab = ({
-  profile, isEditing, isLoading, isSaving, canPublish, completionPercentage, serverError, email, availabilities,
-  services, onUpdate, onSave, onEdit, onSwitchTab
+  profile, isEditing, isLoading, isSaving, loadError, onRetryLoad, showBasicFields, canPublish, completionPercentage,
+  serverError, email, availabilities, services, onServicesChange, onUpdate, onSave, onEdit, onSwitchTab
 }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [languagesError, setLanguagesError] = useState("");
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [photoError, setPhotoError] = useState("");
   const [isMobile, setIsMobile] = useState(
     () => typeof window !== "undefined" && window.matchMedia("(max-width: 600px)").matches,
   );
   const [basicDetailsOpen, setBasicDetailsOpen] = useState(false);
   const [servicesDetailsOpen, setServicesDetailsOpen] = useState(false);
   const [availabilityDetailsOpen, setAvailabilityDetailsOpen] = useState(false);
+  const [deletingServiceId, setDeletingServiceId] = useState<number | null>(null);
+  const [servicesError, setServicesError] = useState("");
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 600px)");
@@ -54,11 +57,23 @@ export const ProfessionalProfileTab = ({
     return () => mediaQuery.removeEventListener("change", updateViewport);
   }, []);
 
-  const availableSlots = availabilities
-    .filter((slot) => slot.status === "FREE")
-    .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime));
-  const formatAvailabilityDate = (date: string) =>
-    new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date(`${date}T00:00:00`));
+  const availabilitySummary = summarizeAvailability(availabilities);
+  const activeWeekdays = weeklyHours(availabilities);
+  const workingHours = mainWorkingHours(availabilities);
+
+  const removeService = async (service: MedicalService) => {
+    if (!window.confirm(`Remove "${service.name}"?`)) return;
+    setServicesError("");
+    setDeletingServiceId(service.id);
+    try {
+      await deleteMedicalService(service.id);
+      onServicesChange(services.filter((item) => item.id !== service.id));
+    } catch {
+      setServicesError("Unable to remove the service. Please try again.");
+    } finally {
+      setDeletingServiceId(null);
+    }
+  };
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     if (profile.languages.length === 0) {
@@ -73,9 +88,15 @@ export const ProfessionalProfileTab = ({
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    setPhotoError("");
+    if (!["image/jpeg", "image/png"].includes(file.type)) {
+      event.target.value = "";
+      setPhotoError("Please choose a JPG or PNG image.");
+      return;
+    }
     if (file.size > 5 * 1024 * 1024) {
       event.target.value = "";
-      window.alert("Please choose an image smaller than 5 MB.");
+      setPhotoError("Please choose an image smaller than 5 MB.");
       return;
     }
 
@@ -90,14 +111,14 @@ export const ProfessionalProfileTab = ({
         body: formData,
       });
       const data = await response.json();
-      
-      if (data.secure_url) {
+
+      if (response.ok && data.secure_url) {
         onUpdate("photoUrl", data.secure_url);
       } else {
-        window.alert("Failed to upload image.");
+        setPhotoError("Failed to upload image.");
       }
     } catch {
-      window.alert("Error uploading image. Please check your connection.");
+      setPhotoError("Error uploading image. Please check your connection.");
     } finally {
       setIsUploadingPhoto(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -106,10 +127,20 @@ export const ProfessionalProfileTab = ({
 
   const removePhoto = () => {
     onUpdate("photoUrl", null);
+    setPhotoError("");
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   if (isLoading) return <div className={styles.tabContainer}>Loading...</div>;
+
+  if (loadError) {
+    return (
+      <div className={styles.tabContainer}>
+        <div className="alert alert--warning">{loadError}</div>
+        <button type="button" className={styles.actionBtnOutline} onClick={onRetryLoad}>Try again</button>
+      </div>
+    );
+  }
 
   if (isEditing) {
     return (
@@ -171,15 +202,15 @@ export const ProfessionalProfileTab = ({
               </summary>
             )}
             <div className={styles.basicFields}>
-          {profile.published && (
+          {showBasicFields && (
             <>
               <div className="form-row">
                 <div className="form-group"><label>First name</label><input required className={styles.mainInput} value={profile.firstName} onChange={(e) => onUpdate("firstName", e.target.value)} /></div>
                 <div className="form-group"><label>Last name</label><input required className={styles.mainInput} value={profile.lastName} onChange={(e) => onUpdate("lastName", e.target.value)} /></div>
               </div>
               <div className="form-row">
-                <div className="form-group"><label>Professional role</label><input required className={styles.mainInput} value={profile.professionalRole || "Doctor"} onChange={(e) => onUpdate("professionalRole", e.target.value)} /></div>
-                <div className="form-group"><label>Years of experience</label><input required className={styles.mainInput} type="number" min="0" value={profile.yearsOfExperience} onChange={(e) => onUpdate("yearsOfExperience", e.target.value)} /></div>
+                <div className="form-group"><label>Professional role</label><input required className={styles.mainInput} placeholder="Doctor" value={profile.professionalRole} onChange={(e) => onUpdate("professionalRole", e.target.value)} /></div>
+                <div className="form-group"><label>Years of experience</label><input required className={styles.mainInput} type="number" min="0" step="1" value={profile.yearsOfExperience} onChange={(e) => onUpdate("yearsOfExperience", e.target.value)} /></div>
               </div>
               <div className="form-row">
                 <div className="form-group"><label>Contact phone</label><input required className={styles.mainInput} type="tel" value={profile.contactPhone} onChange={(e) => onUpdate("contactPhone", e.target.value)} /></div>
@@ -226,6 +257,7 @@ export const ProfessionalProfileTab = ({
                 <span>{isUploadingPhoto ? "Uploading..." : "Change photo"}</span>
               </div>
               <span className={styles.uploadSubtitle}>JPG or PNG, max 5MB</span>
+              {photoError && <span className="field-error">{photoError}</span>}
             </div>
             <input type="file" accept="image/png, image/jpeg, image/jpg" ref={fileInputRef} style={{ display: "none" }} onChange={handleFileChange} disabled={isUploadingPhoto} />
           </div>
@@ -262,14 +294,9 @@ export const ProfessionalProfileTab = ({
               </summary>
             )}
             <div className={styles.mobileSectionContent}>
-            <div className={styles.headerFlex} style={{ marginBottom: '0' }}>
-              <h3 className={styles.sectionTitle}>Services and prices</h3>
-              <button type="button" onClick={() => onSwitchTab("services")} className={styles.actionBtnOutline}>
-                Manage services
-              </button>
-            </div>
+            <h3 className={styles.sectionTitle}>Services and prices</h3>
             <p className={styles.sectionSubtitle}>
-              These saved services and prices are visible to patients on your profile.
+              Add the services you offer and set your prices. These will be visible to patients on your profile.
             </p>
 
             {services.length ? services.map((service) => (
@@ -277,8 +304,21 @@ export const ProfessionalProfileTab = ({
                 <span className={`${styles.mainSelect} ${styles.selectLarge}`}>{service.name}</span>
                 <span className={`${styles.mainSelect} ${styles.selectSmall}`}>{service.durationMinutes} min</span>
                 <span className={`${styles.mainSelect} ${styles.selectSmall}`}>{Number(service.price)}$</span>
+                <button
+                  type="button"
+                  className={styles.iconBtn}
+                  onClick={() => void removeService(service)}
+                  disabled={deletingServiceId === service.id}
+                  aria-label={`Remove ${service.name}`}
+                >
+                  <img src={trash} alt="" />
+                </button>
               </div>
             )) : <p className={styles.sectionSubtitle}>No services added yet.</p>}
+            {servicesError && <span className="field-error">{servicesError}</span>}
+            <button type="button" onClick={() => onSwitchTab("services")} className={`${styles.actionBtnOutline} ${styles.addServicesBtn}`}>
+              Add services
+            </button>
             </div>
           </details>
 
@@ -298,7 +338,7 @@ export const ProfessionalProfileTab = ({
               >
                 <img
                   className={styles.summaryStatus}
-                  src={availableSlots.length > 0 ? successSidebar : circleBroken}
+                  src={availabilitySummary.length > 0 ? successSidebar : circleBroken}
                   alt=""
                   aria-hidden="true"
                 />
@@ -317,16 +357,37 @@ export const ProfessionalProfileTab = ({
               </button>
             </div>
             <p className={styles.sectionSubtitle}>
-              Add specific dates and time windows for patients to book.
+              Set the days and times when patients can book appointment
             </p>
 
-            <div className={styles.availabilityDisplay}>
-              <img src={clock} alt="clock" />
-              <span>
-                {availableSlots.length > 0
-                  ? `${availableSlots.length} available slot${availableSlots.length === 1 ? "" : "s"} saved`
-                  : "No availability slots added yet."}
+            <div className={styles.daysContainer}>
+              {WEEK.map((day) => (
+                <button
+                  key={day.weekday}
+                  type="button"
+                  className={`${styles.dayBtn} ${activeWeekdays.has(day.weekday) ? styles.active : ""}`}
+                  onClick={() => onSwitchTab("availability")}
+                >
+                  {day.short}
+                </button>
+              ))}
+            </div>
+
+            <div className={styles.intervalRow}>
+              <span className={styles.workingHoursLabel}>
+                <img src={clock} alt="" /> Working hours
               </span>
+              <div className={styles.timeInputs}>
+                <input type="time" readOnly className={styles.timeInput} value={workingHours?.start ?? ""} aria-label="Working hours start" />
+                <span>to</span>
+                <input type="time" readOnly className={styles.timeInput} value={workingHours?.end ?? ""} aria-label="Working hours end" />
+              </div>
+            </div>
+
+            <div className={styles.intervalFooter}>
+              <button type="button" onClick={() => onSwitchTab("availability")} className={styles.actionBtnOutline}>
+                Add time interval
+              </button>
             </div>
             </div>
           </details>
@@ -411,7 +472,7 @@ export const ProfessionalProfileTab = ({
           </div>
           <div className={styles.readOnlyRow}>
             <strong>Professional role</strong>
-            <div className={styles.readOnlyValueBox}>{profile.professionalRole || "Doctor"}</div>
+            <div className={styles.readOnlyValueBox}>{profile.professionalRole}</div>
           </div>
           <div className={styles.readOnlyRow}>
             <strong>Years of experience</strong>
@@ -440,6 +501,7 @@ export const ProfessionalProfileTab = ({
             <span className={styles.selectSmall}>Price</span>
           </div>
           <div className={styles.servicesBody}>
+            {services.length === 0 && <p className={styles.sectionSubtitle}>No services added yet.</p>}
             {services.map((service) => (
               <div key={service.id} className={styles.serviceDisplayRow}>
                 <div className={`${styles.serviceSelectBox} ${styles.selectLarge}`}>{service.name}</div>
@@ -457,13 +519,10 @@ export const ProfessionalProfileTab = ({
           <button className={styles.actionBtnOutline} onClick={() => onSwitchTab("availability")}>Manage Time</button>
         </div>
         <div className={styles.availabilityDisplay}>
-          <img src={clock} alt="clock" />
-          {availableSlots.length > 0 ? (
-            <span>
-              {availableSlots.slice(0, 3).map((slot) =>
-                `${formatAvailabilityDate(slot.date)} ${slot.startTime.slice(0, 5)}–${slot.endTime.slice(0, 5)}`
-              ).join(" · ")}
-              {availableSlots.length > 3 ? ` · +${availableSlots.length - 3} more` : ""}
+          <img src={calendar} alt="" />
+          {availabilitySummary.length > 0 ? (
+            <span className={styles.availabilityLines}>
+              {availabilitySummary.map((line) => <span key={line}>{line}</span>)}
             </span>
           ) : (
             <span>Not set</span>
