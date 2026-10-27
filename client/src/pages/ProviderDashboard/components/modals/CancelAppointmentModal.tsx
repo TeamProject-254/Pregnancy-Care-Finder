@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { CANCEL_REASONS, requestErrorMessage, type AppointmentItem } from "../appointmentUtils";
-import { ChevronDownIcon, ClipboardCrossIcon, CloseIcon, InfoIcon } from "../AppointmentIcons";
+import { ClipboardCrossIcon, CloseIcon, InfoIcon } from "../AppointmentIcons";
 import { ModalOverlay } from "../../../../components/Modal";
+import { SelectDropdown } from "../../../../components/SelectDropdown/SelectDropdown";
 import styles from "../../../../components/Modal/Modal.module.scss";
 
 interface Props {
@@ -50,16 +51,13 @@ export const CancelAppointmentModal = ({ appt, onClose, onSubmit }: Props) => {
 
       <div className={styles.field}>
         <label htmlFor="cancel-reason">Cancellation reason</label>
-        <div className={styles.selectWrap}>
-          <select id="cancel-reason" value={reason} onChange={(event) => setReason(event.target.value)}>
-            {CANCEL_REASONS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-          <ChevronDownIcon />
-        </div>
+        <SelectDropdown
+          id="cancel-reason"
+          ariaLabel="Cancellation reason"
+          options={CANCEL_REASONS}
+          value={reason}
+          onChange={setReason}
+        />
       </div>
 
       <div className={styles.field}>

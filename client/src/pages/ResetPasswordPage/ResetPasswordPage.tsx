@@ -11,6 +11,7 @@ import { EyeIcon } from "../../components/icons/EyeIcon";
 import styles from "./ResetPasswordPage.module.scss";
 import { useAuth } from "../../context/AuthContext";
 import { PasswordUpdated } from "./components";
+import { newPasswordValidators } from "../../utils/validation";
 
 interface ResetPasswordFormInputs {
   password: string;
@@ -130,19 +131,7 @@ export const ResetPasswordPage = () => {
                       <EyeIcon />
                     </button>
                   }
-                  {...register("password", {
-                    required: "New password cannot be blank",
-                    minLength: {
-                      value: 8,
-                      message: "Password must be at least 8 characters long",
-                    },
-                    pattern: {
-                      value:
-                        /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!]).*$/,
-                      message:
-                        "Password must contain at least one digit, one lowercase letter, one uppercase letter, and one special character (@#$%^&+=!)",
-                    },
-                  })}
+                  {...register("password", { validate: newPasswordValidators })}
                 />
 
                 <TextInput
@@ -165,9 +154,9 @@ export const ResetPasswordPage = () => {
                     </button>
                   }
                   {...register("confirmPassword", {
-                    required: "Please confirm your password",
+                    required: "Repeat your new password.",
                     validate: (value) =>
-                      value === watch("password") || "Passwords do not match",
+                      value === watch("password") || "Passwords don't match. Type the same password again.",
                   })}
                 />
               </div>

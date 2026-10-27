@@ -15,6 +15,17 @@ export interface Doctor {
   availabilitySlots: string[];
 }
 
+export interface DoctorCardData {
+  id: number;
+  name: string;
+  photoUrl: string;
+  specialty: string;
+  focusAreas: string[];
+  price: string | null;
+  availableToday: boolean;
+  earliestSlot: string | null;
+}
+
 export interface Review {
   id: number;
   name: string;

@@ -7,6 +7,7 @@ import {
   type ProviderStats,
 } from "../../../../api/appointments";
 import { useAuth } from "../../../../context/AuthContext";
+import { notifyProviderAppointmentsChanged } from "../../../../hooks/usePendingAppointments";
 import { readStatusOverrides, saveStatusOverride } from "../appointmentStatusStore";
 import {
   buildTabs,
@@ -21,7 +22,6 @@ import {
 import {
   CalendarIcon,
   CheckCircleIcon,
-  ChevronDownIcon,
   ClockIcon,
   FilterIcon,
   SearchIcon,
@@ -30,6 +30,7 @@ import {
 import { AppointmentDetailsModal } from "../modals/AppointmentDetailsModal";
 import { ConfirmAppointmentModal } from "../modals/ConfirmAppointmentModal";
 import { CancelAppointmentModal } from "../modals/CancelAppointmentModal";
+import { SelectDropdown } from "../../../../components/SelectDropdown/SelectDropdown";
 import styles from "./AppointmentsTab.module.scss";
 
 export type { AppointmentItem } from "../appointmentUtils";
@@ -172,6 +173,7 @@ export const AppointmentsTab = () => {
   const handleConfirm = async (appt: AppointmentItem, message?: string) => {
     await confirmProviderAppointment(appt.id, message);
     saveStatusOverride(userId, appt.id, "CONFIRMED");
+    notifyProviderAppointmentsChanged();
     setModal(null);
     setNotice(`Appointment with ${appt.patientName} confirmed.`);
     reload();
@@ -180,6 +182,7 @@ export const AppointmentsTab = () => {
   const handleCancel = async (appt: AppointmentItem, reason: string, message: string) => {
     await cancelProviderAppointment(appt.id, reason, message);
     saveStatusOverride(userId, appt.id, "CANCELLED_BY_PROVIDER");
+    notifyProviderAppointmentsChanged();
     setModal(null);
     setNotice(`Appointment with ${appt.patientName} cancelled.`);
     reload();
@@ -244,25 +247,23 @@ export const AppointmentsTab = () => {
         </label>
         <label className={styles.control}>
           <CalendarIcon size={22} />
-          <select value={dateFilter} onChange={(event) => changeDate(event.target.value as DateFilter)} aria-label="Filter by date">
-            {DATE_FILTERS.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-          <ChevronDownIcon className={styles.chevron} />
+          <SelectDropdown
+            variant="bare"
+            ariaLabel="Filter by date"
+            options={DATE_FILTERS}
+            value={dateFilter}
+            onChange={(value) => changeDate(value as DateFilter)}
+          />
         </label>
         <label className={styles.control}>
           <FilterIcon size={22} />
-          <select value={statusFilter} onChange={(event) => changeStatus(event.target.value)} aria-label="Filter by status">
-            {statusOptions.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </select>
-          <ChevronDownIcon className={styles.chevron} />
+          <SelectDropdown
+            variant="bare"
+            ariaLabel="Filter by status"
+            options={statusOptions}
+            value={statusFilter}
+            onChange={changeStatus}
+          />
         </label>
       </div>
 

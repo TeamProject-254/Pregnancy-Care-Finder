@@ -37,6 +37,11 @@ export interface PublicProviderDetail extends PublicProvider {
   availabilities: PublicAvailability[];
 }
 
+export const searchProviders = async (): Promise<PublicProvider[]> => {
+  const { data } = await api.get<PublicProvider[]>("/providers/search");
+  return data;
+};
+
 export const getPublicProvider = async (id: string): Promise<PublicProviderDetail> => {
   const { data } = await api.get<PublicProviderDetail>(`/providers/${id}`);
   return data;

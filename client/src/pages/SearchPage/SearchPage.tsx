@@ -1,100 +1,179 @@
+import { useEffect, useState } from "react";
+import { isAxiosError } from "axios";
+import { Link, useNavigate } from "react-router-dom";
 import { SearchForm } from "../../components/SearchForm";
-import type { Doctor } from "../../types/doctor";
+import type { DoctorCardData } from "../../types/doctor";
 import { FiltersSideBar } from "./components/FiltersSideBar";
 import styles from "./ShearchPage.module.scss";
-import blanckProfilePicture from "../../assets/img/blank-profile-picture-973460_1280.png";
+import blankProfilePicture from "../../assets/img/blank-profile-picture-973460_1280.png";
 import { DoctorsCard } from "./components/DoctorsCard";
-import { useNavigate } from "react-router-dom";
+import {
+  getPublicProvider,
+  searchProviders,
+  type PublicAvailability,
+  type PublicProvider,
+  type PublicProviderDetail,
+} from "../../api/providers";
+import { useAuth } from "../../context/AuthContext";
+import { apiErrorMessage } from "../../utils/validation";
 
-const MOCK_DOCTORS: Doctor[] = [
-  {
-    id: 1,
-    name: "Doctor name",
-    photoUrl: blanckProfilePicture,
-    specialty: "Obstetrician-Gynecologist",
-    isVerified: true,
-    experience: "8 years",
-    location: "Warsaw",
-    rating: 4.9,
-    reviewsCount: 124,
-    languages: ["English", "Polish"],
-    price: "40$",
-    about:
-      "Specialist in comprehensive prenatal care and pregnancy monitoring.",
-    expertise: [
-      "Prenatal care & pregnancy monitoring (1st–3rd trimester)",
-      "High-risk pregnancy management",
-      "1st and 2nd-trimester screening ultrasounds",
-    ],
-    availabilitySlots: ["today"],
-  },
-  {
-    id: 2,
-    name: "Doctor name",
-    photoUrl: blanckProfilePicture,
-    specialty: "Obstetrician-Gynecologist",
-    isVerified: true,
-    experience: "10 years",
-    location: "Krakow",
-    rating: 5.0,
-    reviewsCount: 98,
-    languages: ["English", "Ukrainian"],
-    price: "45$",
-    about: "Specialist in prenatal ultrasound and maternal-fetal medicine.",
-    expertise: [
-      "Prenatal care & pregnancy monitoring (1st–3rd trimester)",
-      "High-risk pregnancy management",
-      "1st and 2nd-trimester screening ultrasounds",
-    ],
-    availabilitySlots: ["today"],
-  },
-  {
-    id: 3,
-    name: "Doctor name",
-    photoUrl: blanckProfilePicture,
-    specialty: "Obstetrician-Gynecologist",
-    isVerified: true,
-    experience: "6 years",
-    location: "Gdansk",
-    rating: 4.8,
-    reviewsCount: 76,
-    languages: ["English", "Polish", "Ukrainian"],
-    price: "40$",
-    about:
-      "Dedicated obstetrician providing gentle and focused care throughout all trimesters.",
-    expertise: [
-      "Prenatal care & pregnancy monitoring (1st–3rd trimester)",
-      "High-risk pregnancy management",
-      "1st and 2nd-trimester screening ultrasounds",
-    ],
-    availabilitySlots: ["today"],
-  },
-  {
-    id: 4,
-    name: "Doctor name",
-    photoUrl: blanckProfilePicture,
-    specialty: "Obstetrician-Gynecologist",
-    isVerified: true,
-    experience: "12 years",
-    location: "Wroclaw",
-    rating: 4.95,
-    reviewsCount: 142,
-    languages: ["English", "Polish"],
-    price: "45$",
-    about:
-      "Senior gynecologist focusing on high-risk cases and comprehensive screenings.",
-    expertise: [
-      "Prenatal care & pregnancy monitoring (1st–3rd trimester)",
-      "High-risk pregnancy management",
-      "1st and 2nd-trimester screening ultrasounds",
-    ],
-    availabilitySlots: ["today"],
-  },
-];
+const PAGE_SIZE = 6;
+const MAX_FOCUS_AREAS = 4;
+
+type LoadState =
+  | { status: "loading" }
+  | { status: "error"; message: string; needsLogin: boolean }
+  | { status: "ready"; doctors: DoctorCardData[] };
+
+const pad = (value: number) => String(value).padStart(2, "0");
+
+const nowParts = () => {
+  const now = new Date();
+  return {
+    today: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`,
+    time: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
+  };
+};
+
+const earliestFreeSlot = (availabilities: PublicAvailability[]) => {
+  const { today, time } = nowParts();
+  const upcoming = availabilities
+    .filter((slot) => slot.status === "FREE")
+    .filter((slot) => slot.date > today || (slot.date === today && slot.endTime.slice(0, 5) > time))
+    .map((slot) => `${slot.date}T${slot.startTime.slice(0, 5)}`)
+    .sort();
+  return upcoming[0] ?? null;
+};
+
+const toCard = (provider: PublicProvider, detail: PublicProviderDetail | null): DoctorCardData => {
+  const services = detail?.services ?? [];
+  const prices = services.map((service) => Number(service.price)).filter((price) => Number.isFinite(price));
+  const earliestSlot = detail ? earliestFreeSlot(detail.availabilities) : null;
+
+  return {
+    id: provider.id,
+    name: `Dr. ${provider.firstName} ${provider.lastName}`,
+    photoUrl: provider.photoUrl || blankProfilePicture,
+    specialty: provider.specialization || provider.professionalRole || "Healthcare professional",
+    focusAreas: services.slice(0, MAX_FOCUS_AREAS).map((service) => service.name),
+    price: prices.length ? `${Math.min(...prices)}$` : null,
+    availableToday: earliestSlot !== null && earliestSlot.startsWith(nowParts().today),
+    earliestSlot,
+  };
+};
+
+const byEarliestAvailable = (a: DoctorCardData, b: DoctorCardData) => {
+  if (a.earliestSlot && b.earliestSlot) return a.earliestSlot.localeCompare(b.earliestSlot);
+  if (a.earliestSlot) return -1;
+  if (b.earliestSlot) return 1;
+  return a.name.localeCompare(b.name);
+};
+
+const loadDoctors = async (): Promise<DoctorCardData[]> => {
+  const providers = await searchProviders();
+  const details = await Promise.allSettled(providers.map((provider) => getPublicProvider(String(provider.id))));
+  return providers
+    .map((provider, index) => {
+      const result = details[index];
+      return toCard(provider, result.status === "fulfilled" ? result.value : null);
+    })
+    .sort(byEarliestAvailable);
+};
+
+const DoctorsResults = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [reloadToken, setReloadToken] = useState(0);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    const load = async () => {
+      setState({ status: "loading" });
+      try {
+        const doctors = await loadDoctors();
+        if (isCurrent) setState({ status: "ready", doctors });
+      } catch (error) {
+        if (!isCurrent) return;
+        const status = isAxiosError(error) ? error.response?.status : undefined;
+        const needsLogin = !isAuthenticated && (status === 401 || status === 403);
+        setState({
+          status: "error",
+          needsLogin,
+          message: needsLogin
+            ? "The server does not share the list of doctors without signing in yet."
+            : apiErrorMessage(error, "Unable to load doctors. Please try again."),
+        });
+      }
+    };
+
+    void load();
+    return () => {
+      isCurrent = false;
+    };
+  }, [reloadToken, isAuthenticated]);
+
+  if (state.status === "loading") {
+    return <p className={styles.search__state}>Loading doctors...</p>;
+  }
+
+  if (state.status === "error") {
+    return (
+      <div className={styles.search__state}>
+        <p>{state.message}</p>
+        {state.needsLogin ? (
+          <Link to="/login" state={{ from: "/search" }} className={styles.doctors__list__button}>
+            Log in
+          </Link>
+        ) : (
+          <button type="button" className={styles.doctors__list__button} onClick={() => setReloadToken((token) => token + 1)}>
+            Try again
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  const { doctors } = state;
+  const visibleDoctors = doctors.slice(0, visibleCount);
+
+  return (
+    <>
+      <div className={styles.search__info}>
+        <h5 className={styles.search__info__title}>
+          <b>Sort by:</b> Earliest available
+        </h5>
+        <span className={styles.search__info__span}>
+          Showing <b>{visibleDoctors.length} of {doctors.length} doctors</b>
+        </span>
+      </div>
+
+      {doctors.length === 0 ? (
+        <p className={styles.search__state}>No doctors have published their profiles yet.</p>
+      ) : (
+        <div className={styles.cards__grid}>
+          {visibleDoctors.map((doctor) => (
+            <DoctorsCard key={doctor.id} doctor={doctor} onBook={(id) => navigate(`/doctors/${id}`)} />
+          ))}
+        </div>
+      )}
+
+      {visibleCount < doctors.length && (
+        <button
+          type="button"
+          className={styles.doctors__list__button}
+          onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}
+        >
+          Load more doctors
+        </button>
+      )}
+    </>
+  );
+};
 
 export const SearchPage = () => {
-  const navigate = useNavigate();
-
   return (
     <main className={styles.grid__wrapper}>
       <SearchForm className={styles.wide__form} />
@@ -102,24 +181,7 @@ export const SearchPage = () => {
       <FiltersSideBar />
 
       <section className={styles.doctors__list}>
-        <div className={styles.search__info}>
-          <h5 className={styles.search__info__title}>
-            Sort by: Earliest available
-          </h5>
-          <span className={styles.search__info__span}>
-            Showing <b>4 of 6 doctors</b>
-          </span>
-        </div>
-
-        <div className={styles.cards__grid}>
-          {MOCK_DOCTORS.map((doctor) => (
-            <DoctorsCard key={doctor.id} doctor={doctor}  onBook={(id) => navigate(`/doctors/${id}`)}/>
-          ))}
-        </div>
-
-        <button className={styles.doctors__list__button}>
-          Load more doctors
-        </button>
+        <DoctorsResults />
       </section>
     </main>
   );

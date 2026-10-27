@@ -8,6 +8,7 @@ import authImage from "../../assets/img/auth-image.svg";
 import { Footer } from "../../components/Footer";
 import { useState } from "react";
 import { CheckEmail } from "./components/CheckEmail";
+import { validateEmail } from "../../utils/validation";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 
@@ -107,13 +108,7 @@ export const ForgotPasswordPage = () => {
                   type="email"
                   placeholder="you@example.com"
                   error={errors.email?.message}
-                  {...register("email", {
-                    required: "Email is required",
-                    pattern: {
-                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                      message: "Invalid email address",
-                    },
-                  })}
+                  {...register("email", { validate: validateEmail })}
                 />
               </div>
               {generalError && (

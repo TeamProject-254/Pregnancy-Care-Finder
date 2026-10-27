@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useForm, useWatch, type SubmitHandler } from "react-hook-form";
-import { isAxiosError } from "axios";
+import { Controller, useForm, useWatch, type SubmitHandler } from "react-hook-form";
 import { Link } from "react-router-dom";
 
 import { api } from "../../../../api/axios";
@@ -8,6 +7,14 @@ import { Checkbox } from "../../../../components/Checkbox/Checkbox";
 import { TextInput } from "../../../../components/TextInput/TextInput";
 import { useAuth } from "../../../../context/AuthContext";
 import { PROVIDER_SPECIALTIES } from "../../../../constants/providerOptions";
+import { SelectDropdown } from "../../../../components/SelectDropdown/SelectDropdown";
+import {
+  apiErrorMessage,
+  validateAddress,
+  validatePersonName,
+  validatePhone,
+  validateYearsOfExperience,
+} from "../../../../utils/validation";
 import styles from "../../RegisterPage.module.scss";
 
 interface ProviderFormInputs {
@@ -36,6 +43,7 @@ export const ProviderProfileStep = ({ onBack, onSuccess }: ProviderProfileProps)
     control,
     formState: { errors },
   } = useForm<ProviderFormInputs>({
+    mode: "onTouched",
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -53,12 +61,13 @@ export const ProviderProfileStep = ({ onBack, onSuccess }: ProviderProfileProps)
     setServerError("");
     try {
       await api.post("/providers/profile", {
-        firstName: data.firstName,
-        lastName: data.lastName,
+        firstName: data.firstName.trim(),
+        lastName: data.lastName.trim(),
         professionalRole: data.professionalRole,
         yearsOfExperience: Number(data.yearsOfExperience),
-        contactPhone: data.contactPhone,
-        address: data.address,
+        contactPhone: data.contactPhone.trim(),
+        address: data.address.trim(),
+        specialization: data.professionalRole,
         accurateInfoConsent: data.accurateInfoConsent,
       });
       if (user?.userId) {
@@ -83,18 +92,11 @@ export const ProviderProfileStep = ({ onBack, onSuccess }: ProviderProfileProps)
       }
       onSuccess();
     } catch (error) {
-      if (isAxiosError(error)) {
-        const responseData = error.response?.data as Record<string, string> | undefined;
-        const validationErrors = responseData?.validationErrors as Record<string, string> | undefined;
-        setServerError(
-          responseData?.message ||
-          responseData?.error ||
-          (validationErrors ? Object.values(validationErrors).join(" ") : "") ||
-          "Failed to create profile. Please check your details."
-        );
-      } else {
-        setServerError("An unexpected error occurred.");
-      }
+      setServerError(
+        apiErrorMessage(error, "Failed to create the profile. Please check your details and try again.", {
+          409: "A professional profile already exists for this account. Log in to continue.",
+        }),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -122,7 +124,7 @@ export const ProviderProfileStep = ({ onBack, onSuccess }: ProviderProfileProps)
             placeholder="First name"
             compact
             error={errors.firstName?.message}
-            {...register("firstName", { required: "Required" })}
+            {...register("firstName", { validate: validatePersonName("first name") })}
           />
           <TextInput
             id="lastName"
@@ -130,23 +132,29 @@ export const ProviderProfileStep = ({ onBack, onSuccess }: ProviderProfileProps)
             placeholder="Last name"
             compact
             error={errors.lastName?.message}
-            {...register("lastName", { required: "Required" })}
+            {...register("lastName", { validate: validatePersonName("last name") })}
           />
         </div>
         
         <div className={styles.provider__field}>
           <label htmlFor="professionalRole">Speciality</label>
-          <select
-            id="professionalRole"
-            className={styles.provider__select}
-            aria-invalid={Boolean(errors.professionalRole)}
-            {...register("professionalRole", { required: "Required" })}
-          >
-            <option value="">Select speciality</option>
-            {PROVIDER_SPECIALTIES.map((specialty) => (
-              <option key={specialty} value={specialty}>{specialty}</option>
-            ))}
-          </select>
+          <Controller
+            name="professionalRole"
+            control={control}
+            rules={{ required: "Choose your speciality from the list." }}
+            render={({ field }) => (
+              <SelectDropdown
+                id="professionalRole"
+                ariaLabel="Speciality"
+                options={PROVIDER_SPECIALTIES}
+                value={field.value}
+                placeholder="Select speciality"
+                invalid={Boolean(errors.professionalRole)}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
+          />
           {errors.professionalRole?.message && (
             <span className={styles.provider__error}>{errors.professionalRole.message}</span>
           )}
@@ -160,8 +168,7 @@ export const ProviderProfileStep = ({ onBack, onSuccess }: ProviderProfileProps)
             compact
             error={errors.yearsOfExperience?.message}
             {...register("yearsOfExperience", {
-              required: "Required",
-              min: { value: 0, message: "Cannot be negative" },
+              validate: validateYearsOfExperience,
               valueAsNumber: true,
             })}
           />
@@ -172,7 +179,7 @@ export const ProviderProfileStep = ({ onBack, onSuccess }: ProviderProfileProps)
             placeholder="+380 00 000 00 00"
             compact
             error={errors.contactPhone?.message}
-            {...register("contactPhone", { required: "Required" })}
+            {...register("contactPhone", { validate: validatePhone })}
           />
         </div>
         <TextInput
@@ -181,7 +188,7 @@ export const ProviderProfileStep = ({ onBack, onSuccess }: ProviderProfileProps)
           placeholder="Enter city and consultation address"
           compact
           error={errors.address?.message}
-          {...register("address", { required: "Required" })}
+          {...register("address", { validate: validateAddress })}
         />
       </div>
 
@@ -190,7 +197,7 @@ export const ProviderProfileStep = ({ onBack, onSuccess }: ProviderProfileProps)
           id="accurateInfoConsent"
           compact
           label="I confirm that the information is accurate"
-          {...register("accurateInfoConsent", { required: "Consent required" })}
+          {...register("accurateInfoConsent", { required: "Confirm that the information is accurate to continue." })}
         />
         {errors.accurateInfoConsent?.message && (
           <span className={styles.provider__error}>{errors.accurateInfoConsent.message}</span>

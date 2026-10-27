@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { isAxiosError } from "axios";
 import arrowTop from "../../../../assets/img/arrow-top.svg";
 import calendarIcon from "../../../../assets/img/calendar-icon.svg";
@@ -8,6 +8,8 @@ import {
   deleteProviderAvailability,
   type ProviderAvailability,
 } from "../../../../api/availabilities";
+import { weeklySchedule } from "../availabilitySummary";
+import { SelectDropdown } from "../../../../components/SelectDropdown/SelectDropdown";
 import styles from "./AvailabilityTab.module.scss";
 
 interface TimeInterval {
@@ -64,18 +66,40 @@ const today = () => {
 
 const scheduleKey = (providerKey: string) => `provider-availability-schedule:${providerKey}`;
 
-const readSavedSchedule = (providerKey: string): SavedSchedule => {
+const readLocalSchedule = (providerKey: string): SavedSchedule | null => {
   try {
     const saved = localStorage.getItem(scheduleKey(providerKey));
-    if (!saved) return { days: WEEKDAYS, blocked: [] };
+    if (!saved) return null;
     const parsed = JSON.parse(saved) as Partial<SavedSchedule>;
-    if (!Array.isArray(parsed.days) || !Array.isArray(parsed.blocked)) {
-      return { days: WEEKDAYS, blocked: [] };
-    }
+    if (!Array.isArray(parsed.days) || !Array.isArray(parsed.blocked)) return null;
     return { days: parsed.days, blocked: parsed.blocked };
   } catch {
-    return { days: WEEKDAYS, blocked: [] };
+    return null;
   }
+};
+
+const scheduleFromServer = (availabilities: ProviderAvailability[]): ScheduleDay[] | null => {
+  const schedule = weeklySchedule(availabilities);
+  if (schedule.size === 0) return null;
+  return WEEKDAYS.map((day) => {
+    const ranges = schedule.get(day.weekday);
+    return {
+      ...day,
+      active: Boolean(ranges),
+      intervals: ranges
+        ? ranges.map((range, index) => ({ id: day.weekday * 100 + index, start: range.start, end: range.end }))
+        : [],
+    };
+  });
+};
+
+const readSavedSchedule = (providerKey: string, availabilities: ProviderAvailability[]): SavedSchedule => {
+  const local = readLocalSchedule(providerKey);
+  const blocked = (local?.blocked ?? []).filter((period) => period.date >= today());
+  return {
+    days: scheduleFromServer(availabilities) ?? local?.days ?? WEEKDAYS,
+    blocked,
+  };
 };
 
 const timeToMinutes = (time: string) => {
@@ -151,16 +175,12 @@ export const AvailabilityTab = ({
   onAvailabilityChange,
   onRetry,
 }: Props) => {
-  const [savedSchedule, setSavedSchedule] = useState(() => readSavedSchedule(scheduleStorageKey));
+  const [savedSchedule, setSavedSchedule] = useState(() => readSavedSchedule(scheduleStorageKey, availabilities));
   const [days, setDays] = useState(savedSchedule.days);
   const [blocked, setBlocked] = useState(savedSchedule.blocked);
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [expandedDay, setExpandedDay] = useState<number | null>(null);
-
-  const futureSlots = useMemo(() =>
-    [...availabilities].sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime)),
-  [availabilities]);
 
   const updateDay = (weekday: number, update: (day: ScheduleDay) => ScheduleDay) =>
     setDays((current) => current.map((day) => day.weekday === weekday ? update(day) : day));
@@ -276,7 +296,7 @@ export const AvailabilityTab = ({
 
       {!canManage && !loadError && (
         <div className={styles.warning} role="status">
-          Saved availability can be shown, but this server does not expose the endpoint to sync a weekly schedule.
+          This server does not allow saving availability yet. Your weekly schedule is shown in read-only mode.
         </div>
       )}
       {error && <div className={styles.error} role="alert">{error}</div>}
@@ -361,14 +381,17 @@ export const AvailabilityTab = ({
                     aria-label="Blocked date"
                   />
                 </label>
-                <select
+                <SelectDropdown
+                  variant="small"
+                  className={styles.blockRange}
+                  ariaLabel="Blocked time range"
                   value={period.allDay ? "all-day" : "time"}
-                  onChange={(event) => updateBlockedPeriod(period.id, { allDay: event.target.value === "all-day" })}
-                  aria-label="Blocked time range"
-                >
-                  <option value="all-day">All day</option>
-                  <option value="time">Time range</option>
-                </select>
+                  options={[
+                    { value: "all-day", label: "All day" },
+                    { value: "time", label: "Time range" },
+                  ]}
+                  onChange={(value) => updateBlockedPeriod(period.id, { allDay: value === "all-day" })}
+                />
                 {!period.allDay && (
                   <div className={styles.blockTimes}>
                     <input type="time" value={period.startTime} onChange={(event) => updateBlockedPeriod(period.id, { startTime: event.target.value })} aria-label="Blocked period start time" />
@@ -400,27 +423,6 @@ export const AvailabilityTab = ({
             {isSaving ? "Saving..." : "Save changes"}
           </button>
         </div>
-      </section>
-
-      <div className={styles.footer}>
-        <span className={styles.horizon}>Changes generate dated slots for the next 4 weeks.</span>
-      </div>
-
-      <section className={styles.upcoming}>
-        <h3 className={styles.sectionTitle}>Saved availability</h3>
-        {isLoading ? <p className={styles.empty}>Loading saved slots...</p> : futureSlots.length === 0 ? (
-          <p className={styles.empty}>No saved slots yet. Save your weekly schedule to create bookable times.</p>
-        ) : (
-          <ul>
-            {futureSlots.map((slot) => (
-              <li key={slot.id}>
-                <span>{formatDate(slot.date)}</span>
-                <span>{slot.startTime.slice(0, 5)}–{slot.endTime.slice(0, 5)}</span>
-                <span>{slot.status === "FREE" ? "Available" : slot.status === "BOOKED" ? "Booked" : "Blocked"}</span>
-              </li>
-            ))}
-          </ul>
-        )}
       </section>
     </section>
   );

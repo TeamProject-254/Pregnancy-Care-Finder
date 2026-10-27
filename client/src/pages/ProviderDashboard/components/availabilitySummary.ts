@@ -22,23 +22,49 @@ const weekdayOf = (date: string) => {
   return new Date(year, month - 1, day).getDay();
 };
 
-export const weeklyHours = (availabilities: ProviderAvailability[]): Map<number, string[]> => {
+export interface TimeRange {
+  start: string;
+  end: string;
+}
+
+export const weeklySchedule = (availabilities: ProviderAvailability[]): Map<number, TimeRange[]> => {
   const today = todayString();
-  const ranges = new Map<number, Set<string>>();
+  const byDate = new Map<string, TimeRange[]>();
 
   availabilities
     .filter((slot) => slot.status === "FREE" && slot.date >= today)
     .forEach((slot) => {
-      const weekday = weekdayOf(slot.date);
-      const range = `${slot.startTime.slice(0, 5)} - ${slot.endTime.slice(0, 5)}`;
-      if (!ranges.has(weekday)) ranges.set(weekday, new Set());
-      ranges.get(weekday)!.add(range);
+      const ranges = byDate.get(slot.date) ?? [];
+      ranges.push({ start: slot.startTime.slice(0, 5), end: slot.endTime.slice(0, 5) });
+      byDate.set(slot.date, ranges);
     });
 
+  const votes = new Map<number, Map<string, { ranges: TimeRange[]; count: number }>>();
+  byDate.forEach((ranges, date) => {
+    const sorted = [...ranges].sort((a, b) => a.start.localeCompare(b.start));
+    const signature = sorted.map((range) => `${range.start}-${range.end}`).join("|");
+    const weekday = weekdayOf(date);
+    const weekdayVotes = votes.get(weekday) ?? new Map();
+    const current = weekdayVotes.get(signature);
+    weekdayVotes.set(signature, { ranges: sorted, count: (current?.count ?? 0) + 1 });
+    votes.set(weekday, weekdayVotes);
+  });
+
   return new Map(
-    Array.from(ranges.entries()).map(([weekday, set]) => [weekday, Array.from(set).sort()]),
+    Array.from(votes.entries()).map(([weekday, weekdayVotes]) => {
+      const [best] = Array.from(weekdayVotes.values()).sort((a, b) => b.count - a.count);
+      return [weekday, best.ranges];
+    }),
   );
 };
+
+export const weeklyHours = (availabilities: ProviderAvailability[]): Map<number, string[]> =>
+  new Map(
+    Array.from(weeklySchedule(availabilities).entries()).map(([weekday, ranges]) => [
+      weekday,
+      ranges.map((range) => `${range.start} - ${range.end}`),
+    ]),
+  );
 
 export const summarizeAvailability = (availabilities: ProviderAvailability[]): string[] => {
   const hours = weeklyHours(availabilities);

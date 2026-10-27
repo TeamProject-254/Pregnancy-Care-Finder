@@ -5,10 +5,11 @@ import { useAuth } from "../../../../context/AuthContext";
 
 interface BurgerMenuProps {
   isOpen: boolean;
+  pendingCount: number;
   onClose: () => void;
 }
 
-export const BurgerMenu: React.FC<BurgerMenuProps> = ({ isOpen, onClose }) => {
+export const BurgerMenu: React.FC<BurgerMenuProps> = ({ isOpen, pendingCount, onClose }) => {
   const { isAuthenticated, user, logout } = useAuth();
   
   const isHealthcareProfessional = user?.role?.toUpperCase() === "PROVIDER";
@@ -33,12 +34,22 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({ isOpen, onClose }) => {
           </NavLink>
         )}
 
-        {isAuthenticated && (
-          <NavLink 
-            to={isHealthcareProfessional ? "/provider-dashboard" : "/patient-dashboard"} 
-            onClick={onClose} 
-            className={styles.burgerMenu__link}
-          >
+        {isHealthcareProfessional && (
+          <>
+            <NavLink to="/provider-dashboard?tab=appointments" onClick={onClose} className={styles.burgerMenu__link}>
+              Appointments
+              {pendingCount > 0 && (
+                <span className={styles.burgerMenu__badge}>{pendingCount > 99 ? "99+" : pendingCount}</span>
+              )}
+            </NavLink>
+            <NavLink to="/provider-dashboard?tab=profile" onClick={onClose} className={styles.burgerMenu__link}>
+              Personal cabinet
+            </NavLink>
+          </>
+        )}
+
+        {isPatient && (
+          <NavLink to="/patient-dashboard" onClick={onClose} className={styles.burgerMenu__link}>
             My appointments
           </NavLink>
         )}

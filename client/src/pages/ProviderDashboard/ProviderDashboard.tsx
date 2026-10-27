@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { isAxiosError } from "axios";
 import {
   getProviderAvailabilities,
@@ -22,9 +23,20 @@ import { AppointmentsTab } from "./components/tabs/AppointmentsTab";
 import { AvailabilityTab } from "./components/tabs/AvailabilityTab";
 import { ServicesTab } from "./components/tabs/ServicesTab";
 import { PROVIDER_LANGUAGES, PROVIDER_SPECIALTIES } from "../../constants/providerOptions";
+import {
+  validateAddress,
+  validatePersonName,
+  validatePhone,
+  validateYearsOfExperience,
+} from "../../utils/validation";
 import styles from "./ProviderDashboard.module.scss";
 
 export type DashboardTab = "profile" | "services" | "availability" | "appointments";
+
+const DASHBOARD_TABS: DashboardTab[] = ["profile", "services", "availability", "appointments"];
+
+const isDashboardTab = (value: string | null): value is DashboardTab =>
+  DASHBOARD_TABS.some((tab) => tab === value);
 
 export interface ProviderProfile {
   firstName: string; lastName: string; professionalRole: string; yearsOfExperience: string;
@@ -115,11 +127,8 @@ const toPayload = (profile: ProviderProfile): ProviderProfilePayload => ({
 
 const profileErrorMessage = (error: unknown) => {
   if (isAxiosError(error)) {
-    if (error.response?.status === 403) {
-      return "This account is not authorized to manage provider data. Sign in with a provider account and try again.";
-    }
-    if (error.response?.status === 401) {
-      return "Your session has expired. Sign in again.";
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      return "Your session has expired. Please sign in again.";
     }
     const responseData = error.response?.data as {
       message?: string; error?: string; validationErrors?: Record<string, string>;
@@ -130,20 +139,27 @@ const profileErrorMessage = (error: unknown) => {
   return "An unexpected error occurred.";
 };
 
-const hasValidExperience = (value: string) =>
-  value.trim() !== "" && Number.isInteger(Number(value)) && Number(value) >= 0;
-
-const canPublishProfile = (profile: ProviderProfile) =>
-  textFields.every((field) => profile[field].trim() !== "") &&
-  hasValidExperience(profile.yearsOfExperience) &&
-  profile.languages.length > 0;
+const profileIssues = (profile: ProviderProfile): string[] => [
+  validatePersonName("first name")(profile.firstName),
+  validatePersonName("last name")(profile.lastName),
+  profile.professionalRole.trim() ? true : "Enter your professional role, for example Doctor or Midwife.",
+  validateYearsOfExperience(profile.yearsOfExperience),
+  validatePhone(profile.contactPhone),
+  validateAddress(profile.address),
+  isSupportedSpeciality(profile.speciality) ? true : "Choose your speciality from the list.",
+  profile.languages.length > 0 ? true : "Select at least one language you speak.",
+  profile.description.trim() ? true : "Add a professional description so patients know about your experience.",
+].filter((issue): issue is string => issue !== true);
 
 const hasBasicInformation = (profile: ProviderProfile | null) =>
   profile !== null && basicFields.every((field) => profile[field].trim() !== "");
 
 export const ProviderDashboard = () => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<DashboardTab>("profile");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const activeTab: DashboardTab = isDashboardTab(requestedTab) ? requestedTab : "profile";
+  const setActiveTab = (tab: DashboardTab) => setSearchParams({ tab });
   const [profile, setProfile] = useState<ProviderProfile>(emptyProfile);
   const [savedProfile, setSavedProfile] = useState<ProviderProfile | null>(null);
   const [isEditing, setIsEditing] = useState(true);
@@ -266,7 +282,7 @@ export const ProviderDashboard = () => {
 
   const handleSave = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!canPublishProfile(profile)) return;
+    if (profileIssues(profile).length > 0) return;
     setIsSaving(true);
     setServerError("");
 
@@ -306,7 +322,7 @@ export const ProviderDashboard = () => {
             loadError={profileLoadError}
             onRetryLoad={() => setProfileReloadToken((token) => token + 1)}
             showBasicFields={profile.published || !hasBasicInformation(savedProfile)}
-            canPublish={canPublishProfile(profile)}
+            publishIssues={profileIssues(profile)}
             completionPercentage={completionPercentage}
             serverError={serverError} email={user?.email || ""}
             availabilities={availabilities}
@@ -329,6 +345,7 @@ export const ProviderDashboard = () => {
       case "availability":
         return (
           <AvailabilityTab
+            key={availabilityLoading ? "loading" : "ready"}
             availabilities={availabilities}
             isLoading={availabilityLoading}
             loadError={availabilityError}

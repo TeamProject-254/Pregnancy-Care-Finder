@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import type { MedicalService, MedicalServicePayload } from "../../../../api/medicalServices";
 import { ModalOverlay } from "../../../../components/Modal";
+import { SelectDropdown } from "../../../../components/SelectDropdown/SelectDropdown";
 import styles from "./ServiceModal.module.scss";
 
 interface ServiceModalProps {
@@ -55,17 +56,18 @@ export const ServiceModal = ({ service, isSaving, onClose, onSave }: ServiceModa
           />
         </label>
         <div className={styles.formRow}>
-          <label className={styles.field}>
+          <div className={styles.field}>
             <span>Duration</span>
-            <select value={durationMinutes} onChange={(event) => setDurationMinutes(event.target.value)}>
-              <option value="30">30 min</option>
-              <option value="45">45 min</option>
-              <option value="60">60 min</option>
-              {!["30", "45", "60"].includes(durationMinutes) && (
-                <option value={durationMinutes}>{durationMinutes} min</option>
-              )}
-            </select>
-          </label>
+            <SelectDropdown
+              ariaLabel="Duration"
+              value={durationMinutes}
+              options={[
+                ...["30", "45", "60"],
+                ...(["30", "45", "60"].includes(durationMinutes) ? [] : [durationMinutes]),
+              ].map((minutes) => ({ value: minutes, label: `${minutes} min` }))}
+              onChange={setDurationMinutes}
+            />
+          </div>
           <label className={styles.field}>
             <span>Price</span>
             <input

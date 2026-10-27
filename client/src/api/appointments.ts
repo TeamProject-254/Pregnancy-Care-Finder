@@ -64,6 +64,9 @@ export const getProviderStats = async (): Promise<ProviderStats> => {
 export const getProviderAppointments = () =>
   fetchAllPages("/appointments/provider");
 
+export const getPatientAppointments = () =>
+  fetchAllPages("/appointments/patient");
+
 export const confirmProviderAppointment = async (
   id: number,
   message?: string,
