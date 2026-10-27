@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { isAxiosError } from "axios";
 import { api } from "../../api/axios";
 import { PatientEditForm } from "./components/PatientEditForm";
@@ -25,37 +25,40 @@ export const PatientDashboard = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchProfile = async () => {
-      try {
-        setIsLoading(true);
-        setErrorMessage("");
-        const response = await api.get<PatientResponse>("/patients/profile");
-        if (isMounted) {
-          setProfile(response.data);
-          setPregnancyWeek(response.data.pregnancyWeek || 1);
-        }
-      } catch (error) {
-        if (!isMounted) return;
-        if (isAxiosError(error) && error.response?.status === 404) {
+  const fetchProfile = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setErrorMessage("");
+      const response = await api.get<PatientResponse>("/patients/profile");
+      setProfile(response.data);
+      setPregnancyWeek(response.data.pregnancyWeek || 1);
+    } catch (error) {
+      if (isAxiosError(error)) {
+        if (error.response?.status === 404) {
+          // Профіль дійсно ще не створений на бекенді
           setProfile(null);
+        } else if (
+          error.response?.status === 401 ||
+          error.response?.status === 403
+        ) {
+          // 401/403 підхопить інтерцептор в api/axios і зробить редірект
+          return;
         } else {
-          setErrorMessage("Failed to load profile details.");
+          setErrorMessage(
+            "Failed to load profile details. Server might be waking up.",
+          );
         }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+      } else {
+        setErrorMessage("An unexpected error occurred while loading profile.");
       }
-    };
-
-    void fetchProfile();
-    return () => {
-      isMounted = false;
-    };
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    void fetchProfile();
+  }, [fetchProfile]);
 
   const handleWeekChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -69,8 +72,7 @@ export const PatientDashboard = () => {
     }
   };
 
-  const displayName =
-    profile?.firstName || "there";
+  const displayName = profile?.firstName || "there";
 
   return (
     <div className={styles.main__content}>
@@ -83,13 +85,33 @@ export const PatientDashboard = () => {
         </div>
 
         {errorMessage && (
-          <div className={styles.error__banner}>{errorMessage}</div>
+          <div className={styles.error__banner}>
+            <span>{errorMessage}</span>
+            <button
+              type="button"
+              className={styles.retry__button}
+              onClick={() => void fetchProfile()}
+            >
+              Retry
+            </button>
+          </div>
         )}
 
         <div className={styles.dashboard__body}>
           <aside className={styles.profile__card}>
             {isLoading ? (
               <div className={styles.loading__state}>Loading profile...</div>
+            ) : errorMessage ? (
+              <div className={styles.empty__state}>
+                <p>Could not load profile data.</p>
+                <button
+                  type="button"
+                  className={styles.edit__button}
+                  onClick={() => void fetchProfile()}
+                >
+                  Try again
+                </button>
+              </div>
             ) : profile ? (
               <>
                 <div className={styles.avatar__wrapper}>
@@ -189,7 +211,7 @@ export const PatientDashboard = () => {
           </aside>
 
           <section className={styles.appointments__placeholder}>
-            {isEditing ? (
+            {isEditing && (
               <PatientEditForm
                 initialData={profile}
                 pregnancyWeek={Number(pregnancyWeek) || 1}
@@ -199,8 +221,6 @@ export const PatientDashboard = () => {
                   setIsEditing(false);
                 }}
               />
-            ) : (
-              <></>
             )}
           </section>
         </div>
