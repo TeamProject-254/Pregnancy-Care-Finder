@@ -33,9 +33,10 @@ const PublicRoute = () => {
 
   if (isAuthenticated && !showingRegistrationConfirmation) {
     const isProvider = user?.role?.toUpperCase() === "PROVIDER";
+    const redirectTo = (location.state as { from?: string } | null)?.from;
     return (
       <Navigate
-        to={isProvider ? "/provider-dashboard" : "/patient-dashboard"}
+        to={redirectTo ?? (isProvider ? "/provider-dashboard" : "/patient-dashboard")}
         replace
       />
     );

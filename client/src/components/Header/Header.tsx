@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import styles from "./Header.module.scss";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { usePendingAppointments } from "../../hooks/usePendingAppointments";
 import profileIcon from "../../assets/img/profile-icon.svg";
 import iconLogo from "../../assets/img/icon.svg";
 import { BurgerMenu } from "./components/BurgerMenu/BurgerMenu";
@@ -18,6 +19,11 @@ export const Header: React.FC<HeaderProps> = ({ isLinksShown = true }) => {
 
   const isHealthcareProfessional = user?.role?.toUpperCase() === "PROVIDER";
   const isPatient = isAuthenticated && !isHealthcareProfessional;
+  const pendingCount = usePendingAppointments();
+  const location = useLocation();
+  const isOnProviderDashboard = location.pathname === "/provider-dashboard";
+  const isAppointmentsTab = new URLSearchParams(location.search).get("tab") === "appointments";
+  const pendingLabel = pendingCount > 99 ? "99+" : String(pendingCount);
 
   const getLinkClass = ({ isActive }: { isActive: boolean }) => {
     return isActive
@@ -44,13 +50,38 @@ export const Header: React.FC<HeaderProps> = ({ isLinksShown = true }) => {
                     </NavLink>
                   )}
 
-                  {isAuthenticated && (
-                    <NavLink 
-                      to={isHealthcareProfessional ? "/provider-dashboard" : "/patient-dashboard"} 
-                      className={getLinkClass}
-                    >
-                      Personal cabinet
-                    </NavLink>
+                  {isHealthcareProfessional && (
+                    <>
+                      <NavLink
+                        to="/provider-dashboard?tab=appointments"
+                        className={() => getLinkClass({ isActive: isOnProviderDashboard && isAppointmentsTab })}
+                        aria-label={pendingCount > 0 ? `Appointments, ${pendingCount} awaiting your response` : "Appointments"}
+                      >
+                        <span className={styles.header__linkWithBadge}>
+                          Appointments
+                          {pendingCount > 0 && (
+                            <span className={styles.header__badge} aria-hidden="true">{pendingLabel}</span>
+                          )}
+                        </span>
+                      </NavLink>
+                      <NavLink
+                        to="/provider-dashboard?tab=profile"
+                        className={() => getLinkClass({ isActive: isOnProviderDashboard && !isAppointmentsTab })}
+                      >
+                        Personal cabinet
+                      </NavLink>
+                    </>
+                  )}
+
+                  {isPatient && (
+                    <>
+                      <NavLink to="/patient-dashboard" className={getLinkClass}>
+                        My appointments
+                      </NavLink>
+                      <NavLink to="/patient-dashboard" className={getLinkClass}>
+                        Personal cabinet
+                      </NavLink>
+                    </>
                   )}
                 </nav>
 
@@ -76,6 +107,11 @@ export const Header: React.FC<HeaderProps> = ({ isLinksShown = true }) => {
                 </Link>
                 <button onClick={() => setIsMenuOpen(true)} className={styles.header__mobileBurger}>
                   <img src={burgerMenuIcon} alt="Menu" />
+                  {pendingCount > 0 && (
+                    <span className={`${styles.header__badge} ${styles["header__badge--corner"]}`} aria-hidden="true">
+                      {pendingLabel}
+                    </span>
+                  )}
                 </button>
               </div>
             </>
@@ -83,7 +119,7 @@ export const Header: React.FC<HeaderProps> = ({ isLinksShown = true }) => {
         </div>
       </header>
 
-      <BurgerMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+      <BurgerMenu isOpen={isMenuOpen} pendingCount={pendingCount} onClose={() => setIsMenuOpen(false)} />
     </>
   );
 };

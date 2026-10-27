@@ -8,11 +8,12 @@ import { BackIcon, BriefcaseIcon, GlobeIcon, PinIcon } from "./components/Doctor
 import { cityFromAddress, formatPrice } from "./bookingUtils";
 import { PUBLIC_DOCTOR_API_READY } from "../../config/features";
 import { getMockDoctor, type DoctorData } from "./mockDoctor";
+import { useAuth } from "../../context/AuthContext";
 import styles from "./DoctorPage.module.scss";
 
 type LoadState =
   | { status: "loading" }
-  | { status: "error"; message: string }
+  | { status: "error"; message: string; needsLogin: boolean }
   | { status: "ready"; data: DoctorData };
 
 const loadDoctor = async (id: string): Promise<DoctorData | null> => {
@@ -29,6 +30,7 @@ const loadDoctor = async (id: string): Promise<DoctorData | null> => {
 
 const DoctorProfile = ({ id }: { id: string }) => {
   const [state, setState] = useState<LoadState>({ status: "loading" });
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     let isCurrent = true;
@@ -40,14 +42,20 @@ const DoctorProfile = ({ id }: { id: string }) => {
         setState(
           data
             ? { status: "ready", data }
-            : { status: "error", message: "We could not find this doctor." },
+            : { status: "error", message: "We could not find this doctor.", needsLogin: false },
         );
       } catch (error) {
         if (!isCurrent) return;
-        const notFound = isAxiosError(error) && error.response?.status === 404;
+        const status = isAxiosError(error) ? error.response?.status : undefined;
+        const needsLogin = !isAuthenticated && (status === 401 || status === 403);
         setState({
           status: "error",
-          message: notFound ? "We could not find this doctor." : "Unable to load the doctor profile. Please try again later.",
+          needsLogin,
+          message: needsLogin
+            ? "The server does not share doctor profiles without signing in yet."
+            : status === 404
+              ? "We could not find this doctor. The profile may be unpublished."
+              : "Unable to load the doctor profile. Please try again later.",
         });
       }
     };
@@ -56,7 +64,7 @@ const DoctorProfile = ({ id }: { id: string }) => {
     return () => {
       isCurrent = false;
     };
-  }, [id]);
+  }, [id, isAuthenticated]);
 
   return (
     <main className={styles.page}>
@@ -69,9 +77,15 @@ const DoctorProfile = ({ id }: { id: string }) => {
       {state.status === "error" && (
         <div className={styles.state}>
           <p>{state.message}</p>
-          <Link to="/search" className={styles.stateLink}>
-            Go to search
-          </Link>
+          {state.needsLogin ? (
+            <Link to="/login" state={{ from: `/doctors/${id}` }} className={styles.stateLink}>
+              Log in
+            </Link>
+          ) : (
+            <Link to="/search" className={styles.stateLink}>
+              Go to search
+            </Link>
+          )}
         </div>
       )}
 
@@ -82,6 +96,7 @@ const DoctorProfile = ({ id }: { id: string }) => {
 
 const DoctorContent = ({ data }: { data: DoctorData }) => {
   const { provider, services } = data;
+  const [isBookingOpen, setIsBookingOpen] = useState(false);
   const fullName = `Dr. ${provider.firstName} ${provider.lastName}`;
   const specialty = provider.specialization || provider.professionalRole || "Healthcare professional";
   const languages = provider.languages?.length ? provider.languages.join(", ") : "";
@@ -115,13 +130,20 @@ const DoctorContent = ({ data }: { data: DoctorData }) => {
               </li>
             )}
           </ul>
+        </div>
 
-          {minPrice !== null && (
-            <p className={styles.from}>
-              <span>From {formatPrice(minPrice)}</span> per consultation
-            </p>
-          )}
-          <p className={styles.disclaimer}>Professional information is provided by the healthcare professional.</p>
+        <div className={styles.heroFooter}>
+          <div>
+            {minPrice !== null && (
+              <p className={styles.from}>
+                <span>From {formatPrice(minPrice)}</span> per consultation
+              </p>
+            )}
+            <p className={styles.disclaimer}>Professional information is provided by the healthcare professional.</p>
+          </div>
+          <button type="button" className={styles.mobileBook} onClick={() => setIsBookingOpen(true)}>
+            Book
+          </button>
         </div>
       </section>
 
@@ -147,7 +169,7 @@ const DoctorContent = ({ data }: { data: DoctorData }) => {
           </p>
         </section>
 
-        <BookingPanel data={data} />
+        <BookingPanel data={data} isMobileOpen={isBookingOpen} onMobileClose={() => setIsBookingOpen(false)} />
       </div>
 
       {data.isDemo && (
@@ -161,6 +183,7 @@ const DoctorContent = ({ data }: { data: DoctorData }) => {
 
 export const DoctorPage = () => {
   const { id } = useParams();
+  const { isAuthenticated } = useAuth();
   if (!id) return <Navigate to="/search" replace />;
-  return <DoctorProfile key={id} id={id} />;
+  return <DoctorProfile key={`${id}-${isAuthenticated}`} id={id} />;
 };

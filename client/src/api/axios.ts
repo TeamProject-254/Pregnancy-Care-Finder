@@ -27,15 +27,15 @@ api.interceptors.response.use(
       requestUrl.includes("/auth/login") ||
       requestUrl.includes("/auth/register");
 
-    if ((status === 401 || status === 403) && !isAuthEndpoint) {
+    const sentWithToken = Boolean(error.config?.headers?.Authorization);
+
+    if ((status === 401 || status === 403) && !isAuthEndpoint && sentWithToken) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
 
-      const baseUrl = import.meta.env.BASE_URL || "/";
-      const loginPath = `${baseUrl}login`.replace(/\/+/g, "/");
-
-      if (!window.location.pathname.endsWith("/login")) {
-        window.location.href = loginPath;
+      if (!window.location.hash.startsWith("#/login")) {
+        window.history.replaceState(null, "", "#/login");
+        window.location.reload();
       }
     }
 

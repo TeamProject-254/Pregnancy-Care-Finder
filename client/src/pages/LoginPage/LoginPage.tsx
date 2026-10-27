@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Footer } from "../../components/Footer";
 import { Header } from "../../components/Header";
 import arrowLeftIcon from "../../assets/img/arrow-left.svg";
@@ -10,7 +10,7 @@ import { EyeIcon } from "../../components/icons/EyeIcon";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
-import { isAxiosError } from "axios";
+import { apiErrorMessage, validateEmail } from "../../utils/validation";
 
 interface LoginFormInputs {
   email: string;
@@ -25,6 +25,8 @@ export const LoginPage = () => {
 
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const redirectTo = (location.state as { from?: string } | null)?.from;
 
   const {
     register,
@@ -43,17 +45,17 @@ export const LoginPage = () => {
     setServerError("");
 
     try {
-      await login(data.email, data.password, data.rememberMe);
-      navigate("/");
+      await login(data.email.trim(), data.password, data.rememberMe);
+      navigate(redirectTo ?? "/", { replace: Boolean(redirectTo) });
     } catch (err) {
-      if (isAxiosError(err)) {
-        setServerError(
-          err.response?.data?.message ||
-            "Invalid email or password. Please try again.",
-        );
-      } else {
-        setServerError("Something went wrong. Please try again later.");
-      }
+      setServerError(
+        apiErrorMessage(err, "Something went wrong. Please try again later.", {
+          400: "Check your email address and password and try again.",
+          401: "Incorrect email or password. Check them and try again.",
+          403: "Incorrect email or password. Check them and try again.",
+          404: "No account found with this email address.",
+        }),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -87,13 +89,7 @@ export const LoginPage = () => {
                 type="email"
                 placeholder="you@example.com"
                 error={errors.email?.message}
-                {...register("email", {
-                  required: "Email is required",
-                  pattern: {
-                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                    message: "Invalid email address",
-                  },
-                })}
+                {...register("email", { validate: validateEmail })}
               />
 
               <TextInput
@@ -102,13 +98,7 @@ export const LoginPage = () => {
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter a password"
                 error={errors.password?.message}
-                {...register("password", {
-                  required: "Password is required",
-                  minLength: {
-                    value: 6,
-                    message: "Password must be at least 6 characters",
-                  },
-                })}
+                {...register("password", { required: "Enter your password." })}
                 rightElement={
                   <button
                     type="button"

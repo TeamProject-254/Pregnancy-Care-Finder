@@ -35,13 +35,11 @@ export const PatientDashboard = () => {
     } catch (error) {
       if (isAxiosError(error)) {
         if (error.response?.status === 404) {
-          // Профіль дійсно ще не створений на бекенді
           setProfile(null);
         } else if (
           error.response?.status === 401 ||
           error.response?.status === 403
         ) {
-          // 401/403 підхопить інтерцептор в api/axios і зробить редірект
           return;
         } else {
           setErrorMessage(

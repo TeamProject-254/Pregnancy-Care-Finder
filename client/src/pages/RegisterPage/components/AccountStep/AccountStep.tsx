@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useForm, Controller, type SubmitHandler } from "react-hook-form";
 import { Link } from "react-router-dom";
-import { isAxiosError } from "axios";
 
 import { useAuth } from "../../../../context/AuthContext";
 import { TextInput } from "../../../../components/TextInput/TextInput";
 import { Checkbox } from "../../../../components/Checkbox/Checkbox";
 import { EyeIcon } from "../../../../components/icons/EyeIcon";
 import type { Role } from "../../RegisterPage";
+import { apiErrorMessage, newPasswordValidators, validateEmail } from "../../../../utils/validation";
 
 import patientIcon from "../../../../assets/img/pregnant-woman.svg";
 import doctorIcon from "../../../../assets/img/doctor-icon-pink.svg";
@@ -39,6 +39,7 @@ export const AccountStep = ({ onNext }: AccountStepProps) => {
     getValues,
     formState: { errors, dirtyFields },
   } = useForm<AccountFormInputs>({
+    mode: "onTouched",
     defaultValues: {
       role: "patient",
       email: "",
@@ -55,7 +56,7 @@ export const AccountStep = ({ onNext }: AccountStepProps) => {
       const roleEnum = data.role === "patient" ? "PATIENT" : "PROVIDER";
 
       await registerUser(
-        data.email,
+        data.email.trim(),
         data.password,
         data.confirmPassword,
         roleEnum,
@@ -64,11 +65,11 @@ export const AccountStep = ({ onNext }: AccountStepProps) => {
 
       onNext(data.role);
     } catch (error) {
-      if (isAxiosError(error)) {
-        setServerError(error.response?.data?.message || "Registration failed. Try again.");
-      } else {
-        setServerError("Failed to create account.");
-      }
+      setServerError(
+        apiErrorMessage(error, "Failed to create the account. Please try again.", {
+          409: "An account with this email already exists. Log in instead or use another email.",
+        }),
+      );
     } finally {
       setIsLoading(false);
     }
@@ -139,7 +140,7 @@ export const AccountStep = ({ onNext }: AccountStepProps) => {
           placeholder="you@example.com"
           isValid={dirtyFields.email}
           error={errors.email?.message}
-          {...register("email", { required: "Email required" })}
+          {...register("email", { validate: validateEmail })}
         />
         <TextInput
           id="password"
@@ -153,7 +154,10 @@ export const AccountStep = ({ onNext }: AccountStepProps) => {
               <EyeIcon />
             </button>
           }
-          {...register("password", { required: "Password required" })}
+          {...register("password", {
+            validate: newPasswordValidators,
+            deps: ["confirmPassword"],
+          })}
         />
         <TextInput
           id="confirmPassword"
@@ -168,8 +172,8 @@ export const AccountStep = ({ onNext }: AccountStepProps) => {
             </button>
           }
           {...register("confirmPassword", {
-            required: "Confirm password",
-            validate: (val) => val === getValues("password") || "Passwords don't match",
+            required: "Repeat your password.",
+            validate: (val) => val === getValues("password") || "Passwords don't match. Type the same password again.",
           })}
         />
       </div>
@@ -195,9 +199,11 @@ export const AccountStep = ({ onNext }: AccountStepProps) => {
               </a>
             </span>
           }
-          {...register("agreePolicy", { required: "Required" })}
+          {...register("agreePolicy", { required: "Accept the Terms of Service and Privacy Policy to continue." })}
         />
       </div>
+
+      {errors.agreePolicy?.message && <p className={styles.server__error} role="alert">{errors.agreePolicy.message}</p>}
 
       {serverError && <p className={styles.server__error}>{serverError}</p>}
 

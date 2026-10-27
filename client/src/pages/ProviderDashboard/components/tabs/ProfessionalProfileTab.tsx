@@ -3,6 +3,7 @@ import type { ProviderAvailability } from "../../../../api/availabilities";
 import { deleteMedicalService, type MedicalService } from "../../../../api/medicalServices";
 import doctorDefaultImage from "../../../../assets/img/doctorImage.svg";
 import { MultiSelectDropdown } from "../../../../components/MultiSelectDropdown/MultiSelectDropdown";
+import { SelectDropdown } from "../../../../components/SelectDropdown/SelectDropdown";
 import { PROVIDER_LANGUAGES, PROVIDER_SPECIALTIES } from "../../../../constants/providerOptions";
 import caution from '../../../../assets/img/warning!-icon.svg';
 import camera from '../../../../assets/img/photo.svg';
@@ -22,7 +23,7 @@ const CLOUDINARY_UPLOAD_PRESET = "BloomCare";
 interface Props {
   profile: ProviderProfile; isEditing: boolean; isLoading: boolean; isSaving: boolean;
   loadError: string; onRetryLoad: () => void; showBasicFields: boolean;
-  canPublish: boolean; completionPercentage: number; serverError: string; email: string;
+  publishIssues: string[]; completionPercentage: number; serverError: string; email: string;
   availabilities: ProviderAvailability[];
   services: MedicalService[];
   onServicesChange: (services: MedicalService[]) => void;
@@ -33,7 +34,7 @@ interface Props {
 }
 
 export const ProfessionalProfileTab = ({
-  profile, isEditing, isLoading, isSaving, loadError, onRetryLoad, showBasicFields, canPublish, completionPercentage,
+  profile, isEditing, isLoading, isSaving, loadError, onRetryLoad, showBasicFields, publishIssues, completionPercentage,
   serverError, email, availabilities, services, onServicesChange, onUpdate, onSave, onEdit, onSwitchTab
 }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -57,6 +58,7 @@ export const ProfessionalProfileTab = ({
     return () => mediaQuery.removeEventListener("change", updateViewport);
   }, []);
 
+  const canPublish = publishIssues.length === 0;
   const availabilitySummary = summarizeAvailability(availabilities);
   const activeWeekdays = weeklyHours(availabilities);
   const workingHours = mainWorkingHours(availabilities);
@@ -222,10 +224,14 @@ export const ProfessionalProfileTab = ({
           <div className="form-row">
             <div className="form-group">
               <label>Speciality</label>
-              <select required className={styles.mainSelect} value={profile.speciality} onChange={(e) => onUpdate("speciality", e.target.value)}>
-                <option value="">Select speciality</option>
-                {PROVIDER_SPECIALTIES.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
+              <SelectDropdown
+                id="provider-speciality"
+                ariaLabel="Speciality"
+                options={PROVIDER_SPECIALTIES}
+                value={profile.speciality}
+                placeholder="Select speciality"
+                onChange={(value) => onUpdate("speciality", value)}
+              />
             </div>
             <div className="form-group">
               <label>Languages spoken</label>
@@ -392,7 +398,14 @@ export const ProfessionalProfileTab = ({
             </div>
           </details>
 
-          {!canPublish && <p className="field-error" style={{ textAlign: 'right' }}>Complete all required profile fields to enable publishing.</p>}
+          {publishIssues.length > 0 && (
+            <div className={styles.publishIssues} role="status">
+              <strong>Before publishing, fix the following:</strong>
+              <ul>
+                {publishIssues.map((issue) => <li key={issue}>{issue}</li>)}
+              </ul>
+            </div>
+          )}
           
           <div className={styles.formFooter}>
             <button type="submit" className="btn-primary" disabled={!canPublish || isUploadingPhoto || isSaving}>

@@ -189,11 +189,8 @@ export const matchesDateFilter = (start: Date, filter: DateFilter, now = new Dat
 
 export const requestErrorMessage = (error: unknown, fallback: string): string => {
   if (!isAxiosError(error)) return fallback;
-  if (error.response?.status === 403) {
-    return "Access denied (403). This dashboard requires a provider account. Sign in with the provider account and try again.";
-  }
-  if (error.response?.status === 401) {
-    return "Your session has expired. Sign in again.";
+  if (error.response?.status === 401 || error.response?.status === 403) {
+    return "Your session has expired. Please sign in again.";
   }
   const data = error.response?.data as { message?: string; error?: string } | undefined;
   return data?.message || data?.error || fallback;

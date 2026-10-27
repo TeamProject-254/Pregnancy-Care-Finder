@@ -45,7 +45,24 @@
     padding: 0;
     cursor: pointer;
     font-family: inherit;
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 6px;
+    box-sizing: border-box;
+    border-radius: 999px;
+    background: var(--color-primary--second);
+    color: var(--color-white);
+    font-size: 14px;
+    font-weight: 700;
   }
 }
 
