@@ -144,10 +144,9 @@ export const PatientEditForm = ({
     };
 
     try {
-      const response = await api.patch<PatientResponse>(
-        "/patients/profile",
-        payload,
-      );
+      const response = initialData
+        ? await api.patch<PatientResponse>("/patients/profile", payload)
+        : await api.post<PatientResponse>("/patients/profile", payload);
 
       onSuccess(response.data);
     } catch (error) {
