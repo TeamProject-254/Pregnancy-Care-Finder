@@ -6,6 +6,8 @@ import type { DoctorCardData } from "../../types/doctor";
 import { FiltersSideBar } from "./components/FiltersSideBar";
 import styles from "./ShearchPage.module.scss";
 import blankProfilePicture from "../../assets/img/blank-profile-picture-973460_1280.png";
+import chevronDownIcon from "../../assets/img/icon-chevron-down.svg";
+import filterIcon from "../../assets/img/icon-filter.svg";
 import { DoctorsCard } from "./components/DoctorsCard";
 import {
   getPublicProvider,
@@ -80,7 +82,11 @@ const loadDoctors = async (): Promise<DoctorCardData[]> => {
     .sort(byEarliestAvailable);
 };
 
-const DoctorsResults = () => {
+interface DoctorsResultsProps {
+  onOpenFilters: () => void;
+}
+
+const DoctorsResults = ({ onOpenFilters }: DoctorsResultsProps) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const [state, setState] = useState<LoadState>({ status: "loading" });
@@ -142,12 +148,18 @@ const DoctorsResults = () => {
   return (
     <>
       <div className={styles.search__info}>
-        <h5 className={styles.search__info__title}>
-          <b>Sort by:</b> Earliest available
-        </h5>
-        <span className={styles.search__info__span}>
-          Showing <b>{visibleDoctors.length} of {doctors.length} doctors</b>
-        </span>
+        <div className={styles.search__info__text}>
+          <h5 className={styles.search__info__title}>
+            <b>Sort by:</b> Earliest available
+            <img src={chevronDownIcon} alt="" className={styles.search__info__chevron} />
+          </h5>
+          <span className={styles.search__info__span}>
+            Showing <b>{visibleDoctors.length} of {doctors.length} doctors</b>
+          </span>
+        </div>
+        <button type="button" className={styles.search__filters__button} onClick={onOpenFilters} aria-label="Open filters">
+          <img src={filterIcon} alt="" />
+        </button>
       </div>
 
       {doctors.length === 0 ? (
@@ -174,14 +186,16 @@ const DoctorsResults = () => {
 };
 
 export const SearchPage = () => {
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false);
+
   return (
     <main className={styles.grid__wrapper}>
-      <SearchForm className={styles.wide__form} />
+      <SearchForm className={styles.wide__form} variant="search" />
 
-      <FiltersSideBar />
+      <FiltersSideBar isMobileOpen={isFiltersOpen} onMobileClose={() => setIsFiltersOpen(false)} />
 
       <section className={styles.doctors__list}>
-        <DoctorsResults />
+        <DoctorsResults onOpenFilters={() => setIsFiltersOpen(true)} />
       </section>
     </main>
   );

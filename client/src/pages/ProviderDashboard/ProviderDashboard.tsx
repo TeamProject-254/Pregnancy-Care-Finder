@@ -17,6 +17,7 @@ import {
   type ProviderProfilePayload,
 } from "../../api/providers";
 import { useAuth } from "../../context/AuthContext";
+import { usePendingAppointments } from "../../hooks/usePendingAppointments";
 import { DashboardSidebar } from "./components/DashboardSidebar";
 import { ProfessionalProfileTab } from "./components/tabs/ProfessionalProfileTab";
 import { AppointmentsTab } from "./components/tabs/AppointmentsTab";
@@ -156,6 +157,7 @@ const hasBasicInformation = (profile: ProviderProfile | null) =>
 
 export const ProviderDashboard = () => {
   const { user } = useAuth();
+  const pendingCount = usePendingAppointments();
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedTab = searchParams.get("tab");
   const activeTab: DashboardTab = isDashboardTab(requestedTab) ? requestedTab : "profile";
@@ -327,6 +329,7 @@ export const ProviderDashboard = () => {
             serverError={serverError} email={user?.email || ""}
             availabilities={availabilities}
             services={services}
+            serviceStorageKey={String(user?.userId ?? "provider")}
             onServicesChange={setServices}
             onUpdate={updateProfile} onSave={handleSave} onEdit={() => setIsEditing(true)}
             onSwitchTab={setActiveTab}
@@ -338,6 +341,7 @@ export const ProviderDashboard = () => {
             services={services}
             isLoading={servicesLoading}
             loadError={servicesError}
+            storageKey={String(user?.userId ?? "provider")}
             onServicesChange={setServices}
             onRetry={() => setServicesReloadToken((token) => token + 1)}
           />
@@ -363,7 +367,7 @@ export const ProviderDashboard = () => {
   return (
     <main className={styles.dashboard__wrapper}>
       <div className="dashboard__header">
-        <h1>Welcome back, {displayProfile.firstName || "Provider"}</h1>
+        <h1>Welcome back, {displayProfile.firstName || "Provider"}!</h1>
         <p>Manage your profile and appointments</p>
       </div>
 
@@ -372,6 +376,7 @@ export const ProviderDashboard = () => {
           activeTab={activeTab} setActiveTab={setActiveTab} isPublished={isPublished}
           photoPreview={profile.photoUrl} completionPercentage={completionPercentage}
           firstName={displayProfile.firstName} lastName={displayProfile.lastName}
+          pendingCount={pendingCount}
         />
         <div className={`dashboard__main-panel ${!(isEditing && activeTab === 'profile') ? 'dashboard__main-panel--transparent' : ''}`}>
           {renderTabContent()}

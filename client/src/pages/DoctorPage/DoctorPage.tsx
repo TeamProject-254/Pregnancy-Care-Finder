@@ -4,7 +4,7 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import { getPublicProvider } from "../../api/providers";
 import blankProfilePicture from "../../assets/img/blank-profile-picture-973460_1280.png";
 import { BookingPanel } from "./components/BookingPanel";
-import { BackIcon, BriefcaseIcon, GlobeIcon, PinIcon } from "./components/DoctorIcons";
+import { BackIcon, BriefcaseIcon, EarthIcon, GlobeIcon, PinIcon } from "./components/DoctorIcons";
 import { cityFromAddress, formatPrice } from "./bookingUtils";
 import { PUBLIC_DOCTOR_API_READY } from "../../config/features";
 import { getMockDoctor, type DoctorData } from "./mockDoctor";
@@ -165,7 +165,7 @@ const DoctorContent = ({ data }: { data: DoctorData }) => {
 
           <h2 className={styles.cardTitle}>Consultation location</h2>
           <p className={styles.location}>
-            <PinIcon /> {provider.address || "Location not specified"}
+            <EarthIcon /> {provider.address || "Location not specified"}
           </p>
         </section>
 

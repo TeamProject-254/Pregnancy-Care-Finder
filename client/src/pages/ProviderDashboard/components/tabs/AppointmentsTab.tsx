@@ -23,6 +23,8 @@ import {
   CalendarIcon,
   CheckCircleIcon,
   ClockIcon,
+  PendingClockIcon,
+  TodayIcon,
   FilterIcon,
   SearchIcon,
   TrashIcon,
@@ -31,6 +33,8 @@ import { AppointmentDetailsModal } from "../modals/AppointmentDetailsModal";
 import { ConfirmAppointmentModal } from "../modals/ConfirmAppointmentModal";
 import { CancelAppointmentModal } from "../modals/CancelAppointmentModal";
 import { SelectDropdown } from "../../../../components/SelectDropdown/SelectDropdown";
+import blankProfile from "../../../../assets/img/blank-profile-picture-973460_1280.png";
+import calendarSmallIcon from "../../../../assets/img/icon-calendar-16.svg";
 import styles from "./AppointmentsTab.module.scss";
 
 export type { AppointmentItem } from "../appointmentUtils";
@@ -66,9 +70,15 @@ const statusClass = (status: AppointmentItem["status"]) => {
   }
 };
 
+const mobileStatusClass = (status: AppointmentItem["status"]) => {
+  if (status === "Pending") return styles.cardStatusPending;
+  if (status.startsWith("Cancelled")) return styles.cardStatusCancelled;
+  return "";
+};
+
 const StatusBadge = ({ status }: { status: AppointmentItem["status"] }) => (
   <span className={`${styles.status} ${statusClass(status)}`}>
-    {status === "Pending" && <ClockIcon size={13} />}
+    {status === "Pending" && <PendingClockIcon />}
     {(status === "Confirmed" || status === "Completed") && <span aria-hidden="true">✓</span>}
     {status.startsWith("Cancelled") && <span aria-hidden="true">✕</span>}
     {status}
@@ -194,7 +204,7 @@ export const AppointmentsTab = () => {
   const statCards = [
     { key: "pending", label: "Pending", value: stats?.pendingCount, icon: <ClockIcon size={30} />, cls: styles.statPending },
     { key: "confirmed", label: "Confirmed", value: stats?.confirmedCount, icon: <CheckCircleIcon size={30} />, cls: styles.statConfirmed },
-    { key: "today", label: "Today", value: stats?.todayCount, icon: <CalendarIcon size={30} />, cls: styles.statToday },
+    { key: "today", label: "Today", value: stats?.todayCount, icon: <TodayIcon size={30} />, cls: styles.statToday },
   ];
 
   return (
@@ -340,6 +350,44 @@ export const AppointmentsTab = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          <div className={styles.mobileList}>
+            {visible.map((appt) => (
+              <article className={styles.card} key={appt.id}>
+                <div className={styles.cardTop}>
+                  <span className={styles.cardDate}>
+                    <img src={calendarSmallIcon} alt="" />
+                    {appt.date} · {appt.time}
+                  </span>
+                  <span className={`${styles.cardStatus} ${mobileStatusClass(appt.status)}`}>
+                    {appt.status.startsWith("Cancelled") ? "Cancelled" : appt.status}
+                  </span>
+                </div>
+                <div className={styles.cardPatient}>
+                  <img src={appt.patientPhotoUrl || blankProfile} alt="" />
+                  <div>
+                    <strong>{appt.patientName}</strong>
+                    <span>{appt.service}, {appt.duration}</span>
+                  </div>
+                </div>
+                <div className={styles.cardActions}>
+                  {activeTab === "Upcoming" && appt.statusCode === "PENDING" && (
+                    <button type="button" className={styles.cardPrimary} onClick={() => setModal({ type: "confirm", appt })}>
+                      Confirm
+                    </button>
+                  )}
+                  <button type="button" className={styles.cardOutline} onClick={() => setModal({ type: "details", appt })}>
+                    View details
+                  </button>
+                  {activeTab === "Upcoming" && appt.statusCode === "CONFIRMED" && (
+                    <button type="button" className={styles.cardOutline} onClick={() => setModal({ type: "cancel", appt })}>
+                      Cancel
+                    </button>
+                  )}
+                </div>
+              </article>
+            ))}
           </div>
 
           <div className={styles.footer}>

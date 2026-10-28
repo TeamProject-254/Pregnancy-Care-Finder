@@ -51,3 +51,26 @@
   gap: 0.875rem;
   padding-top: 0.5rem;
 }
+
+@media (max-width: 760px) {
+  .header {
+    min-height: 32px;
+    padding: 0;
+  }
+
+  .title {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 22px;
+  }
+
+  .icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .optionsList {
+    gap: 12px;
+    padding-top: 12px;
+  }
+}

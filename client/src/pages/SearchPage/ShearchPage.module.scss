@@ -57,6 +57,17 @@
   }
 }
 
+.search__info__text {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.search__info__chevron,
+.search__filters__button {
+  display: none;
+}
+
 .search__state {
   display: flex;
   flex-direction: column;
@@ -103,6 +114,81 @@
   }
 
   .search__info {
-    gap: 0.5rem;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .search__info__text {
+    gap: 8px;
+  }
+
+  .search__info__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 19px;
+
+    b {
+      font-weight: 700;
+    }
+  }
+
+  .search__info__chevron {
+    display: block;
+    width: 20px;
+    height: 20px;
+  }
+
+  .search__info__span {
+    color: var(--color-gray-70);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 14px;
+
+    b {
+      font-weight: 500;
+    }
+  }
+
+  .search__filters__button {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+
+    img {
+      width: 32px;
+      height: 32px;
+    }
+  }
+
+  .grid__wrapper {
+    row-gap: 16px;
+    padding-inline: 0;
+  }
+
+  .doctors__list {
+    gap: 24px;
+  }
+
+  .cards__grid {
+    gap: 16px;
+  }
+
+  .doctors__list__button {
+    height: 44px;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 16px;
   }
 }

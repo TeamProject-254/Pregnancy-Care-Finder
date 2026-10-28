@@ -39,7 +39,7 @@ export const ConfirmAppointmentModal = ({ appt, onClose, onConfirm }: Props) => 
         Confirm appointment?
       </h3>
       <p className={styles.text}>
-        Confirm the appointment with <strong>{appt.patientName}</strong>
+        Confirm the appointment with {appt.patientName}
         <br />
         on {appt.date} at {appt.time}
       </p>

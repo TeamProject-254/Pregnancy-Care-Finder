@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import styles from "./SuccessModal.module.scss";
+import tickGreenIcon from "../../../../assets/img/icon-tick-green.svg";
 
 interface SuccessModalProps {
   role: "patient" | "healthcare";
@@ -11,9 +12,7 @@ export const SuccessModal = ({ role, onContinue }: SuccessModalProps) => {
     <div className={styles.modal__overlay}>
       <div className={styles.modal__content}>
         <div className={styles.modal__icon}>
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 6L9 17L4 12" stroke="#4CAF50" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+          <img src={tickGreenIcon} width={40} height={40} alt="" aria-hidden="true" />
         </div>
 
         {role === "healthcare" ? (

@@ -4,6 +4,8 @@ import { deleteMedicalService, type MedicalService } from "../../../../api/medic
 import doctorDefaultImage from "../../../../assets/img/doctorImage.svg";
 import { MultiSelectDropdown } from "../../../../components/MultiSelectDropdown/MultiSelectDropdown";
 import { SelectDropdown } from "../../../../components/SelectDropdown/SelectDropdown";
+import { DeleteServiceModal } from "../modals/DeleteServiceModal";
+import { hideMedicalService } from "../hiddenServices";
 import { PROVIDER_LANGUAGES, PROVIDER_SPECIALTIES } from "../../../../constants/providerOptions";
 import caution from '../../../../assets/img/warning!-icon.svg';
 import camera from '../../../../assets/img/photo.svg';
@@ -13,6 +15,14 @@ import trash from '../../../../assets/img/trash-icon.svg';
 import success from '../../../../assets/img/success-icon.svg';
 import successSidebar from '../../../../assets/img/success-sidebar-icon.svg';
 import circleBroken from '../../../../assets/circle-broken-icon.svg';
+import workIcon from '../../../../assets/img/icon-work-16.svg';
+import languagesIcon from '../../../../assets/img/icon-language-gray.svg';
+import profileIcon from '../../../../assets/img/profile-icon.svg';
+import calendarSmall from '../../../../assets/img/icon-calendar-16.svg';
+import timeSmall from '../../../../assets/img/icon-time-16.svg';
+import geoSmall from '../../../../assets/img/icon-geo-16.svg';
+import chevronDown from '../../../../assets/img/icon-chevron-down.svg';
+import arrowRight from '../../../../assets/img/arrow-top.svg';
 import type { DashboardTab, ProviderProfile } from "../../ProviderDashboard";
 import { WEEK, mainWorkingHours, summarizeAvailability, weeklyHours } from "../availabilitySummary";
 import styles from './ProfessionalProfileTab.module.scss';
@@ -26,6 +36,7 @@ interface Props {
   publishIssues: string[]; completionPercentage: number; serverError: string; email: string;
   availabilities: ProviderAvailability[];
   services: MedicalService[];
+  serviceStorageKey: string;
   onServicesChange: (services: MedicalService[]) => void;
   onUpdate: <K extends keyof ProviderProfile>(key: K, value: ProviderProfile[K]) => void;
   onSave: (event: FormEvent<HTMLFormElement>) => void;
@@ -35,7 +46,7 @@ interface Props {
 
 export const ProfessionalProfileTab = ({
   profile, isEditing, isLoading, isSaving, loadError, onRetryLoad, showBasicFields, publishIssues, completionPercentage,
-  serverError, email, availabilities, services, onServicesChange, onUpdate, onSave, onEdit, onSwitchTab
+  serverError, email, availabilities, services, serviceStorageKey, onServicesChange, onUpdate, onSave, onEdit, onSwitchTab
 }: Props) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [languagesError, setLanguagesError] = useState("");
@@ -47,8 +58,8 @@ export const ProfessionalProfileTab = ({
   const [basicDetailsOpen, setBasicDetailsOpen] = useState(false);
   const [servicesDetailsOpen, setServicesDetailsOpen] = useState(false);
   const [availabilityDetailsOpen, setAvailabilityDetailsOpen] = useState(false);
-  const [deletingServiceId, setDeletingServiceId] = useState<number | null>(null);
-  const [servicesError, setServicesError] = useState("");
+  const [serviceToDelete, setServiceToDelete] = useState<MedicalService | null>(null);
+  const [openServiceId, setOpenServiceId] = useState<number | null>(null);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 600px)");
@@ -64,18 +75,25 @@ export const ProfessionalProfileTab = ({
   const workingHours = mainWorkingHours(availabilities);
 
   const removeService = async (service: MedicalService) => {
-    if (!window.confirm(`Remove "${service.name}"?`)) return;
-    setServicesError("");
-    setDeletingServiceId(service.id);
-    try {
-      await deleteMedicalService(service.id);
-      onServicesChange(services.filter((item) => item.id !== service.id));
-    } catch {
-      setServicesError("Unable to remove the service. Please try again.");
-    } finally {
-      setDeletingServiceId(null);
-    }
+    await deleteMedicalService(service.id);
+    onServicesChange(services.filter((item) => item.id !== service.id));
+    setServiceToDelete(null);
   };
+
+  const hideService = async (service: MedicalService) => {
+    await hideMedicalService(serviceStorageKey, service);
+    onServicesChange(services.filter((item) => item.id !== service.id));
+    setServiceToDelete(null);
+  };
+
+  const deleteServiceModal = serviceToDelete && (
+    <DeleteServiceModal
+      serviceName={serviceToDelete.name}
+      onClose={() => setServiceToDelete(null)}
+      onDelete={() => removeService(serviceToDelete)}
+      onHide={() => hideService(serviceToDelete)}
+    />
+  );
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     if (profile.languages.length === 0) {
@@ -200,7 +218,7 @@ export const ProfessionalProfileTab = ({
                   <strong>Basic information</strong>
                   <small>Profile details and professional background</small>
                 </span>
-                <span className={styles.summaryChevron} aria-hidden="true">›</span>
+                <img className={styles.summaryChevron} src={arrowRight} alt="" aria-hidden="true" />
               </summary>
             )}
             <div className={styles.basicFields}>
@@ -296,7 +314,7 @@ export const ProfessionalProfileTab = ({
                   <strong>Services and prices</strong>
                   <small>Add at least one service</small>
                 </span>
-                <span className={styles.summaryChevron} aria-hidden="true">›</span>
+                <img className={styles.summaryChevron} src={arrowRight} alt="" aria-hidden="true" />
               </summary>
             )}
             <div className={styles.mobileSectionContent}>
@@ -313,15 +331,13 @@ export const ProfessionalProfileTab = ({
                 <button
                   type="button"
                   className={styles.iconBtn}
-                  onClick={() => void removeService(service)}
-                  disabled={deletingServiceId === service.id}
+                  onClick={() => setServiceToDelete(service)}
                   aria-label={`Remove ${service.name}`}
                 >
                   <img src={trash} alt="" />
                 </button>
               </div>
             )) : <p className={styles.sectionSubtitle}>No services added yet.</p>}
-            {servicesError && <span className="field-error">{servicesError}</span>}
             <button type="button" onClick={() => onSwitchTab("services")} className={`${styles.actionBtnOutline} ${styles.addServicesBtn}`}>
               Add services
             </button>
@@ -352,7 +368,7 @@ export const ProfessionalProfileTab = ({
                   <strong>Availability</strong>
                   <small>Set your working hours</small>
                 </span>
-                <span className={styles.summaryChevron} aria-hidden="true">›</span>
+                <img className={styles.summaryChevron} src={arrowRight} alt="" aria-hidden="true" />
               </summary>
             )}
             <div className={styles.mobileSectionContent}>
@@ -413,17 +429,113 @@ export const ProfessionalProfileTab = ({
             </button>
           </div>
         </form>
+        {deleteServiceModal}
       </div>
     );
   }
 
   return (
     <div className={styles.tabContainerTransparent}>
-      <div className={styles.mobileProfileSummary}>
-        <img src={profile.photoUrl || doctorDefaultImage} alt="" />
-        <strong>Dr. {profile.firstName} {profile.lastName}</strong>
-        <span>{profile.speciality}</span>
-        <small><img src={success} alt="" /> Profile published</small>
+      <div className={styles.mobileView}>
+        <div className={styles.mobileDoctor}>
+          <img className={styles.mobilePhoto} src={profile.photoUrl || doctorDefaultImage} alt="" />
+          <div className={styles.mobileName}>
+            <strong>Dr. {profile.firstName} {profile.lastName}</strong>
+            <span>Healthcare professional</span>
+          </div>
+          <span className={styles.mobileStatus}>
+            <img src={successSidebar} alt="" /> Profile published
+          </span>
+        </div>
+
+        <section className={styles.mobileBlock}>
+          <div className={styles.mobileBlockHead}>
+            <h3>Professional profile</h3>
+            <button type="button" onClick={onEdit}>Edit</button>
+          </div>
+          <ul className={styles.mobileRows}>
+            <li>
+              <span><img src={workIcon} alt="" />Specialty</span>
+              <span>{profile.speciality}</span>
+            </li>
+            <li>
+              <span><img src={languagesIcon} alt="" />Languages</span>
+              <span>{profile.languages.join(", ")}</span>
+            </li>
+            <li>
+              <span><img src={profileIcon} alt="" />Professional role</span>
+              <span>{profile.professionalRole}</span>
+            </li>
+            <li>
+              <span><img src={calendarSmall} alt="" />Years of experience</span>
+              <span>{profile.yearsOfExperience} years</span>
+            </li>
+            <li>
+              <span><img src={timeSmall} alt="" />Contact phone</span>
+              <span>{profile.contactPhone}</span>
+            </li>
+            <li className={styles.mobileRowStack}>
+              <span><img src={geoSmall} alt="" />Consultation location</span>
+              <span>{profile.address}</span>
+            </li>
+          </ul>
+        </section>
+
+        <section className={styles.mobileBlock}>
+          <h3>About</h3>
+          <p className={styles.mobileAbout}>{profile.description}</p>
+        </section>
+
+        <section className={styles.mobileBlock}>
+          <div className={styles.mobileBlockHead}>
+            <h3>Services and prices</h3>
+            <button type="button" onClick={() => onSwitchTab("services")}>Manage</button>
+          </div>
+          <div className={styles.mobileServices}>
+            <div className={styles.mobileServicesHead}>
+              <span>Service</span>
+              <span>Actions</span>
+            </div>
+            {services.length === 0 && <p className={styles.mobileEmpty}>No services added yet.</p>}
+            {services.map((service) => (
+              <div key={service.id} className={styles.mobileServiceItem}>
+                <div className={styles.mobileServiceRow}>
+                  <span className={styles.mobileServiceName}>
+                    <span>{service.name}</span>
+                    <img src={chevronDown} alt="" />
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.mobileServiceDetails}
+                    aria-expanded={openServiceId === service.id}
+                    onClick={() => setOpenServiceId((current) => current === service.id ? null : service.id)}
+                  >
+                    <span>Details</span>
+                    <img src={chevronDown} alt="" />
+                  </button>
+                </div>
+                {openServiceId === service.id && (
+                  <p className={styles.mobileServiceMeta}>{service.durationMinutes} min · {Number(service.price)}$</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className={styles.mobileBlock}>
+          <div className={styles.mobileBlockHead}>
+            <h3>Availability</h3>
+            <button type="button" onClick={() => onSwitchTab("availability")}>Manage</button>
+          </div>
+          <div className={styles.mobileAvailability}>
+            <img src={calendar} alt="" />
+            <span>
+              {availabilitySummary.length > 0
+                ? availabilitySummary.map((line) => <span key={line}>{line}</span>)
+                : "Not set"}
+            </span>
+          </div>
+        </section>
       </div>
       <div className={styles.headerFlex}>
         <h2 className={styles.mainTitle}>Professional profile</h2>

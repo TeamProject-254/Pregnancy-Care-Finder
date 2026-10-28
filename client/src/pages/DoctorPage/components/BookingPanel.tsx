@@ -16,8 +16,8 @@ import {
 } from "../bookingUtils";
 import { BookingDoneModal } from "./BookingDoneModal";
 import { SelectDropdown } from "../../../components/SelectDropdown/SelectDropdown";
-import { CalendarSmallIcon, ClockSmallIcon, PinIcon, ServiceIcon, WalletIcon } from "./DoctorIcons";
-import { ReviewAppointmentModal } from "./ReviewAppointmentModal";
+import { CalendarSmallIcon, ClockSmallIcon, PinSmallIcon, ServiceIcon, WalletIcon } from "./DoctorIcons";
+import { ReviewAppointmentModal, type BookingReview } from "./ReviewAppointmentModal";
 import { CloseIcon } from "../../ProviderDashboard/components/AppointmentIcons";
 import styles from "../DoctorPage.module.scss";
 
@@ -44,7 +44,7 @@ export const BookingPanel = ({ data, isMobileOpen, onMobileClose }: Props) => {
   const [isReviewOpen, setIsReviewOpen] = useState(false);
   const [isDone, setIsDone] = useState(false);
   const [busy, setBusy] = useState<BusyInterval[]>([]);
-  const [bookedDateTime, setBookedDateTime] = useState("");
+  const [bookedReview, setBookedReview] = useState<BookingReview | null>(null);
 
   const service = services.find((item) => item.id === serviceId) ?? null;
   const isProvider = user?.role === "PROVIDER";
@@ -81,7 +81,7 @@ export const BookingPanel = ({ data, isMobileOpen, onMobileClose }: Props) => {
   );
   const dates = Object.keys(slotsByDate);
 
-  const date = pickedDate && slotsByDate[pickedDate] ? pickedDate : (dates[0] ?? null);
+  const date = pickedDate && slotsByDate[pickedDate] ? pickedDate : null;
   const times = date ? slotsByDate[date] : [];
   const time = pickedTime && times.includes(pickedTime) ? pickedTime : null;
 
@@ -91,6 +91,18 @@ export const BookingPanel = ({ data, isMobileOpen, onMobileClose }: Props) => {
   const doctorName = `Dr. ${provider.firstName} ${provider.lastName}`;
   const address = provider.address || "Location not specified";
   const longDateTime = date && time ? formatLongDateTime(date, time) : "";
+  const review: BookingReview | null = service && date && time
+    ? {
+        doctorName,
+        specialty: provider.specialization || provider.professionalRole || "Healthcare professional",
+        photoUrl: provider.photoUrl || blankProfilePicture,
+        service: service.name,
+        dateTime: longDateTime,
+        duration: `${service.durationMinutes} min`,
+        location: address,
+        price: formatPrice(service.price),
+      }
+    : null;
 
   const handleServiceChange = (value: string) => {
     setServiceId(Number(value));
@@ -118,7 +130,7 @@ export const BookingPanel = ({ data, isMobileOpen, onMobileClose }: Props) => {
         appointmentDateTime: `${date}T${time}:00`,
       });
     }
-    setBookedDateTime(longDateTime);
+    setBookedReview(review);
     setBusy((current) => [...current, busyIntervalFrom(`${date}T${time}`, service.durationMinutes)]);
     setPickedTime(null);
     setIsReviewOpen(false);
@@ -203,31 +215,37 @@ export const BookingPanel = ({ data, isMobileOpen, onMobileClose }: Props) => {
               </div>
             )}
 
-            <h3 className={styles.step}>3. Time</h3>
-            {times.length === 0 ? (
-              <p className={styles.muted}>Choose a date to see available time.</p>
-            ) : (
-              <div className={styles.times}>
-                {visibleTimes.map((item) => (
-                  <button
-                    key={item}
-                    type="button"
-                    className={`${styles.timeChip} ${item === time ? styles.chipActive : ""}`}
-                    onClick={() => setPickedTime(item)}
-                  >
-                    {formatTime12(item)}
-                  </button>
-                ))}
-                {times.length > VISIBLE_TIMES && (
-                  <button
-                    type="button"
-                    className={`${styles.timeChip} ${styles.timeMore}`}
-                    onClick={() => setShowAllTimes((value) => !value)}
-                  >
-                    {showAllTimes ? "Less" : "More"}
-                  </button>
+            {date ? (
+              <>
+                <h3 className={styles.step}>3. Time</h3>
+                {times.length === 0 ? (
+                  <p className={styles.muted}>No available time on this day. Choose another day.</p>
+                ) : (
+                  <div className={styles.times}>
+                    {visibleTimes.map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        className={`${styles.timeChip} ${item === time ? styles.chipActive : ""}`}
+                        onClick={() => setPickedTime(item)}
+                      >
+                        {formatTime12(item)}
+                      </button>
+                    ))}
+                    {times.length > VISIBLE_TIMES && (
+                      <button
+                        type="button"
+                        className={`${styles.timeChip} ${styles.timeMore}`}
+                        onClick={() => setShowAllTimes((value) => !value)}
+                      >
+                        {showAllTimes ? "Less" : "More"}
+                      </button>
+                    )}
+                  </div>
                 )}
-              </div>
+              </>
+            ) : (
+              dates.length > 0 && <p className={styles.dateHint}>Select a day to see the available time.</p>
             )}
 
             {service && time && date && (
@@ -241,7 +259,7 @@ export const BookingPanel = ({ data, isMobileOpen, onMobileClose }: Props) => {
                     <CalendarSmallIcon /> {longDateTime}
                   </li>
                   <li>
-                    <PinIcon size={16} /> {address}
+                    <PinSmallIcon /> {address}
                   </li>
                   <li>
                     <ClockSmallIcon /> {service.durationMinutes} min
@@ -266,29 +284,22 @@ export const BookingPanel = ({ data, isMobileOpen, onMobileClose }: Props) => {
           </>
         )}
 
-        {isReviewOpen && service && date && time && (
+        {isReviewOpen && review && (
           <ReviewAppointmentModal
-            review={{
-              doctorName,
-              specialty: provider.specialization || provider.professionalRole || "Healthcare professional",
-              photoUrl: provider.photoUrl || blankProfilePicture,
-              service: service.name,
-              dateTime: longDateTime,
-              duration: `${service.durationMinutes} min`,
-              location: address,
-              price: formatPrice(service.price),
-            }}
+            review={review}
             onClose={() => setIsReviewOpen(false)}
             onConfirm={handleConfirm}
           />
         )}
 
-        {isDone && (
+        {isDone && bookedReview && (
           <BookingDoneModal
-            doctorName={doctorName}
-            dateTime={bookedDateTime}
+            booking={bookedReview}
             onGoToCabinet={() => navigate("/patient-dashboard")}
-            onClose={() => setIsDone(false)}
+            onClose={() => {
+              setIsDone(false);
+              onMobileClose();
+            }}
           />
         )}
       </section>

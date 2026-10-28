@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { isAxiosError } from "axios";
-import arrowTop from "../../../../assets/img/arrow-top.svg";
+import editIcon from "../../../../assets/img/edit-icon.svg";
 import calendarIcon from "../../../../assets/img/calendar-icon.svg";
 import trashIcon from "../../../../assets/img/trash-icon.svg";
 import {
@@ -307,8 +307,8 @@ export const AvailabilityTab = ({
         </div>
       )}
 
-      <h3 className={styles.sectionTitle}>Weekly schedule</h3>
-      <p className={styles.sectionDescription}>Patients can book available times during these hours.</p>
+      <h3 className={`${styles.sectionTitle} ${styles.weeklyHeading}`}>Weekly schedule</h3>
+      <p className={`${styles.sectionDescription} ${styles.weeklyHeading}`}>Patients can book available times during these hours.</p>
 
       <div className={styles.weekSchedule}>
         {days.map((day) => (
@@ -326,9 +326,9 @@ export const AvailabilityTab = ({
               <span />
             </label>
             <span className={styles.daySummary}>
-              {day.active
-                ? day.intervals.map((interval) => `${interval.start} - ${interval.end}`).join(", ")
-                : "Unavailable"}
+              {day.active && day.intervals.length
+                ? day.intervals.map((interval) => <span key={interval.id}>{interval.start} - {interval.end}</span>)
+                : <span>Unavailable</span>}
             </span>
             <div className={styles.intervals}>
               {day.active ? day.intervals.map((interval) => (
@@ -349,9 +349,11 @@ export const AvailabilityTab = ({
                 + Add interval
               </button>
             )}
-            <button type="button" className={styles.dayDelete} onClick={() => updateDay(day.weekday, (current) => ({ ...current, active: false }))} disabled={!day.active} aria-label={`Disable ${day.name}`}>
-              <img src={trashIcon} alt="" />
-            </button>
+            {day.active && (
+              <button type="button" className={styles.dayDelete} onClick={() => updateDay(day.weekday, (current) => ({ ...current, active: false }))} aria-label={`Disable ${day.name}`}>
+                <img src={trashIcon} alt="" />
+              </button>
+            )}
             <button
               type="button"
               className={styles.dayExpand}
@@ -359,7 +361,7 @@ export const AvailabilityTab = ({
               aria-expanded={expandedDay === day.weekday}
               onClick={() => setExpandedDay((current) => current === day.weekday ? null : day.weekday)}
             >
-              <img src={arrowTop} alt="" />
+              <img src={editIcon} alt="" />
             </button>
           </div>
         ))}

@@ -100,3 +100,54 @@
     font-size: 16px;
   }
 }
+
+.search__icon {
+  flex-shrink: 0;
+}
+
+@media (max-width: 760px) {
+  .from__wrapperSearch {
+    width: auto;
+    margin: 0 -1rem;
+    padding: 16px;
+    box-sizing: border-box;
+    border-bottom: 1px solid var(--color-gray-20);
+
+    .search__form {
+      margin-top: 0;
+      padding: 0;
+      gap: 16px;
+      border-radius: 0;
+      background: transparent;
+    }
+
+    .search__field {
+      height: 50px;
+      box-sizing: border-box;
+      padding: 8px;
+      gap: 16px;
+      border: 1px solid var(--color-gray-20);
+      border-radius: 8px;
+    }
+
+    .search__icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    .search__input {
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 24px;
+    }
+
+    .search__button {
+      height: 44px;
+      border: 0;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 19px;
+    }
+  }
+}
