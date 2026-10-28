@@ -41,18 +41,13 @@ export const CancelAppointmentModal = ({ appt, onClose, onSubmit }: Props) => {
       <h3 id="appt-cancel-title" className={styles.title}>
         Cancel appointment?
       </h3>
-      <p className={styles.text}>
-        The time will become available for booking again.
-        <br />
-        <strong>
-          {appt.patientName}, {appt.date} at {appt.time}
-        </strong>
-      </p>
+      <p className={`${styles.text} ${styles.textTight}`}>The time will become available for booking again.</p>
 
       <div className={styles.field}>
         <label htmlFor="cancel-reason">Cancellation reason</label>
         <SelectDropdown
           id="cancel-reason"
+          className={styles.selectLarge}
           ariaLabel="Cancellation reason"
           options={CANCEL_REASONS}
           value={reason}
@@ -62,10 +57,10 @@ export const CancelAppointmentModal = ({ appt, onClose, onSubmit }: Props) => {
 
       <div className={styles.field}>
         <label htmlFor="cancel-message">Message to patient (optional)</label>
-        <textarea id="cancel-message" rows={3} value={message} onChange={(event) => setMessage(event.target.value)} />
+        <textarea id="cancel-message" rows={3} aria-label={`Message to ${appt.patientName}`} value={message} onChange={(event) => setMessage(event.target.value)} />
       </div>
 
-      <div className={styles.alert}>
+      <div className={`${styles.alert} ${styles.alertCompact}`}>
         <InfoIcon />
         <span>The patient will be notified.</span>
       </div>
@@ -76,7 +71,7 @@ export const CancelAppointmentModal = ({ appt, onClose, onSubmit }: Props) => {
         <button type="button" className={styles.btnPrimary} onClick={handleSubmit} disabled={isSubmitting}>
           {isSubmitting ? "Cancelling..." : "Cancel appointment"}
         </button>
-        <button type="button" className={styles.btnOutlineDanger} onClick={onClose} disabled={isSubmitting}>
+        <button type="button" className={styles.btnOutlineSoft} onClick={onClose} disabled={isSubmitting}>
           Keep appointment
         </button>
       </div>

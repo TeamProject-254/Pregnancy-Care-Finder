@@ -1,7 +1,7 @@
 import { useState } from "react";
 import blankProfile from "../../../../assets/img/blank-profile-picture-973460_1280.png";
 import { requestErrorMessage, type AppointmentItem } from "../appointmentUtils";
-import { CloseIcon } from "../AppointmentIcons";
+import { CloseIcon, PendingClockIcon } from "../AppointmentIcons";
 import { ModalOverlay } from "../../../../components/Modal";
 import styles from "../../../../components/Modal/Modal.module.scss";
 
@@ -22,6 +22,9 @@ export const AppointmentDetailsModal = ({ appt, onClose, onConfirm, onCancel }: 
   const isCancelled = appt.statusCode === "CANCELLED_BY_PATIENT" || appt.statusCode === "CANCELLED_BY_PROVIDER";
   const isFuture = appt.start.getTime() >= now;
   const canManage = !isCancelled && appt.statusCode !== "COMPLETED" && isFuture;
+  const statusClass = isCancelled
+    ? styles.statusCancelled
+    : appt.statusCode === "PENDING" ? "" : styles.statusConfirmed;
 
   const handleConfirm = async () => {
     setIsSubmitting(true);
@@ -35,7 +38,7 @@ export const AppointmentDetailsModal = ({ appt, onClose, onConfirm, onCancel }: 
   };
 
   return (
-    <ModalOverlay onClose={onClose} labelledBy="appt-details-title">
+    <ModalOverlay onClose={onClose} labelledBy="appt-details-title" className={styles.modalDetails}>
       <div className={styles.header}>
         <h3 id="appt-details-title">Appointments details</h3>
         <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close">
@@ -48,9 +51,7 @@ export const AppointmentDetailsModal = ({ appt, onClose, onConfirm, onCancel }: 
         <div className={styles.patientInfo}>
           <h4>{appt.patientName}</h4>
           <p>Patient</p>
-          <p>
-            Pregnancy week: <strong>{appt.pregnancyWeek}</strong>
-          </p>
+          <p>Pregnancy week: {appt.pregnancyWeek}</p>
         </div>
       </div>
 
@@ -75,6 +76,13 @@ export const AppointmentDetailsModal = ({ appt, onClose, onConfirm, onCancel }: 
           <span>Price</span>
           <strong className={styles.price}>{appt.price}</strong>
         </li>
+        <li className={`${styles.mobileOnly} ${styles.statusRow}`}>
+          <span>Status</span>
+          <strong className={`${styles.statusBadge} ${statusClass}`}>
+            <PendingClockIcon size={16} />
+            {appt.status}
+          </strong>
+        </li>
       </ul>
 
       {isCancelled && (
@@ -91,7 +99,6 @@ export const AppointmentDetailsModal = ({ appt, onClose, onConfirm, onCancel }: 
           <label htmlFor="appt-message">Message to patient (optional)</label>
           <textarea
             id="appt-message"
-            rows={3}
             value={message}
             onChange={(event) => setMessage(event.target.value)}
           />

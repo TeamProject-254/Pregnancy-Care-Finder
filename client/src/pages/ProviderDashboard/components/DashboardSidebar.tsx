@@ -17,6 +17,7 @@ interface SidebarProps {
   completionPercentage: number;
   firstName: string;
   lastName: string;
+  pendingCount: number;
 }
 
 export const DashboardSidebar = ({ 
@@ -27,6 +28,7 @@ export const DashboardSidebar = ({
   completionPercentage,
   firstName,
   lastName,
+  pendingCount,
 }: SidebarProps) => {
   const displayName = firstName && lastName ? `Dr. ${firstName} ${lastName}` : "Healthcare professional";
 
@@ -85,10 +87,12 @@ export const DashboardSidebar = ({
           <span><img src={availability} alt="availability" /></span> Availability
         </button>
         <button 
-          className={`${styles.navItem} ${activeTab === "appointments" ? styles.active : ""}`}
+          className={`${styles.navItem} ${styles.navAppointments} ${activeTab === "appointments" ? styles.active : ""}`}
           onClick={() => setActiveTab("appointments")}
         >
-          <span><img src={appointments} alt="appointments" /></span> Appointments
+          <span><img src={appointments} alt="appointments" /></span>
+          <b className={styles.desktopLabel}>Appointments</b>
+          <b className={styles.mobileLabel}>My appointments{pendingCount > 0 ? `(${pendingCount})` : ""}</b>
         </button>
       </nav>
     </aside>

@@ -2,6 +2,7 @@ import React from "react";
 import styles from "./BurgerMenu.module.scss";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../../../../context/AuthContext";
+import closeIcon from "../../../../assets/img/icon-close.svg";
 
 interface BurgerMenuProps {
   isOpen: boolean;
@@ -20,10 +21,8 @@ export const BurgerMenu: React.FC<BurgerMenuProps> = ({ isOpen, pendingCount, on
   return (
     <div className={styles.burgerMenu}>
       <div className={styles.burgerMenu__header}>
-        <button onClick={onClose} className={styles.burgerMenu__close}>
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18 6L6 18M6 6L18 18" stroke="var(--color-gray-90)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
+        <button onClick={onClose} className={styles.burgerMenu__close} aria-label="Close menu">
+          <img src={closeIcon} width={32} height={32} alt="" aria-hidden="true" />
         </button>
       </div>
 

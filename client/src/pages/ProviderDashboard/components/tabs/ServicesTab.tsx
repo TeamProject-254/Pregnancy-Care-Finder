@@ -9,24 +9,30 @@ import {
   type MedicalService,
   type MedicalServicePayload,
 } from "../../../../api/medicalServices";
-import { ServiceModal } from "../modals/ServiceModal";
+import { ServiceModal, type EditableService } from "../modals/ServiceModal";
+import { DeleteServiceModal } from "../modals/DeleteServiceModal";
+import { InfoRedIcon } from "../AppointmentIcons";
+import {
+  hideMedicalService,
+  readHiddenServices,
+  toHiddenService,
+  writeHiddenServices,
+  type HiddenService,
+} from "../hiddenServices";
 import styles from "./ServicesTab.module.scss";
-
-export interface ServiceItem {
-  id: number;
-  name: string;
-  duration: string;
-  price: string;
-  active: boolean;
-}
 
 interface Props {
   services: MedicalService[];
   isLoading: boolean;
   loadError: string;
+  storageKey: string;
   onServicesChange: (services: MedicalService[]) => void;
   onRetry: () => void;
 }
+
+type ServiceRow =
+  | { kind: "active"; key: string; service: MedicalService }
+  | { kind: "hidden"; key: string; service: HiddenService };
 
 const errorMessage = (error: unknown) => {
   if (error instanceof Error && !isAxiosError(error)) {
@@ -39,184 +45,237 @@ const errorMessage = (error: unknown) => {
   return "An unexpected error occurred. Please try again.";
 };
 
-export const ServicesTab = ({ services, isLoading, loadError, onServicesChange, onRetry }: Props) => {
-  const [editingService, setEditingService] = useState<MedicalService | null>(null);
+const toEditable = (row: ServiceRow): EditableService => ({
+  name: row.service.name,
+  durationMinutes: row.service.durationMinutes,
+  price: Number(row.service.price),
+  hidden: row.kind === "hidden",
+});
+
+export const ServicesTab = ({ services, isLoading, loadError, storageKey, onServicesChange, onRetry }: Props) => {
+  const [hiddenServices, setHiddenServices] = useState(() => readHiddenServices(storageKey));
+  const [editingRow, setEditingRow] = useState<ServiceRow | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [error, setError] = useState("");
+  const [rowToDelete, setRowToDelete] = useState<ServiceRow | null>(null);
   const [notice, setNotice] = useState("");
 
-  const saveService = async (payload: MedicalServicePayload) => {
+  const rows: ServiceRow[] = [
+    ...services.map((service): ServiceRow => ({ kind: "active", key: `active-${service.id}`, service })),
+    ...hiddenServices.map((service): ServiceRow => ({ kind: "hidden", key: service.id, service })),
+  ];
+
+  const updateHidden = (next: HiddenService[]) => {
+    setHiddenServices(next);
+    writeHiddenServices(storageKey, next);
+  };
+
+  const closeServiceModal = () => {
+    setEditingRow(null);
+    setIsCreating(false);
+  };
+
+  const saveService = async (payload: MedicalServicePayload, visible: boolean) => {
     setSaving(true);
-    setError("");
     try {
-      if (editingService) {
-        const updated = await updateMedicalService(editingService.id, payload);
-        onServicesChange(services.map((item) => item.id === updated.id ? updated : item));
-        setNotice("Service updated.");
-      } else {
-        const created = await createMedicalService(payload);
-        onServicesChange([...services, created]);
+      if (!editingRow) {
+        if (visible) {
+          const created = await createMedicalService(payload);
+          onServicesChange([...services, created]);
+        } else {
+          updateHidden([...hiddenServices, toHiddenService(payload)]);
+        }
         setNotice("Service added.");
+      } else if (editingRow.kind === "active") {
+        const current = editingRow.service;
+        if (visible) {
+          const updated = await updateMedicalService(current.id, payload);
+          onServicesChange(services.map((item) => item.id === updated.id ? updated : item));
+        } else {
+          await deleteMedicalService(current.id);
+          onServicesChange(services.filter((item) => item.id !== current.id));
+          updateHidden([...hiddenServices, toHiddenService(payload)]);
+        }
+        setNotice(visible ? "Service updated." : `Service "${payload.name}" is hidden from patients.`);
+      } else {
+        const current = editingRow.service;
+        if (visible) {
+          const created = await createMedicalService(payload);
+          onServicesChange([...services, created]);
+          updateHidden(hiddenServices.filter((item) => item.id !== current.id));
+        } else {
+          updateHidden(hiddenServices.map((item) => item.id === current.id ? { ...item, ...payload } : item));
+        }
+        setNotice(visible ? `Service "${payload.name}" is visible to patients again.` : "Service updated.");
       }
-      setEditingService(null);
-      setIsCreating(false);
+      closeServiceModal();
     } catch (saveError) {
-      const message = errorMessage(saveError);
-      setError(message);
+      const message = isAxiosError(saveError) && editingRow?.kind === "active" && !visible
+        && (saveError.response?.status === 409 || saveError.response?.status === 500)
+        ? "The server could not hide this service because it already has booked appointments."
+        : errorMessage(saveError);
       throw new Error(message, { cause: saveError });
     } finally {
       setSaving(false);
     }
   };
 
-  const removeService = async (service: MedicalService) => {
-    if (!window.confirm(`Remove "${service.name}"?`)) return;
-    setError("");
-    setNotice("");
-    setDeletingId(service.id);
-    try {
-      await deleteMedicalService(service.id);
-      onServicesChange(services.filter((item) => item.id !== service.id));
-      setNotice("Service removed.");
-    } catch (deleteError) {
-      setError(errorMessage(deleteError));
-    } finally {
-      setDeletingId(null);
+  const removeRow = async (row: ServiceRow) => {
+    if (row.kind === "active") {
+      await deleteMedicalService(row.service.id);
+      onServicesChange(services.filter((item) => item.id !== row.service.id));
+    } else {
+      updateHidden(hiddenServices.filter((item) => item.id !== row.service.id));
     }
+    setRowToDelete(null);
+    setNotice(`Service "${row.service.name}" deleted.`);
   };
+
+  const hideRow = async (row: ServiceRow) => {
+    if (row.kind !== "active") return;
+    await hideMedicalService(storageKey, row.service);
+    onServicesChange(services.filter((item) => item.id !== row.service.id));
+    setHiddenServices(readHiddenServices(storageKey));
+    setRowToDelete(null);
+    setNotice(`Service "${row.service.name}" is hidden from patients.`);
+  };
+
+  const openEdit = (row: ServiceRow) => {
+    setNotice("");
+    setEditingRow(row);
+  };
+
+  const askToRemove = (row: ServiceRow) => {
+    setNotice("");
+    setRowToDelete(row);
+  };
+
+  const statusBadge = (row: ServiceRow) => (
+    <span className={`${styles.status} ${row.kind === "hidden" ? styles.statusHidden : ""}`}>
+      {row.kind === "hidden" ? "Hidden" : "Active"}
+    </span>
+  );
 
   return (
     <section className={styles.container}>
-      <h2 className={styles.title}>Services &amp; prices</h2>
-      <p className={styles.subtitle}>Manage the services patients can book. Payments are made directly at the appointment.</p>
-
-      <div className={styles.info} role="note">
-        <span className={styles.infoIcon} aria-hidden="true">i</span>
-        <span>Your services and prices will be visible on your public profile and during booking.</span>
+      <div className={styles.heading}>
+        <h2 className={styles.title}>Services &amp; prices</h2>
+        <p className={styles.subtitle}>Manage the services patients can book. Payments are made directly at the appointment</p>
       </div>
 
-      {(error || loadError) && (
+      <div className={styles.info} role="note">
+        <InfoRedIcon />
+        <span>Your services and prices will be visible on your public profile and during booking</span>
+      </div>
+
+      {loadError && (
         <div className={styles.error} role="alert">
-          <p>{error || loadError}</p>
-          {loadError && <button type="button" onClick={onRetry}>Try again</button>}
+          <p>{loadError}</p>
+          <button type="button" onClick={onRetry}>Try again</button>
         </div>
       )}
       {notice && <p className={styles.notice} role="status">{notice}</p>}
 
-      <div className={styles.tableCard}>
-        {isLoading ? (
-          <p className={styles.state}>Loading services...</p>
-        ) : (
-          <>
-            <div className={styles.mobileServiceList}>
-              {services.map((service) => (
-                <article className={styles.mobileServiceCard} key={service.id}>
-                  <div className={styles.mobileServiceInfo}>
-                    <strong>{service.name}</strong>
-                    <span>{service.durationMinutes} min&nbsp; · &nbsp;{Number(service.price)}$</span>
-                    <span className={styles.activeStatus}>Active</span>
-                  </div>
-                  <div className={styles.mobileServiceActions}>
-                    <button
-                      type="button"
-                      onClick={() => { setNotice(""); setEditingService(service); }}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.mobileDeleteButton}
-                      onClick={() => void removeService(service)}
-                      disabled={deletingId === service.id}
-                      aria-label={`Remove ${service.name}`}
-                    >
-                      <img src={trashIcon} alt="" />
-                    </button>
-                  </div>
-                </article>
-              ))}
-              {!services.length && (
-                <p className={styles.empty}>No services added yet.</p>
-              )}
-            </div>
-            <div className={styles.tableWrap}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Service</th>
-                    <th>Duration</th>
-                    <th>Price</th>
-                    <th>Status</th>
-                    <th>Action’s</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {services.map((service) => (
-                    <tr key={service.id}>
-                      <td>{service.name}</td>
-                      <td>{service.durationMinutes} min</td>
-                      <td>{Number(service.price)}$</td>
-                      <td><span className={styles.activeStatus}>Active</span></td>
-                      <td>
-                        <div className={styles.rowActions}>
-                          <button
-                            type="button"
-                            onClick={() => { setNotice(""); setEditingService(service); }}
-                            aria-label={`Edit ${service.name}`}
-                            title="Edit service"
-                          >
-                            <img src={editIcon} alt="" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => void removeService(service)}
-                            disabled={deletingId === service.id}
-                            aria-label={`Remove ${service.name}`}
-                            title="Remove service"
-                          >
-                            <img src={trashIcon} alt="" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                  {!services.length && (
-                    <tr><td colSpan={5} className={styles.empty}>No services added yet.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-            <div className={styles.footer}>
-              <div>
-                <span className={styles.count}>{services.length} Services</span>
-                <button
-                  type="button"
-                  className={styles.addButton}
-                  onClick={() => { setNotice(""); setIsCreating(true); }}
-                >
-                  Add another service
-                </button>
-              </div>
-              <span className={styles.savedNote}>Changes are saved when you submit the service form.</span>
-            </div>
-          </>
-        )}
-      </div>
+      {isLoading ? (
+        <p className={styles.state}>Loading services...</p>
+      ) : (
+        <>
+          <div className={styles.mobileList}>
+            {rows.map((row) => (
+              <article className={styles.mobileCard} key={row.key}>
+                <div className={styles.mobileInfo}>
+                  <strong>{row.service.name}</strong>
+                  <span className={styles.mobileMeta}>
+                    <span>{row.service.durationMinutes} min</span>
+                    <span>·</span>
+                    <span>{Number(row.service.price)}$</span>
+                  </span>
+                  {statusBadge(row)}
+                </div>
+                <div className={styles.mobileActions}>
+                  <button type="button" className={styles.editButton} onClick={() => openEdit(row)}>
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.iconButton}
+                    onClick={() => askToRemove(row)}
+                    aria-label={`Remove ${row.service.name}`}
+                  >
+                    <img src={trashIcon} alt="" />
+                  </button>
+                </div>
+              </article>
+            ))}
+            {!rows.length && <p className={styles.empty}>No services added yet.</p>}
+            <button
+              type="button"
+              className={styles.mobileAddButton}
+              onClick={() => { setNotice(""); setIsCreating(true); }}
+            >
+              Add service
+            </button>
+          </div>
 
-      {(isCreating || editingService) && (
+          <div className={styles.tableCard}>
+            <div className={`${styles.row} ${styles.headRow}`}>
+              <span>Service</span>
+              <span>Duration</span>
+              <span>Price</span>
+              <span>Status</span>
+              <span>Action’s</span>
+            </div>
+            {rows.map((row) => (
+              <div className={styles.row} key={row.key}>
+                <span className={styles.name}>{row.service.name}</span>
+                <span className={styles.value}>{row.service.durationMinutes} min</span>
+                <span className={styles.value}>{Number(row.service.price)}$</span>
+                <span className={styles.value}>{statusBadge(row)}</span>
+                <span className={styles.rowActions}>
+                  <button type="button" onClick={() => openEdit(row)} aria-label={`Edit ${row.service.name}`} title="Edit service">
+                    <img src={editIcon} alt="" />
+                  </button>
+                  <button type="button" onClick={() => askToRemove(row)} aria-label={`Remove ${row.service.name}`} title="Remove service">
+                    <img src={trashIcon} alt="" />
+                  </button>
+                </span>
+              </div>
+            ))}
+            {!rows.length && <p className={styles.empty}>No services added yet.</p>}
+            <div className={styles.footer}>
+              <span className={styles.count}>{rows.length} Services</span>
+              <button
+                type="button"
+                className={styles.addButton}
+                onClick={() => { setNotice(""); setIsCreating(true); }}
+              >
+                Add another service
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {(isCreating || editingRow) && (
         <ServiceModal
-          key={editingService?.id ?? "new"}
-          service={editingService}
+          key={editingRow?.key ?? "new"}
+          service={editingRow ? toEditable(editingRow) : null}
+          existingNames={rows.map((row) => row.service.name)}
           isSaving={saving}
           onClose={() => {
-            if (!saving) {
-              setEditingService(null);
-              setIsCreating(false);
-            }
+            if (!saving) closeServiceModal();
           }}
           onSave={saveService}
+        />
+      )}
+
+      {rowToDelete && (
+        <DeleteServiceModal
+          serviceName={rowToDelete.service.name}
+          isHidden={rowToDelete.kind === "hidden"}
+          onClose={() => setRowToDelete(null)}
+          onDelete={() => removeRow(rowToDelete)}
+          onHide={() => hideRow(rowToDelete)}
         />
       )}
     </section>

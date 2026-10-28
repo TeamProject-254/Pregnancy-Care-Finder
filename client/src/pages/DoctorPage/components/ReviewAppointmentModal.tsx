@@ -37,7 +37,7 @@ export const ReviewAppointmentModal = ({ review, onClose, onConfirm }: Props) =>
   };
 
   return (
-    <ModalOverlay onClose={onClose} labelledBy="review-title">
+    <ModalOverlay onClose={onClose} labelledBy="review-title" className={styles.modalBooking}>
       <div className={styles.header}>
         <h3 id="review-title">Review appointment</h3>
         <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Close">
@@ -54,12 +54,12 @@ export const ReviewAppointmentModal = ({ review, onClose, onConfirm }: Props) =>
         </div>
       </div>
 
-      <ul className={styles.details}>
-        <li>
+      <ul className={`${styles.details} ${styles.detailsInset}`}>
+        <li className={styles.stackRow}>
           <span>Service</span>
           <strong>{review.service}</strong>
         </li>
-        <li>
+        <li className={styles.stackRow}>
           <span>Date and time</span>
           <strong>{review.dateTime}</strong>
         </li>
@@ -67,7 +67,7 @@ export const ReviewAppointmentModal = ({ review, onClose, onConfirm }: Props) =>
           <span>Duration</span>
           <strong>{review.duration}</strong>
         </li>
-        <li>
+        <li className={styles.stackRow}>
           <span>Location</span>
           <strong>{review.location}</strong>
         </li>

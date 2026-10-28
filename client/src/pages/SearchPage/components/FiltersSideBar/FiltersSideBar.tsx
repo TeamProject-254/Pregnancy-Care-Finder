@@ -1,5 +1,6 @@
 import { useState } from "react";
 import arrowTopIcon from "../../../../assets/img/arrow-top.svg";
+import closeIcon from "../../../../assets/img/icon-close.svg";
 import type { FilterOption, FiltersState } from "../../../../types/filters";
 import { FiltersAccordion } from "../FiltersAccordion";
 import styles from "./FiltersSideBar.module.scss";
@@ -37,10 +38,14 @@ const LANGUAGE_OPTIONS: FilterOption[] = [
 
 interface FiltersSidebarProps {
   onFiltersChange?: (filters: FiltersState) => void;
+  isMobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 export const FiltersSideBar: React.FC<FiltersSidebarProps> = ({
   onFiltersChange,
+  isMobileOpen = false,
+  onMobileClose,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
   const [services, setServices] = useState<string[]>([]);
@@ -101,7 +106,7 @@ export const FiltersSideBar: React.FC<FiltersSidebarProps> = ({
     });
   };
   return (
-    <aside className={styles.filter}>
+    <aside className={`${styles.filter} ${isMobileOpen ? styles.filter__mobileOpen : ""}`}>
       <button
         type="button"
         className={styles.filter__top}
@@ -114,6 +119,12 @@ export const FiltersSideBar: React.FC<FiltersSidebarProps> = ({
           className={`${styles.filter__icon} ${isExpanded ? "" : styles.filter__iconClosed}`}
         />
       </button>
+      <div className={styles.filter__mobileTop}>
+        <h4 className={styles.filter__title}>Filters</h4>
+        <button type="button" className={styles.filter__close} onClick={onMobileClose} aria-label="Close filters">
+          <img src={closeIcon} alt="" />
+        </button>
+      </div>
 
       <div
         className={`${styles.filter__collapse} ${isExpanded ? styles.filter__collapseOpen : ""}`}

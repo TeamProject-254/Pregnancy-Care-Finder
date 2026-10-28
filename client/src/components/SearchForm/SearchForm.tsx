@@ -6,9 +6,10 @@ import doctorIcon from "../../assets/img/doctor-icon.svg";
 
 interface SearchFormProps {
   className?: string;
+  variant?: "default" | "search";
 }
 
-export const SearchForm: React.FC<SearchFormProps> = ({ className }) => {
+export const SearchForm: React.FC<SearchFormProps> = ({ className, variant = "default" }) => {
   const [searchParams] = useSearchParams();
   const specialty = searchParams.get("specialty") || "";
   const location = searchParams.get("location") || "";
@@ -17,6 +18,7 @@ export const SearchForm: React.FC<SearchFormProps> = ({ className }) => {
     <SearchFormFields
       key={JSON.stringify([specialty, location])}
       className={className}
+      variant={variant}
       initialSpecialty={specialty}
       initialLocation={location}
     />
@@ -30,6 +32,7 @@ interface SearchFormFieldsProps extends SearchFormProps {
 
 const SearchFormFields: React.FC<SearchFormFieldsProps> = ({
   className,
+  variant,
   initialSpecialty,
   initialLocation,
 }) => {
@@ -49,7 +52,7 @@ const SearchFormFields: React.FC<SearchFormFieldsProps> = ({
   };
 
   return (
-    <div className={`${styles.from__wrapper} ${className || ""}`}>
+    <div className={`${styles.from__wrapper} ${variant === "search" ? styles.from__wrapperSearch : ""} ${className || ""}`}>
       <form onSubmit={handleSearch} className={styles.search__form}>
         <div className={styles.search__field}>
           <img
