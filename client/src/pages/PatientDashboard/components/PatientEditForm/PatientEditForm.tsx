@@ -6,7 +6,7 @@ import cameraIcon from "../../../../assets/img/camera-icon.svg";
 import { useAuth } from "../../../../context/AuthContext";
 import type { PatientResponse } from "../../PatientDashboard";
 import defaultAvatar from "../../../../assets/img/profile-icon.svg";
-import { CityAutocomplete } from "../CityAutocomplete/CityAutocomplete";
+import { CityAutocomplete } from "../../../../components/CityAutocomplete/CityAutocomplete";
 import styles from "./PatientEditForm.module.scss";
 
 const CLOUDINARY_CLOUD_NAME = "gjckdqml";
@@ -315,11 +315,14 @@ export const PatientEditForm = ({
                 value={field.value}
                 onSelectCity={(city) => field.onChange(city)}
                 error={fieldState.error?.message}
+                showLabel={true}
+                inputClassName={`${styles.input} ${
+                  fieldState.error ? styles.input__error : ""
+                }`}
               />
             )}
           />
         </div>
-
         <div className={styles.field}>
           <label className={styles.label}>Spoken languages</label>
 

@@ -33,3 +33,26 @@ export interface CheckboxAccordionProps extends BaseAccordionProps {
 }
 
 export type FilterAccordionProps = RadioAccordionProps | CheckboxAccordionProps;
+
+
+export interface ProviderSearchParams {
+  specializations?: string[];
+  location?: string;
+  services?: string[];
+  languages?: string[];
+  availabilityDateFrom?: string; 
+  availabilityDateTo?: string;  
+}
+
+export interface ProviderSummaryResponse {
+  id: number;
+  firstName: string;
+  lastName: string;
+  professionalRole: string;
+  yearsOfExperience: number;
+  address: string;
+  specialization: string;
+  languages: string[];
+  photoUrl: string;
+  published: boolean;
+}

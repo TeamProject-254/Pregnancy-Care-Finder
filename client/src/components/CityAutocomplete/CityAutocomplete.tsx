@@ -42,15 +42,25 @@ interface CityAutocompleteProps {
   value?: string;
   onSelectCity: (cityName: string) => void;
   error?: string;
+  className?: string;
+  inputClassName?: string;
+  placeholder?: string;
+  showLabel?: boolean;
 }
 
 export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
   value = "",
   onSelectCity,
   error,
+  className,
+  inputClassName,
+  placeholder = "e.g. Kyiv, Lviv, Odesa (English only)",
+  showLabel = false,
 }) => {
   const [inputValue, setInputValue] = useState<string>(value);
-  const [suggestions, setSuggestions] = useState<PlaceAutocompleteSuggestion[]>([]);
+  const [suggestions, setSuggestions] = useState<PlaceAutocompleteSuggestion[]>(
+    [],
+  );
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [cyrillicWarning, setCyrillicWarning] = useState<boolean>(false);
   const [isCitySelected, setIsCitySelected] = useState<boolean>(Boolean(value));
@@ -91,7 +101,9 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
     document.head.appendChild(script);
   }, []);
 
-  const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
+  const handleInputChange = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ): Promise<void> => {
     const text = e.target.value;
     setInputValue(text);
 
@@ -118,7 +130,9 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
       if (!window.google?.maps?.importLibrary) return;
 
       const { AutocompleteSuggestion } =
-        (await window.google.maps.importLibrary("places")) as unknown as PlacesLibrary;
+        (await window.google.maps.importLibrary(
+          "places",
+        )) as unknown as PlacesLibrary;
 
       const request: AutocompleteSuggestionsRequest = {
         input: text,
@@ -131,10 +145,12 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
         await AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
 
       if (results && results.length > 0) {
-        const strictlyEnglishResults = results.filter((s: PlaceAutocompleteSuggestion) => {
-          const mainText = s.placePrediction?.text?.text || "";
-          return !/[а-яіїєґ]/i.test(mainText);
-        });
+        const strictlyEnglishResults = results.filter(
+          (s: PlaceAutocompleteSuggestion) => {
+            const mainText = s.placePrediction?.text?.text || "";
+            return !/[а-яіїєґ]/i.test(mainText);
+          },
+        );
 
         setSuggestions(strictlyEnglishResults);
         setIsOpen(strictlyEnglishResults.length > 0);
@@ -169,33 +185,31 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
   };
 
   return (
-    <div
-      className={styles.wrapper}
-      ref={wrapperRef}
-      style={{ position: "relative" }}
-    >
-      <label htmlFor="geo-search-query" className={styles.label}>
-        City / Location
-      </label>
+    <div className={`${styles.wrapper} ${className || ""}`} ref={wrapperRef}>
+      {showLabel && (
+        <label htmlFor="geo-search-query" className={styles.label}>
+          City / Location
+        </label>
+      )}
+
       <input
         id="geo-search-query"
-        name="geo-search-query"
+        name="custom-city-search-field"
         type="text"
         value={inputValue}
         onChange={handleInputChange}
         onBlur={handleBlur}
         onFocus={() => suggestions.length > 0 && setIsOpen(true)}
-        placeholder="e.g. Kyiv, Lviv, Odesa (English only)"
+        placeholder={placeholder}
         className={`${styles.input} ${
           error || cyrillicWarning ? styles.inputError : ""
-        }`}
-        autoComplete="new-password"
+        } ${inputClassName || ""}`}
+        autoComplete="off"
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck={false}
-        data-form-type="other"
-        data-lpignore="true"
-        data-1p-ignore
+        role="presentation"
+        aria-autocomplete="list"
       />
 
       {cyrillicWarning && (

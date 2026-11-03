@@ -67,21 +67,65 @@
     background: var(--color-gray-40);
   }
 
+  &__actions {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 12px;
+  }
+
+  &__button__apply {
+    @include typo.font-button;
+    width: 100%;
+    height: 44px;
+    background-color: var(--color-primary);
+    text-align: center;
+    color: var(--color-gray-90);
+    border-radius: 12px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    outline: none;
+
+    transition:
+      background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.2s ease,
+      opacity 0.2s ease;
+
+    &:hover:not(:disabled) {
+      border-color: var(--color-primary--second);
+    }
+
+    &:active:not(:disabled) {
+      background-color: var(--color-primary--second);
+      transform: scale(0.98);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
   &__button__clear {
     @include typo.font-button;
     width: 100%;
     height: 44px;
     background-color: var(--color-white);
-    outline: 1px solid var(--color-gray-40);
+    border: 2px solid var(--color-gray-40);
     padding: 10px;
     border-radius: 12px;
     text-align: center;
     color: var(--color-gray-90);
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
 
     &:hover {
-      background-color: var(--color-gray-10, #f8f9fa);
+      background-color: var(--color-gray-1);
+      border-color: var(--color-gray-60);
+    }
+    &:active:not(:disabled) {
+      transform: scale(0.98);
     }
   }
 }
