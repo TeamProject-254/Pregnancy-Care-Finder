@@ -1,4 +1,8 @@
 import { api } from "./axios";
+import type {
+  ProviderSearchParams,
+  ProviderSummaryResponse,
+} from "./../types/filters";
 
 export interface PublicProvider {
   id: number;
@@ -37,12 +41,9 @@ export interface PublicProviderDetail extends PublicProvider {
   availabilities: PublicAvailability[];
 }
 
-export const searchProviders = async (): Promise<PublicProvider[]> => {
-  const { data } = await api.get<PublicProvider[]>("/providers/search");
-  return data;
-};
-
-export const getPublicProvider = async (id: string): Promise<PublicProviderDetail> => {
+export const getPublicProvider = async (
+  id: string,
+): Promise<PublicProviderDetail> => {
   const { data } = await api.get<PublicProviderDetail>(`/providers/${id}`);
   return data;
 };
@@ -103,6 +104,31 @@ export interface CreateAppointmentPayload {
   appointmentDateTime: string;
 }
 
-export const createAppointment = async (payload: CreateAppointmentPayload): Promise<void> => {
+export const createAppointment = async (
+  payload: CreateAppointmentPayload,
+): Promise<void> => {
   await api.post("/appointments", payload);
+};
+
+export const searchProviders = async (
+  filters: ProviderSearchParams = {},
+): Promise<ProviderSummaryResponse[]> => {
+  const cleanParams = Object.fromEntries(
+    Object.entries(filters).filter(([, value]) => {
+      if (Array.isArray(value)) return value.length > 0;
+      return value !== undefined && value !== null && value !== "";
+    }),
+  );
+
+  const response = await api.get<ProviderSummaryResponse[]>(
+    "/providers/search",
+    {
+      params: cleanParams,
+      paramsSerializer: {
+        indexes: null,
+      },
+    },
+  );
+
+  return response.data;
 };

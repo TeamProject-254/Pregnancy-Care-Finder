@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import styles from "./SearchFrom.module.scss";
+import styles from "./SearchForm.module.scss";
 import locationIcon from "../../assets/img/location-icon.svg";
 import doctorIcon from "../../assets/img/doctor-icon.svg";
+import { CityAutocomplete } from "../CityAutocomplete/CityAutocomplete";
 
 interface SearchFormProps {
   className?: string;
@@ -77,12 +78,9 @@ const SearchFormFields: React.FC<SearchFormFieldsProps> = ({
             alt="Location icon"
             className={styles.search__icon}
           />
-          <input
-            type="text"
-            className={styles.search__input}
-            placeholder="City or location"
+          <CityAutocomplete
             value={location}
-            onChange={(e) => setLocation(e.target.value)}
+            onSelectCity={(city) => setLocation(city)}
           />
         </div>
 
