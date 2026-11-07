@@ -66,8 +66,8 @@ export const buildSlotsByDate = (
     if (slot.status !== "FREE" || slot.date < today) return;
     const start = toMinutes(slot.startTime);
     const end = toMinutes(slot.endTime);
-    const firstStart = (Math.floor(start / SLOT_GRID_MINUTES) + 1) * SLOT_GRID_MINUTES;
-    for (let from = firstStart; from + duration < end; from += SLOT_GRID_MINUTES) {
+    const firstStart = Math.ceil(start / SLOT_GRID_MINUTES) * SLOT_GRID_MINUTES;
+    for (let from = firstStart; from + duration <= end; from += SLOT_GRID_MINUTES) {
       if (slot.date === today && from <= nowMinutes) continue;
       const overlapsBusy = busy.some(
         (interval) => interval.date === slot.date && from < interval.end && from + duration > interval.start,

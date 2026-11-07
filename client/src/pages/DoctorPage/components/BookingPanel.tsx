@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createAppointment } from "../../../api/providers";
-import { getPatientAppointments } from "../../../api/appointments";
+import { createAppointment, getPatientAppointments } from "../../../api/appointments";
+import { getMyPatientProfile } from "../../../api/patients";
 import { useAuth } from "../../../context/AuthContext";
 import blankProfilePicture from "../../../assets/img/blank-profile-picture-973460_1280.png";
 import type { DoctorData } from "../mockDoctor";
@@ -124,7 +124,9 @@ export const BookingPanel = ({ data, isMobileOpen, onMobileClose }: Props) => {
     if (isDemo) {
       await new Promise((resolve) => window.setTimeout(resolve, 500));
     } else {
+      const patient = await getMyPatientProfile();
       await createAppointment({
+        patientId: patient.id,
         providerId: provider.id,
         serviceId: service.id,
         appointmentDateTime: `${date}T${time}:00`,

@@ -1,3 +1,5 @@
+@use "../../styles/typography" as typo;
+
 .select {
   position: relative;
   width: 100%;
@@ -136,9 +138,106 @@
   }
 }
 
+.select--search {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+
+  .select__trigger {
+    height: 44px;
+    padding: 0 1.75rem 0 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-gray-90);
+    @include typo.font-h5;
+    font-weight: 400;
+    transition: color 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+
+    &:hover { color: var(--color-primary--second); }
+    &:focus-visible { outline: 2px solid var(--color-primary--second); outline-offset: 3px; }
+    &.select__trigger--open { color: var(--color-primary--second); }
+  }
+
+  .select__placeholder {
+    color: var(--color-gray-70);
+    font-weight: 400;
+  }
+
+  .select__value {
+    color: var(--color-gray-90);
+    font-weight: 500;
+  }
+
+  .select__arrow {
+    border-color: currentColor;
+  }
+
+  .select__menu {
+    z-index: 30;
+    top: calc(100% + 8px);
+    max-height: 280px;
+    padding: 6px;
+    border-color: var(--color-gray-40);
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgb(33 37 41 / 14%);
+    animation: search-select-appear 160ms ease-out both;
+  }
+
+  .select__option {
+    padding: 10px 12px;
+    border-radius: 8px;
+    color: var(--color-gray-80);
+    @include typo.font-secondary;
+    cursor: pointer;
+    transition: color 160ms ease, background-color 160ms ease, transform 160ms ease;
+
+    &:hover { transform: translateX(2px); }
+  }
+
+  .select__option--active {
+    background: #fff2ee;
+    color: var(--color-primary--second);
+  }
+
+  .select__option--selected {
+    background: var(--color-primary);
+    color: var(--color-gray-90);
+    font-weight: 600;
+  }
+
+  .select__option--selected.select__option--active {
+    background: #f6c5b8;
+  }
+}
+
+@keyframes search-select-appear {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @media (max-width: 600px) {
   .select--default .select__trigger {
     height: 44px;
     font-size: 16px;
+  }
+}
+
+@media (max-width: 760px) {
+  .select--search .select__trigger {
+    height: 32px;
+    padding-right: 1.5rem;
+    border-radius: 6px;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .select--search .select__menu { top: calc(100% + 6px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .select--search *, .select--search *::before, .select--search *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
   }
 }

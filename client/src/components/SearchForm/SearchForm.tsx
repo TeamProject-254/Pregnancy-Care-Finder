@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import styles from "./SearchForm.module.scss";
 import locationIcon from "../../assets/img/location-icon.svg";
 import doctorIcon from "../../assets/img/doctor-icon.svg";
 import { CityAutocomplete } from "../CityAutocomplete/CityAutocomplete";
+import { PROVIDER_SPECIALTIES } from "../../constants/providerOptions";
+import { getMyPatientProfile } from "../../api/patients";
+import { useAuth } from "../../context/AuthContext";
+import { SelectDropdown } from "../SelectDropdown/SelectDropdown";
 
 interface SearchFormProps {
   className?: string;
@@ -38,9 +42,30 @@ const SearchFormFields: React.FC<SearchFormFieldsProps> = ({
   initialLocation,
 }) => {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [specialty, setSpecialty] = useState(initialSpecialty);
   const [location, setLocation] = useState(initialLocation);
+  const [savedProfileLocation, setSavedProfileLocation] = useState("");
+  const profileLocationRequested = useRef(false);
+
+  const handleLocationFocus = () => {
+    if (user?.role !== "PATIENT" || profileLocationRequested.current) return;
+    profileLocationRequested.current = true;
+    void getMyPatientProfile()
+      .then((profile) => setSavedProfileLocation(profile.location || ""))
+      .catch(() => undefined);
+  };
+
+  const specialtyOptions = specialty
+    ? [
+        { value: "", label: "Any specialty" },
+        ...(PROVIDER_SPECIALTIES.includes(specialty as typeof PROVIDER_SPECIALTIES[number])
+          ? []
+          : [specialty]),
+        ...PROVIDER_SPECIALTIES,
+      ]
+    : PROVIDER_SPECIALTIES;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,12 +86,14 @@ const SearchFormFields: React.FC<SearchFormFieldsProps> = ({
             alt="Doctor icon"
             className={styles.search__icon}
           />
-          <input
-            type="text"
-            className={styles.search__input}
-            placeholder="Specialty of Service (eg., Gynecologist)"
+          <SelectDropdown
+            className={styles.searchSpecialtySelect}
+            variant="search"
             value={specialty}
-            onChange={(e) => setSpecialty(e.target.value)}
+            placeholder="Specialty of Service (eg., Gynecologist)"
+            ariaLabel="Choose a doctor's specialty"
+            options={specialtyOptions}
+            onChange={setSpecialty}
           />
         </div>
 
@@ -81,6 +108,8 @@ const SearchFormFields: React.FC<SearchFormFieldsProps> = ({
           <CityAutocomplete
             value={location}
             onSelectCity={(city) => setLocation(city)}
+            suggestedLocation={savedProfileLocation}
+            onFocus={handleLocationFocus}
           />
         </div>
 
