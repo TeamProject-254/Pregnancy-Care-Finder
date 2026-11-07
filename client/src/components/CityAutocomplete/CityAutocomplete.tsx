@@ -46,6 +46,8 @@ interface CityAutocompleteProps {
   inputClassName?: string;
   placeholder?: string;
   showLabel?: boolean;
+  suggestedLocation?: string;
+  onFocus?: () => void;
 }
 
 export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
@@ -56,6 +58,8 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
   inputClassName,
   placeholder = "e.g. Kyiv, Lviv, Odesa (English only)",
   showLabel = false,
+  suggestedLocation = "",
+  onFocus,
 }) => {
   const [inputValue, setInputValue] = useState<string>(value);
   const [suggestions, setSuggestions] = useState<PlaceAutocompleteSuggestion[]>(
@@ -66,6 +70,9 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
   const [isCitySelected, setIsCitySelected] = useState<boolean>(Boolean(value));
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [previousValue, setPreviousValue] = useState(value);
+  const canSuggestSavedLocation = Boolean(
+    suggestedLocation && suggestedLocation.trim().toLowerCase() !== inputValue.trim().toLowerCase(),
+  );
 
   if (value !== previousValue) {
     setPreviousValue(value);
@@ -85,6 +92,12 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (suggestedLocation && document.activeElement === wrapperRef.current?.querySelector("input")) {
+      setIsOpen(true);
+    }
+  }, [suggestedLocation]);
 
   useEffect(() => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -114,7 +127,7 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
     if (hasCyrillic) {
       setCyrillicWarning(true);
       setSuggestions([]);
-      setIsOpen(false);
+      setIsOpen(Boolean(suggestedLocation));
       return;
     }
 
@@ -122,7 +135,7 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
 
     if (text.trim().length < 1) {
       setSuggestions([]);
-      setIsOpen(false);
+      setIsOpen(Boolean(suggestedLocation));
       return;
     }
 
@@ -153,10 +166,10 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
         );
 
         setSuggestions(strictlyEnglishResults);
-        setIsOpen(strictlyEnglishResults.length > 0);
+        setIsOpen(strictlyEnglishResults.length > 0 || Boolean(suggestedLocation));
       } else {
         setSuggestions([]);
-        setIsOpen(false);
+        setIsOpen(Boolean(suggestedLocation));
       }
     } catch (err: unknown) {
       console.error("Places API (New) error:", err);
@@ -172,6 +185,14 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
     setInputValue(title);
     setIsCitySelected(true);
     onSelectCity(title);
+    setIsOpen(false);
+  };
+
+  const handleSelectSavedLocation = (): void => {
+    const savedLocation = suggestedLocation.trim();
+    setInputValue(savedLocation);
+    setIsCitySelected(true);
+    onSelectCity(savedLocation);
     setIsOpen(false);
   };
 
@@ -199,7 +220,10 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
         value={inputValue}
         onChange={handleInputChange}
         onBlur={handleBlur}
-        onFocus={() => suggestions.length > 0 && setIsOpen(true)}
+        onFocus={() => {
+          onFocus?.();
+          if (suggestions.length > 0 || canSuggestSavedLocation) setIsOpen(true);
+        }}
         placeholder={placeholder}
         className={`${styles.input} ${
           error || cyrillicWarning ? styles.inputError : ""
@@ -218,8 +242,21 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
         </span>
       )}
 
-      {isOpen && suggestions.length > 0 && (
+      {isOpen && (suggestions.length > 0 || canSuggestSavedLocation) && (
         <ul className={styles.dropdown}>
+          {canSuggestSavedLocation && (
+            <li
+              key="saved-location"
+              onMouseDown={(event) => {
+                event.preventDefault();
+                handleSelectSavedLocation();
+              }}
+              className={`${styles.dropdownItem} ${styles.savedLocationItem}`}
+            >
+              <span className={styles.savedLocationHint}>Use your profile location</span>
+              <span>{suggestedLocation}</span>
+            </li>
+          )}
           {suggestions.map((s: PlaceAutocompleteSuggestion, idx: number) => {
             const mainText = s.placePrediction?.text?.text;
             return (

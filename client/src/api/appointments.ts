@@ -67,6 +67,35 @@ export const getProviderAppointments = () =>
 export const getPatientAppointments = () =>
   fetchAllPages("/appointments/patient");
 
+export const getUpcomingPatientAppointments = () =>
+  fetchAllPages("/appointments/patient/upcoming");
+
+export const getPastPatientAppointments = () =>
+  fetchAllPages("/appointments/patient/past");
+
+export const getPatientAppointment = async (id: number): Promise<AppointmentDto> => {
+  const { data } = await api.get<AppointmentDto>(`/appointments/patient/${id}`);
+  return data;
+};
+
+export interface CreateAppointmentPayload {
+  patientId: number;
+  providerId: number;
+  serviceId: number;
+  appointmentDateTime: string;
+}
+
+export const createAppointment = async (
+  payload: CreateAppointmentPayload,
+): Promise<AppointmentDto> => {
+  const { data } = await api.post<AppointmentDto>("/appointments", payload);
+  return data;
+};
+
+export const cancelPatientAppointment = async (id: number): Promise<void> => {
+  await api.delete(`/appointments/patient/${id}`);
+};
+
 export const confirmProviderAppointment = async (
   id: number,
   message?: string,

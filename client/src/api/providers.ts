@@ -98,18 +98,6 @@ export const updateMyProviderProfile = async (
   return data;
 };
 
-export interface CreateAppointmentPayload {
-  providerId: number;
-  serviceId: number;
-  appointmentDateTime: string;
-}
-
-export const createAppointment = async (
-  payload: CreateAppointmentPayload,
-): Promise<void> => {
-  await api.post("/appointments", payload);
-};
-
 export const searchProviders = async (
   filters: ProviderSearchParams = {},
 ): Promise<ProviderSummaryResponse[]> => {

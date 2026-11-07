@@ -14,7 +14,7 @@ interface SelectDropdownProps {
   ariaLabel?: string;
   invalid?: boolean;
   disabled?: boolean;
-  variant?: "default" | "bare" | "small";
+  variant?: "default" | "bare" | "small" | "search";
   className?: string;
   triggerClassName?: string;
   onChange: (value: string) => void;
