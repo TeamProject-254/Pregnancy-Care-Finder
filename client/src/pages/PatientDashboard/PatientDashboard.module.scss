@@ -714,6 +714,98 @@
   .profile__card { width: 100%; }
 }
 
+.confirmDialog {
+  position: relative;
+  width: min(100%, 600px);
+  gap: 14px;
+  padding: 96px 32px 32px;
+  border: 1px solid #cfd5dc;
+  border-radius: 7px;
+  box-shadow: 0 18px 55px rgba(33, 37, 41, 0.18);
+}
+.confirmCloseButton {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--color-gray-70);
+  transition: color 160ms ease, background-color 160ms ease, transform 160ms ease;
+
+  svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 1.8; }
+  &:hover:not(:disabled) { transform: rotate(90deg); background: #f1f3f5; color: var(--color-gray-90); }
+  &:disabled { cursor: wait; opacity: .5; }
+}
+.confirmDialog .confirmIcon {
+  display: block;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto;
+  border-radius: 0;
+  background: transparent;
+  object-fit: contain;
+}
+.confirmDialog h2 {
+  color: var(--color-gray-90);
+  font-family: var(--font-family-base);
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.confirmDescription {
+  max-width: 520px;
+  color: var(--color-gray-70) !important;
+  font-size: 17px !important;
+  line-height: 1.55 !important;
+
+  strong { color: var(--color-gray-90); font-weight: 700; }
+}
+.confirmWarning {
+  display: flex;
+  width: 100%;
+  min-height: 64px;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #ff4438;
+  border-radius: 8px;
+  text-align: left;
+
+  svg { width: 32px; height: 32px; flex: 0 0 32px; fill: none; stroke: #ff4438; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+  p { color: var(--color-gray-90); font-size: 15px; line-height: 1.35; }
+}
+.confirmActions { gap: 16px; margin-top: 10px; }
+.cancelConfirmButton,
+.keepAppointmentButton {
+  min-height: 60px;
+  border-radius: 8px;
+  font-family: var(--font-family-base);
+  font-size: 18px;
+  font-weight: 600;
+  transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+
+  &:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 7px 16px rgba(33, 37, 41, .1); }
+}
+.cancelConfirmButton { border-color: var(--color-primary); background: var(--color-primary); color: var(--color-gray-90); }
+.cancelConfirmButton:hover:not(:disabled) { border-color: #e99a86; background: #e99a86; }
+.keepAppointmentButton { border-color: #ff4438; background: #fff; color: var(--color-primary); }
+.keepAppointmentButton:hover:not(:disabled) { border-color: var(--color-primary--second); background: #fff6f3; }
+
+@media (max-width: 600px) {
+  .confirmDialog { gap: 12px; padding: 76px 20px 22px; }
+  .confirmCloseButton { top: 16px; right: 16px; }
+  .confirmDialog .confirmIcon { width: 96px; height: 96px; }
+  .confirmDialog h2 { font-size: 25px; }
+  .confirmDescription { font-size: 15px !important; }
+  .confirmWarning { gap: 9px; padding: 10px; }
+  .confirmWarning p { font-size: 13px; }
+  .cancelConfirmButton, .keepAppointmentButton { min-height: 52px; font-size: 16px; }
+}
+
 .faqPanel {
   min-height: 360px;
   padding: 28px;
