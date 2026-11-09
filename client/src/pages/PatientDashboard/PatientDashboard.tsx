@@ -12,6 +12,7 @@ import {
 } from "../../api/patients";
 import { PatientEditForm } from "./components/PatientEditForm";
 import defaultAvatar from "../../assets/img/profile-icon.svg";
+import cancelAppointmentIcon from "../../assets/img/cancel-appointment-icon.svg";
 import locationIcon from "../../assets/img/location-icon.svg";
 import languagesIcon from "../../assets/img/languages-icon.svg";
 import appointmentsIcon from "../../assets/img/appointments-icon.svg";
@@ -229,6 +230,14 @@ export const PatientDashboard = () => {
   };
 
   const displayName = profile?.firstName || "there";
+  const cancelAppointmentDate = cancelTarget
+    ? formatAppointmentDate(cancelTarget.appointmentDateTime)
+    : null;
+  const cancelProviderName = cancelTarget
+    ? [cancelTarget.providerFirstName, cancelTarget.providerLastName]
+        .filter(Boolean)
+        .join(" ") || "your provider"
+    : "";
 
   return (
     <div className={styles.main__content}>
@@ -740,17 +749,25 @@ export const PatientDashboard = () => {
             aria-labelledby="cancel-appointment-title"
             aria-describedby="cancel-appointment-description"
           >
-            <span className={styles.confirmIcon} aria-hidden="true">
-              !
-            </span>
-            <h2 id="cancel-appointment-title">Cancel this appointment?</h2>
-            <p id="cancel-appointment-description">
-              Your appointment with{" "}
-              {[cancelTarget.providerFirstName, cancelTarget.providerLastName]
-                .filter(Boolean)
-                .join(" ") || "your provider"}{" "}
-              will be cancelled.
+            <button
+              type="button"
+              className={styles.confirmCloseButton}
+              onClick={() => setCancelTarget(null)}
+              disabled={isCancelling}
+              aria-label="Close cancellation dialog"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+            </button>
+            <img className={styles.confirmIcon} src={cancelAppointmentIcon} alt="" />
+            <h2 id="cancel-appointment-title">Cancel appointment?</h2>
+            <p className={styles.confirmDescription} id="cancel-appointment-description">
+              Are you sure you want to cancel your appointment with<br />
+              <strong>{cancelTarget.providerFirstName || cancelTarget.providerLastName ? "Dr. " : ""}{cancelProviderName} on {cancelAppointmentDate?.month} {cancelAppointmentDate?.day}, {cancelTarget.appointmentDateTime.slice(0, 4)} at {cancelAppointmentDate?.time}?</strong>
             </p>
+            <div className={styles.confirmWarning}>
+              <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M13.4 4.8a3 3 0 0 1 5.2 0l10.2 18a3 3 0 0 1-2.6 4.5H5.8a3 3 0 0 1-2.6-4.5l10.2-18Z" /><path d="M16 11v7m0 4v.1" /></svg>
+              <p>This action cannot be undone. To choose another time, book a new appointment.</p>
+            </div>
             {cancelError && (
               <p className={styles.cancelError} role="alert">
                 {cancelError}
@@ -763,7 +780,7 @@ export const PatientDashboard = () => {
                 onClick={() => void handleCancelAppointment()}
                 disabled={isCancelling}
               >
-                {isCancelling ? "Cancelling…" : "Yes, cancel"}
+                {isCancelling ? "Cancelling…" : "Cancel appointment"}
               </button>
               <button
                 type="button"
