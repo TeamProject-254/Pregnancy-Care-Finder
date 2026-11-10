@@ -477,13 +477,6 @@
 
 .appointmentInfo { min-width: 0; flex: 1; }
 
-.appointmentCardTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
 .statusBadge {
   display: inline-flex;
   align-items: center;
@@ -497,13 +490,6 @@
 .statusPending { background: #fff6d9; color: #8a6810; }
 .statusConfirmed { background: #eaf7ed; color: #337348; }
 .statusCancelled { background: var(--color-gray-1); color: var(--color-gray-70); }
-
-.appointmentTime {
-  color: var(--color-gray-70);
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-}
 
 .appointmentInfo h3 {
   margin-top: 10px;
@@ -714,6 +700,154 @@
   .profile__card { width: 100%; }
 }
 
+.faqPanel {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 14px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  animation: dashboard-enter 420ms ease both;
+}
+.faqHeader h2 {
+  color: var(--color-gray-90);
+  font-family: var(--font-family-base);
+  font-size: 31px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.faqHeader p {
+  margin-top: 12px;
+  color: var(--color-gray-70);
+  font-family: var(--font-family-base);
+  font-size: 16px;
+}
+.faqSearch {
+  display: flex;
+  min-height: 60px;
+  align-items: center;
+  gap: 14px;
+  padding: 0 20px;
+  border: 1px solid var(--color-gray-40);
+  border-radius: 8px;
+  background: var(--color-white);
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+
+  &:focus-within { border-color: var(--color-primary--second); box-shadow: 0 0 0 3px rgba(210, 109, 94, .12); }
+  .faqSearchIcon { width: 28px; height: 28px; flex: 0 0 28px; fill: none; stroke: var(--color-gray-60); stroke-linecap: round; stroke-width: 1.7; }
+  input { width: 100%; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--color-gray-90); font-family: var(--font-family-base); font-size: 16px; }
+  input::placeholder { color: var(--color-gray-60); opacity: 1; }
+}
+.faqSearchClear {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--color-gray-60);
+  transition: color 160ms ease, background-color 160ms ease, transform 160ms ease;
+
+  svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-width: 1.8; }
+  &:hover { transform: rotate(90deg); background: #fff0eb; color: var(--color-primary--second); }
+  &:focus-visible { outline: 2px solid var(--color-primary--second); outline-offset: 2px; }
+}
+.faqTopics { display: flex; flex-direction: column; gap: 18px; }
+.faqTopic { display: flex; flex-direction: column; gap: 12px; }
+.faqTopic > h3 {
+  color: var(--color-gray-90);
+  font-family: var(--font-family-base);
+  font-size: 25px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+.faqQuestions { display: flex; flex-direction: column; gap: 12px; }
+.faqItem {
+  overflow: hidden;
+  border: 1px solid var(--color-gray-40);
+  border-radius: 8px;
+  background: #fffdfc;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+
+  &:hover { border-color: #e7a091; box-shadow: 0 4px 14px rgba(60, 43, 38, .05); }
+}
+.faqItemOpen { border-color: var(--color-primary); background: #fffaf8; }
+.faqQuestion {
+  display: flex;
+  width: 100%;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  color: var(--color-gray-90);
+  text-align: left;
+  font-family: var(--font-family-base);
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.35;
+
+  span { flex: 1; }
+  svg { width: 22px; height: 22px; flex: 0 0 22px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; transition: transform 220ms ease, color 180ms ease; }
+  &:hover { color: var(--color-primary--second); }
+  &:focus-visible { outline: 2px solid var(--color-primary--second); outline-offset: -3px; border-radius: 7px; }
+}
+.faqItemOpen .faqQuestion svg { transform: rotate(180deg); color: var(--color-primary--second); }
+.faqAnswer {
+  margin: 0 16px;
+  padding: 0 0 16px;
+  border-top: 1px solid var(--color-gray-40);
+  animation: faq-answer-in 220ms ease both;
+
+  p { margin-top: 12px; color: var(--color-gray-70); font-family: var(--font-family-base); font-size: 16px; line-height: 1.55; }
+}
+.faqSources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 10px;
+
+  a { color: var(--color-primary--second); font-family: var(--font-family-base); font-size: 13px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; transition: color 160ms ease; }
+  a:hover { color: var(--color-gray-90); }
+}
+.faqNoResults {
+  padding: 22px 18px;
+  border: 1px dashed var(--color-gray-40);
+  border-radius: 8px;
+  color: var(--color-gray-70);
+  font-family: var(--font-family-base);
+  text-align: center;
+}
+.faqDisclaimer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 18px;
+  border-radius: 8px;
+  background: #f1f3f5;
+
+  svg { width: 34px; height: 34px; flex: 0 0 34px; fill: none; stroke: var(--color-info); stroke-linecap: round; stroke-width: 1.6; }
+  p { color: var(--color-gray-80); font-family: var(--font-family-base); font-size: 14px; line-height: 1.5; }
+}
+@keyframes faq-answer-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 640px) {
+  .faqPanel { gap: 12px; }
+  .faqHeader h2 { font-size: 27px; }
+  .faqHeader p { margin-top: 8px; font-size: 14px; }
+  .faqSearch { min-height: 52px; padding-inline: 14px; }
+  .faqTopic > h3 { font-size: 21px; }
+  .faqQuestion { min-height: 58px; padding: 12px; font-size: 16px; }
+  .faqAnswer { margin-inline: 12px; }
+  .faqAnswer p { font-size: 14px; }
+  .faqDisclaimer { align-items: flex-start; padding: 13px; }
+}
+
 .confirmDialog {
   position: relative;
   width: min(100%, 600px);
@@ -804,24 +938,6 @@
   .confirmWarning { gap: 9px; padding: 10px; }
   .confirmWarning p { font-size: 13px; }
   .cancelConfirmButton, .keepAppointmentButton { min-height: 52px; font-size: 16px; }
-}
-
-.faqPanel {
-  min-height: 360px;
-  padding: 28px;
-  border: 1px solid #cfd5dc;
-  border-radius: 11px;
-  background: #fff;
-  animation: dashboard-enter 280ms ease both;
-}
-.faqPanel .eyebrow { display: block; margin-bottom: 8px; }
-.faqPanel .appointmentsTitle { margin-bottom: 24px; }
-.faqItem { padding: 18px 0; border-top: 1px solid #e4e7eb; }
-.faqItem h3 { color: #292d31; font-size: 17px; font-weight: 650; }
-.faqItem p { max-width: 680px; margin-top: 8px; color: #747d87; font-size: 14px; line-height: 1.65; }
-
-@media (max-width: 640px) {
-  .faqPanel { min-height: 0; padding: 20px 16px; }
 }
 
 @media (max-width: 480px) {
@@ -951,23 +1067,21 @@
 .appointmentTab span { background: transparent; font-size: 14px; }
 .appointmentTabActive span { background: transparent; color: inherit; }
 .appointmentList { gap: 0; padding: 18px 24px 10px; border: 1px solid #cfd5dc; border-radius: 11px; background: #fff; }
-.appointmentTableHeader { display: grid; grid-template-columns: 1fr 1.45fr .8fr auto; gap: 16px; padding: 0 0 15px; border-bottom: 1px solid #cfd5dc; color: #434950; font-size: 13px; font-weight: 700; text-transform: uppercase; }
-.appointmentCard { display: grid; grid-template-columns: 1fr 1.45fr .8fr auto; align-items: center; gap: 16px; padding: 16px 0; border: 0; border-bottom: 1px solid #cfd5dc; border-radius: 0; }
+.appointmentTableHeader { display: grid; grid-template-columns: minmax(145px, .95fr) minmax(220px, 1.45fr) minmax(150px, .95fr) 70px; gap: 16px; padding: 0 0 15px; border-bottom: 1px solid #cfd5dc; color: #434950; font-size: 13px; font-weight: 700; text-transform: uppercase; }
+.appointmentCard { display: grid; grid-template-columns: minmax(145px, .95fr) minmax(220px, 1.45fr) minmax(150px, .95fr) 70px; align-items: center; gap: 16px; padding: 16px 0; border: 0; border-bottom: 1px solid #cfd5dc; border-radius: 0; }
 .appointmentCard:hover { background: #fffaf8; box-shadow: none; }
-.appointmentDate { width: auto; min-height: auto; flex-direction: row; flex-wrap: wrap; justify-content: flex-start; gap: 4px; background: transparent; color: #292d31; }
-.appointmentDate span { order: 0; width: 100%; color: #292d31; font-size: 15px; text-transform: none; }
-.appointmentDate strong { order: 1; font-size: 15px; }
-.appointmentDate small { display: none; }
+.appointmentDate { width: auto; min-height: auto; flex-direction: column; flex-wrap: nowrap; align-items: flex-start; justify-content: center; gap: 6px; background: transparent; color: #292d31; }
+.appointmentDate strong { order: 0; font-size: 15px; white-space: nowrap; }
+.appointmentDate small { display: block; color: var(--color-gray-70); font-size: 12px; }
+.appointmentInfo { min-width: 0; }
 .appointmentInfo h3 { margin: 0; font-size: 15px; }
-.appointmentCardTop { display: contents; }
-.appointmentTime { grid-column: 1; grid-row: 2; justify-self: start; font-size: 12px; font-weight: 400; }
-.providerSpecialty { font-size: 12px; }
+.providerSpecialty { margin-top: 5px; color: var(--color-gray-70); font-size: 12px; }
 .appointmentDetails { display: none; }
-.statusBadge { justify-self: center; border-radius: 9px; font-size: 13px; }
+.appointmentStatus { width: 100%; min-width: 0; min-height: 44px; justify-content: center; border-radius: 10px; font-size: 15px; }
 .statusPending { background: #fff5d2; color: #292d31; }
-.statusConfirmed { background: #c1f2d1; color: #233a2d; }
+.appointmentCard .statusConfirmed { background: transparent; color: #292d31; }
 .statusCancelled { background: #f0eeee; }
-.cancelButton { margin: 0; padding: 8px 10px; border: 0; color: #ed4437; font-size: 14px; }
+.cancelButton { justify-self: center; margin: 0; padding: 8px 4px; border: 0; color: #ed4437; font-size: 14px; white-space: nowrap; }
 .cancelButton:hover { background: #fff0ed; }
 .appointmentEmpty,
 .appointmentState { min-height: 220px; }
@@ -1013,12 +1127,11 @@
   .nextActions { grid-column: auto; grid-template-columns: 1fr; }
   .appointmentList { padding: 12px 14px 6px; }
   .appointmentTableHeader { display: none; }
-  .appointmentCard { grid-template-columns: 1fr auto; gap: 6px 12px; }
-  .appointmentDate { grid-column: 1; }
-  .appointmentInfo { grid-column: 1; grid-row: 2; }
-  .appointmentTime { grid-column: 1; grid-row: 3; }
-  .statusBadge { grid-column: 2; grid-row: 1; }
-  .cancelButton { grid-column: 2; grid-row: 2 / 4; }
+  .appointmentCard { grid-template-columns: minmax(0, 1fr) auto; gap: 8px 12px; }
+  .appointmentDate { grid-column: 1; grid-row: 1; }
+  .appointmentInfo { grid-column: 1 / -1; grid-row: 2; }
+  .appointmentStatus { grid-column: 2; grid-row: 1; width: auto; min-width: 112px; }
+  .cancelButton { grid-column: 2; grid-row: 2; align-self: end; }
 }
 
 // Keep the profile card rules after the dashboard responsive styles.
