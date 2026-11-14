@@ -44,10 +44,12 @@ interface CityAutocompleteProps {
   error?: string;
   className?: string;
   inputClassName?: string;
+  inputId?: string;
   placeholder?: string;
   showLabel?: boolean;
   suggestedLocation?: string;
   onFocus?: () => void;
+  onBlur?: () => void;
 }
 
 export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
@@ -56,10 +58,12 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
   error,
   className,
   inputClassName,
+  inputId = "geo-search-query",
   placeholder = "e.g. Kyiv, Lviv, Odesa (English only)",
   showLabel = false,
   suggestedLocation = "",
   onFocus,
+  onBlur,
 }) => {
   const [inputValue, setInputValue] = useState<string>(value);
   const [suggestions, setSuggestions] = useState<PlaceAutocompleteSuggestion[]>(
@@ -197,6 +201,7 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
   };
 
   const handleBlur = (): void => {
+    onBlur?.();
     if (!isCitySelected) {
       setInputValue(value);
       if (!value) {
@@ -214,7 +219,7 @@ export const CityAutocomplete: React.FC<CityAutocompleteProps> = ({
       )}
 
       <input
-        id="geo-search-query"
+        id={inputId}
         name="custom-city-search-field"
         type="text"
         value={inputValue}

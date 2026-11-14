@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { api } from "../../../../api/axios";
 import { Checkbox } from "../../../../components/Checkbox/Checkbox";
 import { TextInput } from "../../../../components/TextInput/TextInput";
+import { CityAutocomplete } from "../../../../components/CityAutocomplete/CityAutocomplete";
 import { useAuth } from "../../../../context/AuthContext";
 import { PROVIDER_SPECIALTIES } from "../../../../constants/providerOptions";
 import { SelectDropdown } from "../../../../components/SelectDropdown/SelectDropdown";
@@ -182,14 +183,25 @@ export const ProviderProfileStep = ({ onBack, onSuccess }: ProviderProfileProps)
             {...register("contactPhone", { validate: validatePhone })}
           />
         </div>
-        <TextInput
-          id="address"
-          label="Consultation city/address"
-          placeholder="Enter city and consultation address"
-          compact
-          error={errors.address?.message}
-          {...register("address", { validate: validateAddress })}
-        />
+        <div className={styles.provider__field}>
+          <label htmlFor="address">Consultation city/address</label>
+          <Controller
+            name="address"
+            control={control}
+            rules={{ validate: validateAddress }}
+            render={({ field }) => (
+              <CityAutocomplete
+                inputId="address"
+                value={field.value}
+                onSelectCity={field.onChange}
+                onBlur={field.onBlur}
+                placeholder="Enter city and consultation address"
+                inputClassName={styles.provider__location__input}
+                error={errors.address?.message}
+              />
+            )}
+          />
+        </div>
       </div>
 
       <div className={styles.provider__consent}>

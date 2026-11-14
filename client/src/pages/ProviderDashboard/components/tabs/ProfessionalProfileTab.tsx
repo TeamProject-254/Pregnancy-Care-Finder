@@ -4,6 +4,7 @@ import { deleteMedicalService, type MedicalService } from "../../../../api/medic
 import doctorDefaultImage from "../../../../assets/img/doctorImage.svg";
 import { MultiSelectDropdown } from "../../../../components/MultiSelectDropdown/MultiSelectDropdown";
 import { SelectDropdown } from "../../../../components/SelectDropdown/SelectDropdown";
+import { CityAutocomplete } from "../../../../components/CityAutocomplete/CityAutocomplete";
 import { DeleteServiceModal } from "../modals/DeleteServiceModal";
 import { hideMedicalService } from "../hiddenServices";
 import { PROVIDER_LANGUAGES, PROVIDER_SPECIALTIES } from "../../../../constants/providerOptions";
@@ -234,7 +235,15 @@ export const ProfessionalProfileTab = ({
               </div>
               <div className="form-row">
                 <div className="form-group"><label>Contact phone</label><input required className={styles.mainInput} type="tel" value={profile.contactPhone} onChange={(e) => onUpdate("contactPhone", e.target.value)} /></div>
-                <div className="form-group"><label>Consultation city/address</label><input required className={styles.mainInput} value={profile.address} onChange={(e) => onUpdate("address", e.target.value)} /></div>
+                <div className="form-group">
+                  <label htmlFor="provider-consultation-location">Consultation city/address</label>
+                  <CityAutocomplete
+                    value={profile.address}
+                    onSelectCity={(address) => onUpdate("address", address)}
+                    inputClassName={styles.mainInput}
+                    placeholder="Enter city and consultation address"
+                  />
+                </div>
               </div>
             </>
           )}
