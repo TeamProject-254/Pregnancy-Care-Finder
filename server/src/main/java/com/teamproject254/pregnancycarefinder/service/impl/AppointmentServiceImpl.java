@@ -55,7 +55,7 @@ public class AppointmentServiceImpl implements AppointmentService {
         LocalTime startTime = request.appointmentDateTime().toLocalTime();
         LocalTime endTime = startTime.plusMinutes(medicalService.getDurationMinutes());
 
-        if (!availabilityRepository.existsByProviderIdAndDateAndStartTimeBeforeAndEndTimeAfter(request.providerId(), date, startTime, endTime)) {
+        if (availabilityRepository.findAndLockSlot(request.providerId(), date, startTime, endTime).isEmpty()) {
             throw new IllegalArgumentException("Provider is not available at this time");
         }
 
@@ -64,8 +64,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         appointment.setProvider(provider);
         appointment.setMedicalService(medicalService);
         appointment.setAppointmentStatus(AppointmentStatus.PENDING);
-        Appointment savedAppointment = appointmentRepository.save(appointment);
-
+        Appointment savedAppointment;
+        savedAppointment = appointmentRepository.save(appointment);
         return appointmentMapper.toResponse(savedAppointment);
     }
 

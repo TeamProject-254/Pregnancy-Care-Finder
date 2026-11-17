@@ -12,6 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,7 +21,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "appointments")
+@Table(name = "appointments", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"provider_id", "appointment_date_time"})
+})
 @Getter
 @Setter
 @NoArgsConstructor

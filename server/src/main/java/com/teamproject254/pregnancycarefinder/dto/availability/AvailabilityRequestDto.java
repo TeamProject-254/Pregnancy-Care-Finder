@@ -9,12 +9,13 @@ import java.time.LocalTime;
 
 @Data
 public class AvailabilityRequestDto {
-    @FutureOrPresent
-    @Column(nullable = false)
+    @FutureOrPresent(message = "Date must be present or in the future")
     @NotNull(message = "Date is required")
     private LocalDate date;
-    @Column(nullable = false)
+
+    @NotNull(message = "Start time is required")
     private LocalTime startTime;
-    @Column(nullable = false)
+
+    @NotNull(message = "End time is required")
     private LocalTime endTime;
 }

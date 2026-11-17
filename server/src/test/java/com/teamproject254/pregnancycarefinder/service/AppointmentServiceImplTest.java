@@ -8,6 +8,7 @@ import com.teamproject254.pregnancycarefinder.dto.ProviderDashboardStatsResponse
 import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
 import com.teamproject254.pregnancycarefinder.mapper.AppointmentMapper;
 import com.teamproject254.pregnancycarefinder.model.Appointment;
+import com.teamproject254.pregnancycarefinder.model.Availability;
 import com.teamproject254.pregnancycarefinder.model.MedicalService;
 import com.teamproject254.pregnancycarefinder.model.Patient;
 import com.teamproject254.pregnancycarefinder.model.Provider;
@@ -78,7 +79,7 @@ class AppointmentServiceImplTest {
         when(patientRepository.findByUserEmail(email)).thenReturn(Optional.of(patient));
         when(providerRepository.findById(1L)).thenReturn(Optional.of(provider));
         when(medicalServiceRepository.findById(1L)).thenReturn(Optional.of(service));
-        when(availabilityRepository.existsByProviderIdAndDateAndStartTimeBeforeAndEndTimeAfter(eq(1L), any(), any(), any())).thenReturn(true);
+        when(availabilityRepository.findAndLockSlot(eq(1L), any(), any(), any())).thenReturn(Optional.of(new Availability()));
         when(appointmentMapper.toEntity(request)).thenReturn(appointment);
         when(appointmentRepository.save(any(Appointment.class))).thenReturn(savedAppointment);
         when(appointmentMapper.toResponse(savedAppointment)).thenReturn(expectedResponse);
