@@ -196,33 +196,6 @@
   font-size: 14px;
 }
 
-.languagesGroup {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 24px;
-  min-height: 48px;
-  padding: 4px 0;
-}
-
-.checkboxLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  user-select: none;
-
-  &:hover .custom__checkbox {
-    border-color: var(--color-primary);
-  }
-}
-
-.checkboxText {
-  font-size: 16px;
-  color: var(--color-gray-90);
-  line-height: 1.2;
-}
-
 .checkbox__container {
   display: flex;
   align-items: flex-start;
@@ -365,10 +338,6 @@
   .input {
     height: 48px;
     font-size: 16px;
-  }
-
-  .languagesGroup {
-    gap: 0.75rem 1rem;
   }
 
   .actions {
