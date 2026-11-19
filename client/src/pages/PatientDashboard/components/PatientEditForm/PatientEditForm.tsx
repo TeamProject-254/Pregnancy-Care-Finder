@@ -7,12 +7,12 @@ import { useAuth } from "../../../../context/AuthContext";
 import type { PatientResponse } from "../../PatientDashboard";
 import defaultAvatar from "../../../../assets/img/profile-icon.svg";
 import { CityAutocomplete } from "../../../../components/CityAutocomplete/CityAutocomplete";
+import { MultiSelectDropdown } from "../../../../components/MultiSelectDropdown/MultiSelectDropdown";
+import { PROVIDER_LANGUAGES } from "../../../../constants/providerOptions";
 import styles from "./PatientEditForm.module.scss";
 
 const CLOUDINARY_CLOUD_NAME = "gjckdqml";
 const CLOUDINARY_UPLOAD_PRESET = "BloomCare";
-
-const AVAILABLE_LANGUAGES = ["English", "Ukrainian", "Polish"] as const;
 
 interface PatientEditFormProps {
   initialData: PatientResponse | null;
@@ -59,7 +59,6 @@ export const PatientEditForm = ({
     register,
     handleSubmit,
     control,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     defaultValues: {
@@ -74,8 +73,6 @@ export const PatientEditForm = ({
       explicitConsent: initialData?.explicitConsent ?? false,
     },
   });
-
-  const selectedLanguages = watch("languages") || [];
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -325,49 +322,20 @@ export const PatientEditForm = ({
         </div>
         <div className={styles.field}>
           <label className={styles.label}>Spoken languages</label>
-
-          <div className={styles.languagesGroup}>
-            {AVAILABLE_LANGUAGES.map((lang) => {
-              const isChecked = selectedLanguages.includes(lang);
-
-              return (
-                <label key={lang} className={styles.checkboxLabel}>
-                  <input
-                    type="checkbox"
-                    value={lang}
-                    className={styles.real__checkbox}
-                    {...register("languages")}
-                  />
-                  <span className={styles.custom__checkbox}>
-                    {isChecked && (
-                      <svg
-                        width="12"
-                        height="10"
-                        viewBox="0 0 12 10"
-                        fill="none"
-                        className={styles.checkIcon}
-                      >
-                        <path
-                          d="M1 5L4.5 8.5L11 1.5"
-                          stroke="white"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    )}
-                  </span>
-                  <span className={styles.checkboxText}>{lang}</span>
-                </label>
-              );
-            })}
-          </div>
-
-          {errors.languages && (
-            <span className={styles.error_text}>
-              {errors.languages.message}
-            </span>
-          )}
+          <Controller
+            name="languages"
+            control={control}
+            render={({ field }) => (
+              <MultiSelectDropdown
+                id="patient-languages"
+                label="Spoken languages"
+                options={PROVIDER_LANGUAGES}
+                value={field.value || []}
+                placeholder="Select languages"
+                onChange={field.onChange}
+              />
+            )}
+          />
         </div>
 
         <div className={styles.consent__row}>
