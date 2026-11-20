@@ -34,5 +34,14 @@ public class Availability {
     private LocalTime endTime;
 
     @Enumerated(EnumType.STRING)
-    private AvailabilityStatus status;
+    @Column(nullable = false)
+    @Builder.Default
+    private AvailabilityStatus status = AvailabilityStatus.FREE;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.status == null) {
+            this.status = AvailabilityStatus.FREE;
+        }
+    }
 }

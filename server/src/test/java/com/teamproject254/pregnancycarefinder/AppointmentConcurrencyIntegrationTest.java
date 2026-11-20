@@ -1,5 +1,7 @@
 package com.teamproject254.pregnancycarefinder;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.teamproject254.pregnancycarefinder.dto.AppointmentCreateRequest;
@@ -8,6 +10,7 @@ import com.teamproject254.pregnancycarefinder.model.MedicalService;
 import com.teamproject254.pregnancycarefinder.model.Patient;
 import com.teamproject254.pregnancycarefinder.model.Provider;
 import com.teamproject254.pregnancycarefinder.model.User;
+import com.teamproject254.pregnancycarefinder.model.enums.AvailabilityStatus;
 import com.teamproject254.pregnancycarefinder.model.enums.Role;
 import com.teamproject254.pregnancycarefinder.repository.AvailabilityRepository;
 import com.teamproject254.pregnancycarefinder.repository.MedicalServiceRepository;
@@ -17,6 +20,7 @@ import com.teamproject254.pregnancycarefinder.repository.UserRepository;
 import com.teamproject254.pregnancycarefinder.service.AppointmentService;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,12 +53,20 @@ public class AppointmentConcurrencyIntegrationTest {
 
     private Long testProviderId;
     private Long testServiceId;
+    private Long testAvailabilityId;
     private LocalDateTime testDate;
+    private String patient1Email;
+    private String patient2Email;
 
     @BeforeEach
     void setUp() {
+        String uniqueSuffix = UUID.randomUUID().toString();
+        String providerEmail = "provider_" + uniqueSuffix + "@test.com";
+        patient1Email = "patient1_" + uniqueSuffix + "@test.com";
+        patient2Email = "patient2_" + uniqueSuffix + "@test.com";
+
         User providerUser = new User();
-        providerUser.setEmail("provider1001@test.com");
+        providerUser.setEmail(providerEmail);
         providerUser.setPassword("password");
         providerUser.setRole(Role.PROVIDER);
         providerUser.setTermsAccepted(true);
@@ -89,10 +101,12 @@ public class AppointmentConcurrencyIntegrationTest {
         availability.setDate(testDate.toLocalDate());
         availability.setStartTime(testDate.toLocalTime());
         availability.setEndTime(testDate.toLocalTime().plusMinutes(30));
-        availabilityRepository.save(availability);
+        availability.setStatus(AvailabilityStatus.FREE);
+        availability = availabilityRepository.save(availability);
+        testAvailabilityId = availability.getId();
 
         User user1 = new User();
-        user1.setEmail("patient1001@test.com");
+        user1.setEmail(patient1Email);
         user1.setPassword("password");
         user1.setRole(Role.PATIENT);
         user1.setTermsAccepted(true);
@@ -102,7 +116,7 @@ public class AppointmentConcurrencyIntegrationTest {
         patientRepository.save(patient1);
 
         User user2 = new User();
-        user2.setEmail("patient1011@test.com");
+        user2.setEmail(patient2Email);
         user2.setPassword("password");
         user2.setRole(Role.PATIENT);
         user2.setTermsAccepted(true);
@@ -124,7 +138,7 @@ public class AppointmentConcurrencyIntegrationTest {
         Future<Boolean> future1 = executorService.submit(() -> {
             latch.await();
             try {
-                appointmentService.createAppointment("patient1001@test.com", request);
+                appointmentService.createAppointment(patient1Email, request);
                 return true;
             } catch (Exception e) {
                 return false;
@@ -134,7 +148,7 @@ public class AppointmentConcurrencyIntegrationTest {
         Future<Boolean> future2 = executorService.submit(() -> {
             latch.await();
             try {
-                appointmentService.createAppointment("patient1011@test.com", request);
+                appointmentService.createAppointment(patient2Email, request);
                 return true;
             } catch (Exception e) {
                 return false;
@@ -150,5 +164,23 @@ public class AppointmentConcurrencyIntegrationTest {
 
         assertTrue((result1 && !result2) || (!result1 && result2),
                 "Double booking occurred! Both threads succeeded or both failed.");
+
+        Availability updatedSlot = availabilityRepository.findById(testAvailabilityId).orElseThrow();
+        assertEquals(AvailabilityStatus.BOOKED, updatedSlot.getStatus());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenTryingToBookAlreadyBookedSlot() {
+        Availability slot = availabilityRepository.findById(testAvailabilityId).orElseThrow();
+        slot.setStatus(AvailabilityStatus.BOOKED);
+        availabilityRepository.saveAndFlush(slot);
+
+        AppointmentCreateRequest request = new AppointmentCreateRequest(testProviderId, testServiceId, 1L, testDate);
+
+        assertThrows(IllegalStateException.class,
+                () -> appointmentService.createAppointment(patient1Email, request));
+
+        Availability updatedSlot = availabilityRepository.findById(testAvailabilityId).orElseThrow();
+        assertEquals(AvailabilityStatus.BOOKED, updatedSlot.getStatus());
     }
 }

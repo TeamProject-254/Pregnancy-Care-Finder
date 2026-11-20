@@ -270,6 +270,20 @@ class AppointmentControllerTest {
 
     @Test
     @WithMockUser(roles = "PATIENT")
+    void shouldReturnPatientErrorWhenSlotIsUnavailable() throws Exception {
+        AppointmentCreateRequest request = new AppointmentCreateRequest(1L, 1L, 1L, LocalDateTime.now().plusDays(1));
+        when(appointmentService.createAppointment(any(), any()))
+                .thenThrow(new IllegalStateException("Slot is no longer available"));
+
+        mockMvc.perform(post("/appointments")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    @WithMockUser(roles = "PATIENT")
     void shouldForbiddenWhenConfirmAccessedByPatient() throws Exception {
         mockMvc.perform(patch("/appointments/provider/1/confirm")
                         .with(csrf()))
