@@ -118,6 +118,7 @@ export const FiltersSideBar: React.FC<FiltersSidebarProps> = ({
       availability,
       languages: languages.filter((language) => language !== MY_LANGUAGES_OPTION),
     });
+    onMobileClose?.();
   };
 
   const handleClearFilters = () => {

@@ -1020,6 +1020,7 @@
 
 .appointmentsPanel {
   display: flex;
+  width: 100%;
   min-width: 0;
   flex-direction: column;
   gap: 24px;
@@ -1029,6 +1030,7 @@
   background: transparent;
   box-shadow: none;
   animation: dashboard-enter 560ms 70ms both;
+  container-type: inline-size;
 }
 .nextAppointment,
 .appointmentEmpty,
@@ -1193,4 +1195,272 @@
 }
 @media (max-width: 900px) {
   .profile__card { width: 100%; }
+}
+
+.mobileDashboardNav,
+.mobileEditButton {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .main__content {
+    align-items: flex-start;
+    padding: 0 0 24px;
+  }
+
+  .content__wrapper {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .title__block {
+    display: block;
+    padding: 12px 16px 11px;
+  }
+
+  .title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: 0;
+  }
+
+  .title__desc {
+    margin-top: 12px;
+    font-size: 16px;
+    line-height: 1.35;
+  }
+
+  .error__banner {
+    margin: 8px 16px 12px;
+  }
+
+  .mobileDashboardNav {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) minmax(0, 1.15fr);
+    gap: 8px;
+    padding: 0 16px 24px;
+    border-bottom: 1px solid #e5e8eb;
+
+    button {
+      display: flex;
+      min-width: 0;
+      min-height: 44px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8px;
+      overflow: hidden;
+      border: 1px solid #ed6b5c;
+      border-radius: 11px;
+      background: transparent;
+      color: #292d31;
+      font-family: var(--font-family-base);
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.2;
+      text-align: center;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease;
+
+      &:active { transform: scale(.97); }
+    }
+  }
+
+  .mobileDashboardNavActive {
+    border-color: #f3aa97 !important;
+    background: #f3aa97 !important;
+  }
+
+  .dashboard__body {
+    gap: 0;
+    margin-top: 0;
+  }
+
+  .profile__card {
+    width: 100%;
+    padding: 24px 25px 24px;
+    border: 0;
+    border-bottom: 1px solid #e5e8eb;
+    border-radius: 0;
+    background: #fff;
+    animation: none;
+  }
+
+  .profile__card .avatar__wrapper {
+    width: 100px;
+    height: 100px;
+  }
+
+  .profile__card .user__info {
+    margin-top: 9px;
+    gap: 5px;
+  }
+
+  .profile__card .user__name {
+    font-size: 17px;
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  .profile__card .user__role {
+    font-size: 16px;
+    line-height: 1.35;
+  }
+
+  .profile__card .meta__list {
+    gap: 10px;
+    margin-top: 25px;
+  }
+
+  .profile__card .meta__item { gap: 13px; }
+  .profile__card .meta__icon { width: 31px; height: 31px; }
+  .profile__card .meta__texts { gap: 2px; }
+  .profile__card .meta__label { font-size: 17px; line-height: 1.25; }
+  .profile__card .meta__value { font-size: 12px; line-height: 1.4; }
+
+  .profile__card .pregnancy__block {
+    gap: 14px;
+    margin-top: 14px;
+  }
+
+  .profile__card .pregnancy__label {
+    font-size: 17px;
+    line-height: 1.3;
+  }
+
+  .profile__card .pregnancy__badge {
+    height: 44px;
+    font-size: 18px;
+  }
+
+  .profile__card .pregnancy__input {
+    height: 44px;
+    font-size: 17px;
+  }
+
+  .mobileEditButton {
+    display: flex;
+    width: 100%;
+    min-height: 44px;
+    align-items: center;
+    justify-content: center;
+    margin-top: 24px;
+    border: 0;
+    border-radius: 10px;
+    background: #f3aa97;
+    color: #292d31;
+    font-family: var(--font-family-base);
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 180ms ease, transform 180ms ease;
+
+    &:active { transform: scale(.985); }
+  }
+
+  .profileMenu { display: none; }
+
+  .appointmentsPanel {
+    width: 100%;
+    gap: 20px;
+    padding: 22px 16px 24px;
+    box-sizing: border-box;
+  }
+
+  .appointmentTabs {
+    max-width: 100%;
+    gap: 18px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .appointmentTabs::-webkit-scrollbar { display: none; }
+
+  .faqPanel { padding: 0; }
+}
+
+@media (max-width: 360px) {
+  .mobileDashboardNav {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 6px;
+    padding-inline: 12px;
+
+    button { padding-inline: 5px; font-size: 11px; }
+  }
+
+  .profile__card { padding-inline: 20px; }
+}
+
+/* Final narrow-layout overrides for appointment cards and rows. */
+@media (max-width: 900px) {
+  .nextAppointment { width: 100%; min-width: 0; box-sizing: border-box; overflow: hidden; }
+  .nextAppointmentBody { width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); }
+  .nextProvider, .nextProvider div, .nextDetails, .nextActions, .appointmentInfo { min-width: 0; }
+  .nextProvider strong, .nextProvider span, .nextDetails, .appointmentInfo h3, .providerSpecialty { overflow-wrap: anywhere; }
+  .nextActions { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .nextActions button, .nextActions a { width: 100%; min-width: 0; box-sizing: border-box; padding: 8px; text-align: center; overflow-wrap: anywhere; }
+  .appointmentList { width: 100%; min-width: 0; box-sizing: border-box; overflow: hidden; }
+  .appointmentTableHeader, .appointmentCard { grid-template-columns: minmax(0, .9fr) minmax(0, 1.35fr) minmax(90px, .8fr) 58px; gap: 12px; }
+  .appointmentStatus { min-width: 0; padding-inline: 6px; text-align: center; }
+  .cancelButton { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+}
+
+@media (max-width: 760px) {
+  .nextAppointment { padding: 14px; }
+  .nextAppointmentHeading { align-items: flex-start; gap: 10px; }
+  .nextAppointmentHeading h2 { min-width: 0; font-size: clamp(19px, 5vw, 23px); line-height: 1.25; }
+  .nextAppointmentHeading .statusBadge { flex: 0 0 auto; min-height: 36px; padding-inline: 12px; }
+  .nextAppointmentBody { grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 18px; }
+  .nextProvider img { width: 64px; height: 64px; flex-basis: 64px; }
+  .nextActions { grid-column: auto; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .nextActions button, .nextActions a { min-height: 44px; white-space: normal; }
+  .appointmentList { padding: 12px; }
+  .appointmentTableHeader { display: none; }
+  .appointmentCard { width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 12px; box-sizing: border-box; padding: 14px 0; }
+  .appointmentDate { grid-column: 1; grid-row: 1; min-width: 0; align-items: flex-start; }
+  .appointmentDate strong { white-space: normal; }
+  .appointmentStatus { grid-column: 2; grid-row: 1; width: auto; min-width: 94px; max-width: 100%; min-height: 38px; }
+  .appointmentInfo { grid-column: 1 / -1; grid-row: 2; width: 100%; }
+  .appointmentInfo h3 { margin: 0; }
+  .appointmentDetails { gap: 5px 10px; }
+  .cancelButton { grid-column: 1 / -1; grid-row: 3; justify-self: end; align-self: center; margin: 0; padding: 8px 10px; white-space: nowrap; }
+}
+
+@media (max-width: 380px) {
+  .nextAppointmentHeading .statusBadge { padding-inline: 9px; font-size: 13px; }
+  .appointmentCard { gap: 8px; }
+  .appointmentStatus { min-width: 86px; font-size: 13px; }
+}
+
+/* Adapt to the actual dashboard column width, which can be narrower than the viewport. */
+@container (max-width: 760px) {
+  .nextAppointment { width: 100%; min-width: 0; box-sizing: border-box; overflow: hidden; padding: 14px; }
+  .nextAppointmentHeading { align-items: flex-start; gap: 10px; }
+  .nextAppointmentHeading h2 { min-width: 0; font-size: clamp(19px, 5cqi, 23px); line-height: 1.25; }
+  .nextAppointmentHeading .statusBadge { flex: 0 0 auto; min-height: 36px; padding-inline: 12px; }
+  .nextAppointmentBody { width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr); gap: 14px; margin-top: 18px; }
+  .nextProvider, .nextProvider div, .nextDetails, .nextActions { min-width: 0; }
+  .nextProvider img { width: 64px; height: 64px; flex-basis: 64px; }
+  .nextProvider strong, .nextProvider span, .nextDetails { overflow-wrap: anywhere; }
+  .nextActions { grid-column: auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .nextActions button, .nextActions a { width: 100%; min-width: 0; min-height: 44px; box-sizing: border-box; padding: 8px 12px; text-align: center; white-space: normal; overflow-wrap: anywhere; }
+
+  .appointmentList { width: 100%; min-width: 0; box-sizing: border-box; overflow: hidden; padding: 12px; }
+  .appointmentTableHeader { display: none; }
+  .appointmentCard { width: 100%; min-width: 0; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 12px; box-sizing: border-box; padding: 14px 0; }
+  .appointmentDate { grid-column: 1; grid-row: 1; min-width: 0; align-items: flex-start; }
+  .appointmentDate strong { white-space: normal; }
+  .appointmentInfo { grid-column: 1 / -1; grid-row: 2; width: 100%; min-width: 0; }
+  .appointmentInfo h3, .providerSpecialty { overflow-wrap: anywhere; }
+  .appointmentStatus { grid-column: 2; grid-row: 1; width: auto; min-width: 94px; max-width: 100%; min-height: 38px; padding-inline: 8px; text-align: center; }
+  .cancelButton { grid-column: 1 / -1; grid-row: 3; justify-self: end; align-self: center; min-width: 0; margin: 0; padding: 8px 10px; white-space: nowrap; }
+}
+
+@container (max-width: 380px) {
+  .nextAppointmentHeading .statusBadge { padding-inline: 9px; font-size: 13px; }
+  .appointmentCard { gap: 8px; }
+  .appointmentStatus { min-width: 86px; font-size: 13px; }
 }

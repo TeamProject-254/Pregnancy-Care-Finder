@@ -280,6 +280,15 @@ export const PatientDashboard = () => {
         )[0],
     [appointments],
   );
+  const upcomingAppointmentsCount = useMemo(() => {
+    const now = new Date();
+    return appointments.filter(
+      (appointment) =>
+        !isCancelled(appointment) &&
+        appointment.status !== "COMPLETED" &&
+        parseAppointmentDate(appointment.appointmentDateTime) >= now,
+    ).length;
+  }, [appointments]);
 
   const handleWeekChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -344,7 +353,7 @@ export const PatientDashboard = () => {
             <p className={styles.eyebrow}>YOUR BLOOMCARE ACCOUNT</p>
             <h1 className={styles.title}>Welcome back, {displayName}!</h1>
             <p className={styles.title__desc}>
-              Your care and appointments, all in one place.
+              Manage your profile and appointments
             </p>
           </div>
         </div>
@@ -361,6 +370,33 @@ export const PatientDashboard = () => {
             </button>
           </div>
         )}
+
+        <nav className={styles.mobileDashboardNav} aria-label="Patient dashboard sections">
+          <button
+            type="button"
+            className={activeSection === "profile" ? styles.mobileDashboardNavActive : ""}
+            aria-current={activeSection === "profile" ? "page" : undefined}
+            onClick={() => setActiveSection("profile")}
+          >
+            Personal profile
+          </button>
+          <button
+            type="button"
+            className={activeSection === "appointments" ? styles.mobileDashboardNavActive : ""}
+            aria-current={activeSection === "appointments" ? "page" : undefined}
+            onClick={() => setActiveSection("appointments")}
+          >
+            My appointments ({upcomingAppointmentsCount})
+          </button>
+          <button
+            type="button"
+            className={activeSection === "faq" ? styles.mobileDashboardNavActive : ""}
+            aria-current={activeSection === "faq" ? "page" : undefined}
+            onClick={() => setActiveSection("faq")}
+          >
+            Pregnancy FAQ
+          </button>
+        </nav>
 
         <div className={styles.dashboard__body}>
           <aside className={styles.profile__card}>
@@ -441,6 +477,15 @@ export const PatientDashboard = () => {
                     </div>
                   )}
                 </div>
+                {activeSection !== "profile" && (
+                  <button
+                    type="button"
+                    className={styles.mobileEditButton}
+                    onClick={() => setActiveSection("profile")}
+                  >
+                    Edit profile
+                  </button>
+                )}
                 <nav
                   className={styles.profileMenu}
                   aria-label="Patient dashboard sections"
