@@ -1,6 +1,7 @@
 package com.teamproject254.pregnancycarefinder.repository;
 
 import com.teamproject254.pregnancycarefinder.model.Availability;
+import com.teamproject254.pregnancycarefinder.model.enums.AvailabilityStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -50,9 +51,10 @@ public interface AvailabilityRepository extends JpaRepository<Availability, Long
     );
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT a FROM Availability a WHERE a.provider.id = :providerId AND a.date = :date AND a.startTime <= :startTime AND a.endTime >= :endTime")
+    @Query("SELECT a FROM Availability a WHERE a.provider.id = :providerId AND a.date = :date AND a.startTime <= :startTime AND a.endTime >= :endTime AND a.status = :status")
     Optional<Availability> findAndLockSlot(@Param("providerId") Long providerId,
                                            @Param("date") LocalDate date,
                                            @Param("startTime") LocalTime startTime,
-                                           @Param("endTime") LocalTime endTime);
+                                           @Param("endTime") LocalTime endTime,
+                                           @Param("status") AvailabilityStatus status);
 }

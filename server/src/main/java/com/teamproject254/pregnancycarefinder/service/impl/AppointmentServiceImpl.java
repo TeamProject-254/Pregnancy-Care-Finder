@@ -7,10 +7,12 @@ import com.teamproject254.pregnancycarefinder.dto.ProviderDashboardStatsResponse
 import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
 import com.teamproject254.pregnancycarefinder.mapper.AppointmentMapper;
 import com.teamproject254.pregnancycarefinder.model.Appointment;
+import com.teamproject254.pregnancycarefinder.model.Availability;
 import com.teamproject254.pregnancycarefinder.model.MedicalService;
 import com.teamproject254.pregnancycarefinder.model.Patient;
 import com.teamproject254.pregnancycarefinder.model.Provider;
 import com.teamproject254.pregnancycarefinder.model.enums.AppointmentStatus;
+import com.teamproject254.pregnancycarefinder.model.enums.AvailabilityStatus;
 import com.teamproject254.pregnancycarefinder.repository.AppointmentRepository;
 import com.teamproject254.pregnancycarefinder.repository.AvailabilityRepository;
 import com.teamproject254.pregnancycarefinder.repository.MedicalServiceRepository;
@@ -55,9 +57,11 @@ public class AppointmentServiceImpl implements AppointmentService {
         LocalTime startTime = request.appointmentDateTime().toLocalTime();
         LocalTime endTime = startTime.plusMinutes(medicalService.getDurationMinutes());
 
-        if (availabilityRepository.findAndLockSlot(request.providerId(), date, startTime, endTime).isEmpty()) {
-            throw new IllegalArgumentException("Provider is not available at this time");
-        }
+        Availability slot = availabilityRepository.findAndLockSlot(request.providerId(), date, startTime, endTime, AvailabilityStatus.FREE).orElseThrow(()->
+                new IllegalStateException("Slot is not available"));
+
+        slot.setStatus(AvailabilityStatus.BOOKED);
+        availabilityRepository.save(slot);
 
         Appointment appointment = appointmentMapper.toEntity(request);
         appointment.setPatient(patient);
@@ -210,9 +214,14 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Provider not found"));
         Appointment appointment = appointmentRepository.findByIdAndProviderId(appointmentId, provider.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
+
+        validateNotAlreadyCancelled(appointment);
+
         appointment.setAppointmentStatus(AppointmentStatus.CANCELLED_BY_PROVIDER);
         appointment.setCancellationReason(request.cancellationReason());
         appointmentRepository.save(appointment);
+
+        releaseSlotForAppointment(appointment);
     }
 
     @Override
@@ -221,7 +230,32 @@ public class AppointmentServiceImpl implements AppointmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
         Appointment appointment = appointmentRepository.findByIdAndPatientId(appointmentId, patient.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
+
+        validateNotAlreadyCancelled(appointment);
+
         appointment.setAppointmentStatus(AppointmentStatus.CANCELLED_BY_PATIENT);
         appointmentRepository.save(appointment);
+
+        releaseSlotForAppointment(appointment);
+    }
+
+    private void validateNotAlreadyCancelled(Appointment appointment) {
+        if (appointment.getAppointmentStatus() == AppointmentStatus.CANCELLED_BY_PROVIDER
+                || appointment.getAppointmentStatus() == AppointmentStatus.CANCELLED_BY_PATIENT) {
+            throw new IllegalStateException("Appointment is already cancelled");
+        }
+    }
+
+    private void releaseSlotForAppointment(Appointment appointment) {
+        Long providerId = appointment.getProvider().getId();
+        LocalDate date = appointment.getAppointmentDateTime().toLocalDate();
+        LocalTime startTime = appointment.getAppointmentDateTime().toLocalTime();
+        LocalTime endTime = startTime.plusMinutes(appointment.getMedicalService().getDurationMinutes());
+
+        availabilityRepository.findAndLockSlot(providerId, date, startTime, endTime, AvailabilityStatus.BOOKED)
+                .ifPresent(slot -> {
+                    slot.setStatus(AvailabilityStatus.FREE);
+                    availabilityRepository.save(slot);
+                });
     }
 }

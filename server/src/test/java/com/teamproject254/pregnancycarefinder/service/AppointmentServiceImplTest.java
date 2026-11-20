@@ -1,5 +1,4 @@
-
-package Acom.teamproject254.pregnancycarefinder.service;
+package com.teamproject254.pregnancycarefinder.service;
 
 import com.teamproject254.pregnancycarefinder.dto.AppointmentCancelRequest;
 import com.teamproject254.pregnancycarefinder.dto.AppointmentCreateRequest;
@@ -13,6 +12,7 @@ import com.teamproject254.pregnancycarefinder.model.MedicalService;
 import com.teamproject254.pregnancycarefinder.model.Patient;
 import com.teamproject254.pregnancycarefinder.model.Provider;
 import com.teamproject254.pregnancycarefinder.model.enums.AppointmentStatus;
+import com.teamproject254.pregnancycarefinder.model.enums.AvailabilityStatus;
 import com.teamproject254.pregnancycarefinder.repository.AppointmentRepository;
 import com.teamproject254.pregnancycarefinder.repository.AvailabilityRepository;
 import com.teamproject254.pregnancycarefinder.repository.MedicalServiceRepository;
@@ -61,15 +61,27 @@ class AppointmentServiceImplTest {
     @InjectMocks
     private AppointmentServiceImpl appointmentService;
 
+    private Appointment createTestAppointment(Provider provider, MedicalService service, LocalDateTime dateTime) {
+        Appointment appointment = new Appointment();
+        appointment.setProvider(provider);
+        appointment.setMedicalService(service);
+        appointment.setAppointmentDateTime(dateTime);
+        appointment.setAppointmentStatus(AppointmentStatus.PENDING);
+        return appointment;
+    }
+
     @Test
     void shouldCreateAppointmentSuccessfully() {
         String email = "patient@test.com";
-        AppointmentCreateRequest request = new AppointmentCreateRequest(1L, 1L, 1L, LocalDateTime.now().plusDays(1));
+        LocalDateTime dateTime = LocalDateTime.now().plusDays(1);
+        AppointmentCreateRequest request = new AppointmentCreateRequest(1L, 1L, 1L, dateTime);
         Patient patient = new Patient();
         Provider provider = new Provider();
         provider.setId(1L);
         MedicalService service = new MedicalService();
         service.setDurationMinutes(30);
+        Availability slot = new Availability();
+        slot.setStatus(AvailabilityStatus.FREE);
         Appointment appointment = new Appointment();
         Appointment savedAppointment = new Appointment();
         AppointmentResponse expectedResponse = new AppointmentResponse(
@@ -79,7 +91,8 @@ class AppointmentServiceImplTest {
         when(patientRepository.findByUserEmail(email)).thenReturn(Optional.of(patient));
         when(providerRepository.findById(1L)).thenReturn(Optional.of(provider));
         when(medicalServiceRepository.findById(1L)).thenReturn(Optional.of(service));
-        when(availabilityRepository.findAndLockSlot(eq(1L), any(), any(), any())).thenReturn(Optional.of(new Availability()));
+        when(availabilityRepository.findAndLockSlot(eq(1L), any(), any(), any(), eq(AvailabilityStatus.FREE)))
+                .thenReturn(Optional.of(slot));
         when(appointmentMapper.toEntity(request)).thenReturn(appointment);
         when(appointmentRepository.save(any(Appointment.class))).thenReturn(savedAppointment);
         when(appointmentMapper.toResponse(savedAppointment)).thenReturn(expectedResponse);
@@ -87,6 +100,8 @@ class AppointmentServiceImplTest {
         AppointmentResponse result = appointmentService.createAppointment(email, request);
 
         assertNotNull(result);
+        assertEquals(AvailabilityStatus.BOOKED, slot.getStatus());
+        verify(availabilityRepository).save(slot);
         verify(appointmentRepository).save(any(Appointment.class));
     }
 
@@ -99,6 +114,29 @@ class AppointmentServiceImplTest {
 
         assertThrows(ResourceNotFoundException.class, () -> appointmentService.createAppointment(email, request));
         verify(appointmentRepository, never()).save(any());
+        verify(availabilityRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenSlotIsNotFree() {
+        String email = "patient@test.com";
+        LocalDateTime dateTime = LocalDateTime.now().plusDays(1);
+        AppointmentCreateRequest request = new AppointmentCreateRequest(1L, 1L, 1L, dateTime);
+        Patient patient = new Patient();
+        Provider provider = new Provider();
+        provider.setId(1L);
+        MedicalService service = new MedicalService();
+        service.setDurationMinutes(30);
+
+        when(patientRepository.findByUserEmail(email)).thenReturn(Optional.of(patient));
+        when(providerRepository.findById(1L)).thenReturn(Optional.of(provider));
+        when(medicalServiceRepository.findById(1L)).thenReturn(Optional.of(service));
+        when(availabilityRepository.findAndLockSlot(eq(1L), any(), any(), any(), eq(AvailabilityStatus.FREE)))
+                .thenReturn(Optional.empty());
+
+        assertThrows(IllegalStateException.class, () -> appointmentService.createAppointment(email, request));
+        verify(appointmentRepository, never()).save(any());
+        verify(availabilityRepository, never()).save(any());
     }
 
     @Test
@@ -441,17 +479,25 @@ class AppointmentServiceImplTest {
         String email = "provider@test.com";
         Provider provider = new Provider();
         provider.setId(1L);
-        Appointment appointment = new Appointment();
+        MedicalService service = new MedicalService();
+        service.setDurationMinutes(30);
+        Appointment appointment = createTestAppointment(provider, service, LocalDateTime.now().plusDays(1));
+        Availability slot = new Availability();
+        slot.setStatus(AvailabilityStatus.BOOKED);
         AppointmentCancelRequest request = new AppointmentCancelRequest("Reason");
 
         when(providerRepository.findByUserEmail(email)).thenReturn(Optional.of(provider));
         when(appointmentRepository.findByIdAndProviderId(1L, 1L)).thenReturn(Optional.of(appointment));
+        when(availabilityRepository.findAndLockSlot(eq(1L), any(), any(), any(), eq(AvailabilityStatus.BOOKED)))
+                .thenReturn(Optional.of(slot));
 
         appointmentService.cancelAppointmentByProvider(email, 1L, request);
 
         assertEquals(AppointmentStatus.CANCELLED_BY_PROVIDER, appointment.getAppointmentStatus());
         assertEquals("Reason", appointment.getCancellationReason());
+        assertEquals(AvailabilityStatus.FREE, slot.getStatus());
         verify(appointmentRepository).save(appointment);
+        verify(availabilityRepository).save(slot);
     }
 
     @Test
@@ -466,6 +512,24 @@ class AppointmentServiceImplTest {
 
         assertThrows(ResourceNotFoundException.class, () -> appointmentService.cancelAppointmentByProvider(email, 1L, request));
         verify(appointmentRepository, never()).save(any());
+        verify(availabilityRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCancellingAlreadyCancelledAppointmentByProvider() {
+        String email = "provider@test.com";
+        Provider provider = new Provider();
+        provider.setId(1L);
+        Appointment appointment = new Appointment();
+        appointment.setAppointmentStatus(AppointmentStatus.CANCELLED_BY_PROVIDER);
+        AppointmentCancelRequest request = new AppointmentCancelRequest("Reason");
+
+        when(providerRepository.findByUserEmail(email)).thenReturn(Optional.of(provider));
+        when(appointmentRepository.findByIdAndProviderId(1L, 1L)).thenReturn(Optional.of(appointment));
+
+        assertThrows(IllegalStateException.class, () -> appointmentService.cancelAppointmentByProvider(email, 1L, request));
+        verify(appointmentRepository, never()).save(any());
+        verify(availabilityRepository, never()).save(any());
     }
 
     @Test
@@ -473,15 +537,52 @@ class AppointmentServiceImplTest {
         String email = "patient@test.com";
         Patient patient = new Patient();
         patient.setId(1L);
-        Appointment appointment = new Appointment();
+        Provider provider = new Provider();
+        provider.setId(1L);
+        MedicalService service = new MedicalService();
+        service.setDurationMinutes(30);
+        Appointment appointment = createTestAppointment(provider, service, LocalDateTime.now().plusDays(1));
+        Availability slot = new Availability();
+        slot.setStatus(AvailabilityStatus.BOOKED);
 
         when(patientRepository.findByUserEmail(email)).thenReturn(Optional.of(patient));
         when(appointmentRepository.findByIdAndPatientId(1L, 1L)).thenReturn(Optional.of(appointment));
+        when(availabilityRepository.findAndLockSlot(eq(1L), any(), any(), any(), eq(AvailabilityStatus.BOOKED)))
+                .thenReturn(Optional.of(slot));
 
         appointmentService.cancelAppointmentByPatient(email, 1L);
 
         assertEquals(AppointmentStatus.CANCELLED_BY_PATIENT, appointment.getAppointmentStatus());
+        assertEquals(AvailabilityStatus.FREE, slot.getStatus());
         verify(appointmentRepository).save(appointment);
+        verify(availabilityRepository).save(slot);
+    }
+
+    @Test
+    void shouldCancelConfirmedAppointmentByPatientAndFreeSlot() {
+        String email = "patient@test.com";
+        Patient patient = new Patient();
+        patient.setId(1L);
+        Provider provider = new Provider();
+        provider.setId(1L);
+        MedicalService service = new MedicalService();
+        service.setDurationMinutes(30);
+        Appointment appointment = createTestAppointment(provider, service, LocalDateTime.now().plusDays(1));
+        appointment.setAppointmentStatus(AppointmentStatus.CONFIRMED);
+        Availability slot = new Availability();
+        slot.setStatus(AvailabilityStatus.BOOKED);
+
+        when(patientRepository.findByUserEmail(email)).thenReturn(Optional.of(patient));
+        when(appointmentRepository.findByIdAndPatientId(1L, 1L)).thenReturn(Optional.of(appointment));
+        when(availabilityRepository.findAndLockSlot(eq(1L), any(), any(), any(), eq(AvailabilityStatus.BOOKED)))
+                .thenReturn(Optional.of(slot));
+
+        appointmentService.cancelAppointmentByPatient(email, 1L);
+
+        assertEquals(AppointmentStatus.CANCELLED_BY_PATIENT, appointment.getAppointmentStatus());
+        assertEquals(AvailabilityStatus.FREE, slot.getStatus());
+        verify(appointmentRepository).save(appointment);
+        verify(availabilityRepository).save(slot);
     }
 
     @Test
@@ -495,5 +596,22 @@ class AppointmentServiceImplTest {
 
         assertThrows(ResourceNotFoundException.class, () -> appointmentService.cancelAppointmentByPatient(email, 1L));
         verify(appointmentRepository, never()).save(any());
+        verify(availabilityRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenCancellingAlreadyCancelledAppointmentByPatient() {
+        String email = "patient@test.com";
+        Patient patient = new Patient();
+        patient.setId(1L);
+        Appointment appointment = new Appointment();
+        appointment.setAppointmentStatus(AppointmentStatus.CANCELLED_BY_PATIENT);
+
+        when(patientRepository.findByUserEmail(email)).thenReturn(Optional.of(patient));
+        when(appointmentRepository.findByIdAndPatientId(1L, 1L)).thenReturn(Optional.of(appointment));
+
+        assertThrows(IllegalStateException.class, () -> appointmentService.cancelAppointmentByPatient(email, 1L));
+        verify(appointmentRepository, never()).save(any());
+        verify(availabilityRepository, never()).save(any());
     }
 }

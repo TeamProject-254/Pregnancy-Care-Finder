@@ -6,13 +6,15 @@ import com.teamproject254.pregnancycarefinder.dto.ProviderResponse;
 import com.teamproject254.pregnancycarefinder.dto.ProviderSummaryResponse;
 import com.teamproject254.pregnancycarefinder.dto.ProviderUpdateRequest;
 import com.teamproject254.pregnancycarefinder.model.Provider;
+
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
+
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {AvailabilityMapper.class})
 public interface ProviderMapper {
 
     ProviderResponse toResponse(Provider provider);
@@ -31,6 +33,7 @@ public interface ProviderMapper {
     void updateProviderFromRequest(ProviderUpdateRequest request, @MappingTarget Provider provider);
 
     ProviderSummaryResponse toSummaryResponse(Provider provider);
+
 
     ProviderDetailResponse toDetailResponse(Provider provider);
 }

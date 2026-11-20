@@ -1,6 +1,7 @@
 package com.teamproject254.pregnancycarefinder.specification;
 
 import com.teamproject254.pregnancycarefinder.model.Provider;
+import com.teamproject254.pregnancycarefinder.model.enums.AvailabilityStatus;
 import jakarta.persistence.criteria.Predicate;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -59,6 +60,10 @@ public class ProviderSpecification {
                         availabilityJoin.get("date"),
                         availabilityDateFrom,
                         availabilityDateTo
+                ));
+                predicates.add(criteriaBuilder.equal(
+                        availabilityJoin.get("status"),
+                        AvailabilityStatus.FREE
                 ));
                 if (query != null) {
                     query.distinct(true);
