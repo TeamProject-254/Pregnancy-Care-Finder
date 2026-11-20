@@ -7,16 +7,19 @@ import com.teamproject254.pregnancycarefinder.dto.ProviderDashboardStatsResponse
 import com.teamproject254.pregnancycarefinder.exception.ResourceNotFoundException;
 import com.teamproject254.pregnancycarefinder.mapper.AppointmentMapper;
 import com.teamproject254.pregnancycarefinder.model.Appointment;
+import com.teamproject254.pregnancycarefinder.model.Availability;
 import com.teamproject254.pregnancycarefinder.model.MedicalService;
 import com.teamproject254.pregnancycarefinder.model.Patient;
 import com.teamproject254.pregnancycarefinder.model.Provider;
 import com.teamproject254.pregnancycarefinder.model.enums.AppointmentStatus;
+import com.teamproject254.pregnancycarefinder.model.enums.AvailabilityStatus;
 import com.teamproject254.pregnancycarefinder.repository.AppointmentRepository;
 import com.teamproject254.pregnancycarefinder.repository.AvailabilityRepository;
 import com.teamproject254.pregnancycarefinder.repository.MedicalServiceRepository;
 import com.teamproject254.pregnancycarefinder.repository.PatientRepository;
 import com.teamproject254.pregnancycarefinder.repository.ProviderRepository;
 import com.teamproject254.pregnancycarefinder.service.AppointmentService;
+import com.teamproject254.pregnancycarefinder.service.SensitiveDataAccessService;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -38,6 +41,7 @@ public class AppointmentServiceImpl implements AppointmentService {
     private final AvailabilityRepository availabilityRepository;
     private final MedicalServiceRepository medicalServiceRepository;
     private final AppointmentMapper appointmentMapper;
+    private final SensitiveDataAccessService sensitiveDataAccessService;
 
     @Override
     public AppointmentResponse createAppointment(String patientEmail,
@@ -55,17 +59,20 @@ public class AppointmentServiceImpl implements AppointmentService {
         LocalTime startTime = request.appointmentDateTime().toLocalTime();
         LocalTime endTime = startTime.plusMinutes(medicalService.getDurationMinutes());
 
-        if (availabilityRepository.findAndLockSlot(request.providerId(), date, startTime, endTime).isEmpty()) {
-            throw new IllegalArgumentException("Provider is not available at this time");
-        }
+        Availability slot =
+                availabilityRepository.findAndLockSlot(request.providerId(), date, startTime,
+                        endTime, AvailabilityStatus.FREE).orElseThrow(() ->
+                        new IllegalStateException("Slot is not available"));
+
+        slot.setStatus(AvailabilityStatus.BOOKED);
+        availabilityRepository.save(slot);
 
         Appointment appointment = appointmentMapper.toEntity(request);
         appointment.setPatient(patient);
         appointment.setProvider(provider);
         appointment.setMedicalService(medicalService);
         appointment.setAppointmentStatus(AppointmentStatus.PENDING);
-        Appointment savedAppointment;
-        savedAppointment = appointmentRepository.save(appointment);
+        Appointment savedAppointment = appointmentRepository.save(appointment);
         return appointmentMapper.toResponse(savedAppointment);
     }
 
@@ -85,8 +92,10 @@ public class AppointmentServiceImpl implements AppointmentService {
                                                              Pageable pageable) {
         Provider provider = providerRepository.findByUserEmail(providerEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Provider not found"));
-        return appointmentRepository.findByProviderId(provider.getId(),pageable)
-                .map(appointmentMapper::toResponse);
+        Page<Appointment> appointments =
+                appointmentRepository.findByProviderId(provider.getId(), pageable);
+        logPregnancyWeekAccessForPage(providerEmail, appointments);
+        return appointments.map(appointmentMapper::toResponse);
     }
 
     @Override
@@ -95,8 +104,9 @@ public class AppointmentServiceImpl implements AppointmentService {
                                                             Long appointmentId) {
         Patient patient = patientRepository.findByUserEmail(patientEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
-        Appointment appointment = appointmentRepository.findByIdAndPatientId(appointmentId, patient.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
+        Appointment appointment =
+                appointmentRepository.findByIdAndPatientId(appointmentId, patient.getId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
         return appointmentMapper.toResponse(appointment);
     }
 
@@ -106,8 +116,11 @@ public class AppointmentServiceImpl implements AppointmentService {
                                                              Long appointmentId) {
         Provider provider = providerRepository.findByUserEmail(providerEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Provider not found"));
-        Appointment appointment = appointmentRepository.findByIdAndProviderId(appointmentId, provider.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
+        Appointment appointment =
+                appointmentRepository.findByIdAndProviderId(appointmentId, provider.getId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
+
+        logPregnancyWeekAccessForAppointment(providerEmail, appointment);
         return appointmentMapper.toResponse(appointment);
     }
 
@@ -118,7 +131,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         Patient patient = patientRepository.findByUserEmail(patientEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
         LocalDateTime now = LocalDateTime.now();
-        return appointmentRepository.findByPatientIdAndAppointmentDateTimeGreaterThanEqualOrderByAppointmentDateTimeAsc(patient.getId(), now, pageable)
+        return appointmentRepository.findByPatientIdAndAppointmentDateTimeGreaterThanEqualOrderByAppointmentDateTimeAsc(
+                        patient.getId(), now, pageable)
                 .map(appointmentMapper::toResponse);
     }
 
@@ -129,7 +143,8 @@ public class AppointmentServiceImpl implements AppointmentService {
         Patient patient = patientRepository.findByUserEmail(patientEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
         LocalDateTime now = LocalDateTime.now();
-        return appointmentRepository.findByPatientIdAndAppointmentDateTimeLessThanOrderByAppointmentDateTimeDesc(patient.getId(), now, pageable)
+        return appointmentRepository.findByPatientIdAndAppointmentDateTimeLessThanOrderByAppointmentDateTimeDesc(
+                        patient.getId(), now, pageable)
                 .map(appointmentMapper::toResponse);
     }
 
@@ -140,8 +155,11 @@ public class AppointmentServiceImpl implements AppointmentService {
         Provider provider = providerRepository.findByUserEmail(providerEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Provider not found"));
         LocalDateTime now = LocalDateTime.now();
-        return appointmentRepository.findByProviderIdAndAppointmentDateTimeGreaterThanEqualOrderByAppointmentDateTimeAsc(provider.getId(), now, pageable)
-                .map(appointmentMapper::toResponse);
+        Page<Appointment> appointment =
+                appointmentRepository.findByProviderIdAndAppointmentDateTimeGreaterThanEqualOrderByAppointmentDateTimeAsc(
+                        provider.getId(), now, pageable);
+        logPregnancyWeekAccessForPage(providerEmail, appointment);
+        return appointment.map(appointmentMapper::toResponse);
     }
 
     @Override
@@ -151,8 +169,11 @@ public class AppointmentServiceImpl implements AppointmentService {
         Provider provider = providerRepository.findByUserEmail(providerEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Provider not found"));
         LocalDateTime now = LocalDateTime.now();
-        return appointmentRepository.findByProviderIdAndAppointmentDateTimeLessThanOrderByAppointmentDateTimeDesc(provider.getId(), now, pageable)
-                .map(appointmentMapper::toResponse);
+        Page<Appointment> appointments =
+                appointmentRepository.findByProviderIdAndAppointmentDateTimeLessThanOrderByAppointmentDateTimeDesc(
+                        provider.getId(), now, pageable);
+        logPregnancyWeekAccessForPage(providerEmail, appointments);
+        return appointments.map(appointmentMapper::toResponse);
     }
 
     @Override
@@ -165,8 +186,11 @@ public class AppointmentServiceImpl implements AppointmentService {
                 AppointmentStatus.CANCELLED_BY_PROVIDER,
                 AppointmentStatus.CANCELLED_BY_PATIENT
         );
-        return appointmentRepository.findByProviderIdAndAppointmentStatusIn(provider.getId(), cancelledStatuses, pageable)
-                .map(appointmentMapper::toResponse);
+        Page<Appointment> appointments =
+                appointmentRepository.findByProviderIdAndAppointmentStatusIn(provider.getId(),
+                        cancelledStatuses, pageable);
+        logPregnancyWeekAccessForPage(providerEmail, appointments);
+        return appointments.map(appointmentMapper::toResponse);
     }
 
     @Override
@@ -175,27 +199,32 @@ public class AppointmentServiceImpl implements AppointmentService {
         Provider provider = providerRepository.findByUserEmail(providerEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Provider not found"));
 
-        long pendingCount = appointmentRepository.countByProviderIdAndAppointmentStatus(provider.getId(), AppointmentStatus.PENDING);
+        long pendingCount =
+                appointmentRepository.countByProviderIdAndAppointmentStatus(provider.getId(),
+                        AppointmentStatus.PENDING);
 
-        long confirmedCount = appointmentRepository.countByProviderIdAndAppointmentStatus(provider.getId(), AppointmentStatus.CONFIRMED);
+        long confirmedCount =
+                appointmentRepository.countByProviderIdAndAppointmentStatus(provider.getId(),
+                        AppointmentStatus.CONFIRMED);
 
         LocalDateTime start = LocalDate.now().atStartOfDay();
         LocalDateTime end = LocalDate.now().atTime(LocalTime.MAX);
 
-        long todayCount = appointmentRepository.countByProviderIdAndAppointmentDateTimeBetween(provider.getId(), start, end);
+        long todayCount = appointmentRepository.countByProviderIdAndAppointmentDateTimeBetween(
+                provider.getId(), start, end);
         return new ProviderDashboardStatsResponse(pendingCount, confirmedCount, todayCount);
     }
-
 
     @Override
     public AppointmentResponse confirmAppointment(String providerEmail, Long appointmentId) {
         Provider provider = providerRepository.findByUserEmail(providerEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Provider not found"));
 
-        Appointment appointment = appointmentRepository.findByIdAndProviderId(appointmentId, provider.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
+        Appointment appointment =
+                appointmentRepository.findByIdAndProviderId(appointmentId, provider.getId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
 
-        if(appointment.getAppointmentStatus() != AppointmentStatus.PENDING) {
+        if (appointment.getAppointmentStatus() != AppointmentStatus.PENDING) {
             throw new IllegalStateException("Only pending appointments can be confirmed");
         }
         appointment.setAppointmentStatus(AppointmentStatus.CONFIRMED);
@@ -205,23 +234,80 @@ public class AppointmentServiceImpl implements AppointmentService {
 
     @Override
     public void cancelAppointmentByProvider(String providerEmail, Long appointmentId,
-                                                           AppointmentCancelRequest request) {
+                                            AppointmentCancelRequest request) {
         Provider provider = providerRepository.findByUserEmail(providerEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Provider not found"));
-        Appointment appointment = appointmentRepository.findByIdAndProviderId(appointmentId, provider.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
+        Appointment appointment =
+                appointmentRepository.findByIdAndProviderId(appointmentId, provider.getId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
+
+        validateNotAlreadyCancelled(appointment);
+
         appointment.setAppointmentStatus(AppointmentStatus.CANCELLED_BY_PROVIDER);
         appointment.setCancellationReason(request.cancellationReason());
         appointmentRepository.save(appointment);
+
+        releaseSlotForAppointment(appointment);
     }
 
     @Override
     public void cancelAppointmentByPatient(String patientEmail, Long appointmentId) {
         Patient patient = patientRepository.findByUserEmail(patientEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Patient not found"));
-        Appointment appointment = appointmentRepository.findByIdAndPatientId(appointmentId, patient.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
+        Appointment appointment =
+                appointmentRepository.findByIdAndPatientId(appointmentId, patient.getId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Appointment not found"));
+
+        validateNotAlreadyCancelled(appointment);
+
         appointment.setAppointmentStatus(AppointmentStatus.CANCELLED_BY_PATIENT);
         appointmentRepository.save(appointment);
+
+        releaseSlotForAppointment(appointment);
+    }
+
+    private void validateNotAlreadyCancelled(Appointment appointment) {
+        if (appointment.getAppointmentStatus() == AppointmentStatus.CANCELLED_BY_PROVIDER
+                || appointment.getAppointmentStatus() == AppointmentStatus.CANCELLED_BY_PATIENT) {
+            throw new IllegalStateException("Appointment is already cancelled");
+        }
+    }
+
+    private void releaseSlotForAppointment(Appointment appointment) {
+        Long providerId = appointment.getProvider().getId();
+        LocalDate date = appointment.getAppointmentDateTime().toLocalDate();
+        LocalTime startTime = appointment.getAppointmentDateTime().toLocalTime();
+        LocalTime endTime =
+                startTime.plusMinutes(appointment.getMedicalService().getDurationMinutes());
+
+        availabilityRepository.findAndLockSlot(providerId, date, startTime, endTime,
+                        AvailabilityStatus.BOOKED)
+                .ifPresent(slot -> {
+                    slot.setStatus(AvailabilityStatus.FREE);
+                    availabilityRepository.save(slot);
+                });
+    }
+
+    private void logPregnancyWeekAccessForAppointment(String providerEmail,
+                                                      Appointment appointment) {
+        if (appointment == null) {
+            return;
+        }
+        Patient patient = appointment.getPatient();
+        if (patient != null && patient.getPregnancyWeek() != null) {
+            sensitiveDataAccessService.logAccess(
+                    providerEmail,
+                    "PROVIDER",
+                    "PATIENT_PROFILE",
+                    patient.getId(),
+                    "pregnancyWeek"
+            );
+        }
+    }
+
+    private void logPregnancyWeekAccessForPage(String providerEmail, Page<Appointment> page) {
+        for (Appointment appointment : page.getContent()) {
+            logPregnancyWeekAccessForAppointment(providerEmail, appointment);
+        }
     }
 }

@@ -6,7 +6,7 @@ BloomCare ("we", "our", or "us") is dedicated to protecting the privacy of indiv
 
 2. INFORMATION WE COLLECT
 - Account Data: Name, email address, contact information, and role designation (Patient or Healthcare Provider).
-- Appointment Details: Requested consultation times, specialist preferences, and appointment status history.
+- Appointment Details: Requested consultation times, specialist preferences, and appointment appointmentStatus history.
 - Technical & Usage Data: IP address, device type, browser settings, and user interactions with our service.
 
 3. HOW WE USE YOUR DATA
