@@ -38,11 +38,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public LoginResponse registerUser(RegisterRequest registerRequest) {
-        if(userRepository.existsByEmail(registerRequest.email())) {
+        if (userRepository.existsByEmail(registerRequest.email())) {
             throw new ResourceAlreadyExistsException("User with this email already exists");
         }
 
-        if(!registerRequest.password().equals(registerRequest.confirmPassword())) {
+        if (!registerRequest.password().equals(registerRequest.confirmPassword())) {
             throw new IllegalArgumentException("Passwords don't match");
         }
 
@@ -77,7 +77,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         );
 
         var user = userRepository.findByEmail(loginRequest.email())
-                .orElseThrow(()-> new BadCredentialsException("Bad credentials"));
+                .orElseThrow(() -> new BadCredentialsException("Bad credentials"));
 
         String token = jwtService.generateToken(user.getEmail());
 
@@ -89,7 +89,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public void createAndSendToken(String email) {
-        Optional<User> userOptional= userRepository.findByEmail(email);
+        Optional<User> userOptional = userRepository.findByEmail(email);
 
         if (userOptional.isEmpty()) {
             return;
@@ -113,10 +113,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public void resetPassword(String token, String newPassword) {
-        User user =  userRepository.findByResetToken(token)
+        User user = userRepository.findByResetToken(token)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid reset token"));
 
-        if(user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+        if (user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Reset token has expired");
         }
 

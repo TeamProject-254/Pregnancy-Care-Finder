@@ -58,6 +58,9 @@ class AppointmentServiceImplTest {
     @Mock
     private AppointmentMapper appointmentMapper;
 
+    @Mock
+    private SensitiveDataAccessService sensitiveDataAccessService;
+
     @InjectMocks
     private AppointmentServiceImpl appointmentService;
 
@@ -613,5 +616,104 @@ class AppointmentServiceImplTest {
         assertThrows(IllegalStateException.class, () -> appointmentService.cancelAppointmentByPatient(email, 1L));
         verify(appointmentRepository, never()).save(any());
         verify(availabilityRepository, never()).save(any());
+    }
+
+    @Test
+    void shouldLogSensitiveDataAccessWhenProviderViewsAppointmentWithPregnancyWeek() {
+        String email = "provider@test.com";
+        Provider provider = new Provider();
+        provider.setId(1L);
+
+        Patient patient = new Patient();
+        patient.setId(10L);
+        patient.setPregnancyWeek(20);
+
+        Appointment appointment = new Appointment();
+        appointment.setPatient(patient);
+
+        when(providerRepository.findByUserEmail(email)).thenReturn(Optional.of(provider));
+        when(appointmentRepository.findByIdAndProviderId(1L, 1L)).thenReturn(Optional.of(appointment));
+        when(appointmentMapper.toResponse(appointment)).thenReturn(new AppointmentResponse(
+                1L, null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, 0, null));
+
+        appointmentService.getProviderAppointmentDetails(email, 1L);
+
+        verify(sensitiveDataAccessService).logAccess(
+                email,
+                "PROVIDER",
+                "PATIENT_PROFILE",
+                10L,
+                "pregnancyWeek"
+        );
+    }
+
+    @Test
+    void shouldNotLogSensitiveDataAccessWhenProviderViewsAppointmentWithoutPregnancyWeek() {
+        String email = "provider@test.com";
+        Provider provider = new Provider();
+        provider.setId(1L);
+
+        Patient patient = new Patient();
+        patient.setId(10L);
+        patient.setPregnancyWeek(null);
+
+        Appointment appointment = new Appointment();
+        appointment.setPatient(patient);
+
+        when(providerRepository.findByUserEmail(email)).thenReturn(Optional.of(provider));
+        when(appointmentRepository.findByIdAndProviderId(1L, 1L)).thenReturn(Optional.of(appointment));
+        when(appointmentMapper.toResponse(appointment)).thenReturn(new AppointmentResponse(
+                1L, null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, 0, null));
+
+        appointmentService.getProviderAppointmentDetails(email, 1L);
+
+        verifyNoInteractions(sensitiveDataAccessService);
+    }
+
+    @Test
+    void shouldLogSensitiveDataAccessForAppointmentsWithPregnancyWeekInProviderList() {
+        String email = "provider@test.com";
+        Pageable pageable = Pageable.unpaged();
+        Provider provider = new Provider();
+        provider.setId(1L);
+
+        Patient patientWithWeek = new Patient();
+        patientWithWeek.setId(10L);
+        patientWithWeek.setPregnancyWeek(28);
+
+        Patient patientWithoutWeek = new Patient();
+        patientWithoutWeek.setId(20L);
+        patientWithoutWeek.setPregnancyWeek(null);
+
+        Appointment firstAppointment = new Appointment();
+        firstAppointment.setPatient(patientWithWeek);
+
+        Appointment secondAppointment = new Appointment();
+        secondAppointment.setPatient(patientWithoutWeek);
+
+        Page<Appointment> page = new PageImpl<>(List.of(firstAppointment, secondAppointment));
+
+        when(providerRepository.findByUserEmail(email)).thenReturn(Optional.of(provider));
+        when(appointmentRepository.findByProviderId(1L, pageable)).thenReturn(page);
+        when(appointmentMapper.toResponse(any())).thenReturn(new AppointmentResponse(
+                1L, null, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, 0, null));
+
+        Page<AppointmentResponse> result = appointmentService.getProviderAppointments(email, pageable);
+
+        assertNotNull(result);
+        assertEquals(2, result.getTotalElements());
+        verify(sensitiveDataAccessService, times(1)).logAccess(
+                email,
+                "PROVIDER",
+                "PATIENT_PROFILE",
+                10L,
+                "pregnancyWeek"
+        );
+        verify(sensitiveDataAccessService, never()).logAccess(
+                any(), any(), any(), eq(20L), any()
+        );
     }
 }

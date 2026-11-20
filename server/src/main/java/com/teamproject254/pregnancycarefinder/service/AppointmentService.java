@@ -4,8 +4,6 @@ import com.teamproject254.pregnancycarefinder.dto.AppointmentCancelRequest;
 import com.teamproject254.pregnancycarefinder.dto.AppointmentCreateRequest;
 import com.teamproject254.pregnancycarefinder.dto.AppointmentResponse;
 import com.teamproject254.pregnancycarefinder.dto.ProviderDashboardStatsResponse;
-import com.teamproject254.pregnancycarefinder.model.Appointment;
-import com.teamproject254.pregnancycarefinder.model.enums.AppointmentStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

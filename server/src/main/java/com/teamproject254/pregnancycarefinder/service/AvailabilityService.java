@@ -2,10 +2,9 @@ package com.teamproject254.pregnancycarefinder.service;
 
 import com.teamproject254.pregnancycarefinder.dto.availability.AvailabilityRequestDto;
 import com.teamproject254.pregnancycarefinder.dto.availability.AvailabilityResponseDto;
+import java.time.LocalDate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
-import java.time.LocalDate;
 
 public interface AvailabilityService {
     AvailabilityResponseDto createAvailability(AvailabilityRequestDto requestDto);
