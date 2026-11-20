@@ -1,6 +1,5 @@
 package com.teamproject254.pregnancycarefinder.service;
 
-import com.teamproject254.pregnancycarefinder.dto.PatientUpdateRequest;
 import com.teamproject254.pregnancycarefinder.dto.ProviderCreateRequest;
 import com.teamproject254.pregnancycarefinder.dto.ProviderDetailResponse;
 import com.teamproject254.pregnancycarefinder.dto.ProviderResponse;
