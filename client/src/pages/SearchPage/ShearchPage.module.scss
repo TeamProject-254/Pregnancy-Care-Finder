@@ -106,6 +106,8 @@
   .doctors__list {
     grid-column: span 12;
     gap: 1rem;
+    padding-inline: 16px;
+    box-sizing: border-box;
   }
 
   .cards__grid {
@@ -118,6 +120,9 @@
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+    margin-inline: -16px;
+    padding: 16px;
+    border-top: 1px solid var(--color-gray-20);
   }
 
   .search__info__text {
@@ -131,6 +136,12 @@
     font-size: 14px;
     font-weight: 700;
     line-height: 19px;
+
+    img {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 16px;
+    }
 
     b {
       font-weight: 700;
@@ -165,6 +176,12 @@
     border: 0;
     background: transparent;
     cursor: pointer;
+    color: var(--color-gray-90);
+    transition: transform 0.2s ease;
+
+    &:active {
+      transform: scale(0.94);
+    }
 
     img {
       width: 32px;
@@ -175,6 +192,13 @@
   .grid__wrapper {
     row-gap: 16px;
     padding-inline: 0;
+  }
+
+  .grid__wrapperFiltersOpen {
+    .wide__form,
+    .doctors__list {
+      display: none;
+    }
   }
 
   .doctors__list {

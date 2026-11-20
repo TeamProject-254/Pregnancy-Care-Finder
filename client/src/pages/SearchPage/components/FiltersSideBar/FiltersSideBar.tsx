@@ -1,7 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import arrowTopIcon from "../../../../assets/img/arrow-top.svg";
 import closeIcon from "../../../../assets/img/icon-close.svg";
 import type { FilterOption, FiltersState } from "../../../../types/filters";
+import { MultiSelectDropdown } from "../../../../components/MultiSelectDropdown/MultiSelectDropdown";
+import { PROVIDER_LANGUAGES } from "../../../../constants/providerOptions";
+import { getMyPatientProfile } from "../../../../api/patients";
+import { useAuth } from "../../../../context/AuthContext";
 import { FiltersAccordion } from "../FiltersAccordion";
 import styles from "./FiltersSideBar.module.scss";
 
@@ -48,11 +52,7 @@ const AVAILABILITY_OPTIONS: FilterOption[] = [
   { label: "In the next 14 days", value: "14" },
 ];
 
-const LANGUAGE_OPTIONS: FilterOption[] = [
-  { label: "English", value: "English" },
-  { label: "Polish", value: "Polish" },
-  { label: "Ukrainian", value: "Ukrainian" },
-];
+const MY_LANGUAGES_OPTION = "My languages";
 
 interface FiltersSidebarProps {
   onFiltersChange?: (filters: FiltersState) => void;
@@ -65,18 +65,50 @@ export const FiltersSideBar: React.FC<FiltersSidebarProps> = ({
   isMobileOpen = false,
   onMobileClose,
 }) => {
+  const { user } = useAuth();
   const [isExpanded, setIsExpanded] = useState(true);
 
   const [services, setServices] = useState<string[]>([]);
   const [procedures, setProcedures] = useState<string[]>([]);
   const [availability, setAvailability] = useState<string>("");
   const [languages, setLanguages] = useState<string[]>([]);
+  const [myProfileLanguages, setMyProfileLanguages] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (user?.role !== "PATIENT") {
+      setMyProfileLanguages([]);
+      return;
+    }
+    let isCurrent = true;
+    void getMyPatientProfile()
+      .then((profile) => {
+        if (isCurrent) {
+          setMyProfileLanguages(
+            profile.languages.filter((language) => PROVIDER_LANGUAGES.includes(language as typeof PROVIDER_LANGUAGES[number])),
+          );
+        }
+      })
+      .catch(() => {
+        if (isCurrent) setMyProfileLanguages([]);
+      });
+    return () => {
+      isCurrent = false;
+    };
+  }, [user?.role]);
 
   const handleServicesChange = (updated: string[]) => setServices(updated);
   const handleProceduresChange = (updated: string[]) => setProcedures(updated);
   const handleAvailabilityChange = (updated: string) =>
     setAvailability(updated);
-  const handleLanguagesChange = (updated: string[]) => setLanguages(updated);
+  const handleLanguagesChange = (updated: string[]) => {
+    const selectingMyLanguages = updated.includes(MY_LANGUAGES_OPTION)
+      && !languages.includes(MY_LANGUAGES_OPTION);
+    if (selectingMyLanguages) {
+      setLanguages(Array.from(new Set([...languages, ...myProfileLanguages, MY_LANGUAGES_OPTION])));
+      return;
+    }
+    setLanguages(updated);
+  };
 
 
   const handleApplyFilters = () => {
@@ -84,8 +116,9 @@ export const FiltersSideBar: React.FC<FiltersSidebarProps> = ({
       services,
       procedures,
       availability,
-      languages,
+      languages: languages.filter((language) => language !== MY_LANGUAGES_OPTION),
     });
+    onMobileClose?.();
   };
 
   const handleClearFilters = () => {
@@ -159,13 +192,22 @@ export const FiltersSideBar: React.FC<FiltersSidebarProps> = ({
 
             <div className={styles.filter__divider} />
 
-            <FiltersAccordion
-              title="Spoken language"
-              type="checkbox"
-              options={LANGUAGE_OPTIONS}
-              selected={languages}
-              onChange={handleLanguagesChange}
-            />
+            <div className={styles.filter__languageField}>
+              <label className={styles.filter__languageLabel} htmlFor="search-spoken-languages">
+                Spoken language
+              </label>
+              <MultiSelectDropdown
+                id="search-spoken-languages"
+                label="Spoken language"
+                options={[
+                  ...(user?.role === "PATIENT" && myProfileLanguages.length > 0 ? [MY_LANGUAGES_OPTION] : []),
+                  ...PROVIDER_LANGUAGES,
+                ]}
+                value={languages}
+                placeholder="Select languages"
+                onChange={handleLanguagesChange}
+              />
+            </div>
 
             <div className={styles.filter__divider} />
 

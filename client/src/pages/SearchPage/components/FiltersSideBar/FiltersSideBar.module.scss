@@ -67,6 +67,19 @@
     background: var(--color-gray-40);
   }
 
+  &__languageField {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 0 12px;
+  }
+
+  &__languageLabel {
+    @include typo.font-button;
+    color: var(--color-gray-90);
+    font-weight: 600;
+  }
+
   &__actions {
     display: flex;
     flex-direction: column;
@@ -141,14 +154,13 @@
   }
 
   .filter.filter__mobileOpen {
-    position: fixed;
-    inset: 0;
-    z-index: 950;
+    position: relative;
     display: flex;
+    grid-column: span 12;
     gap: 12px;
     box-sizing: border-box;
     padding: 12px;
-    overflow-y: auto;
+    overflow: visible;
     border: 1px solid var(--color-gray-40);
     background: var(--color-background);
   }

@@ -11,7 +11,12 @@ import { SearchForm } from "../../components/SearchForm";
 import { FiltersSideBar } from "./components/FiltersSideBar";
 import { DoctorsCard } from "./components/DoctorsCard";
 import blanckProfilePicture from "../../assets/img/blank-profile-picture-973460_1280.png";
+import filterIcon from "../../assets/img/icon-filter.svg";
+import chevronDownIcon from "../../assets/img/icon-chevron-down.svg";
 import styles from "./ShearchPage.module.scss";
+
+const INITIAL_VISIBLE_DOCTORS = 4;
+const DOCTORS_PER_PAGE = 4;
 
 const mapProviderToCardData = (
   provider: ProviderSummaryResponse,
@@ -48,6 +53,7 @@ export const SearchPage = () => {
   });
 
   const [doctors, setDoctors] = useState<DoctorCardData[]>([]);
+  const [visibleDoctorCount, setVisibleDoctorCount] = useState(INITIAL_VISIBLE_DOCTORS);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
@@ -95,6 +101,7 @@ export const SearchPage = () => {
 
       const response = await searchProviders(queryParams);
       setDoctors(response.map(mapProviderToCardData));
+      setVisibleDoctorCount(INITIAL_VISIBLE_DOCTORS);
     } catch {
       setErrorMessage("Failed to load providers. Please try again.");
     } finally {
@@ -107,7 +114,7 @@ export const SearchPage = () => {
   }, [fetchDoctors]);
 
   return (
-    <main className={styles.grid__wrapper}>
+    <main className={`${styles.grid__wrapper} ${isFiltersOpen ? styles.grid__wrapperFiltersOpen : ""}`}>
       <SearchForm className={styles.wide__form} />
 
       <FiltersSideBar
@@ -118,12 +125,24 @@ export const SearchPage = () => {
 
       <section className={styles.doctors__list}>
         <div className={styles.search__info}>
-          <h5 className={styles.search__info__title}>
-            Sort by: Earliest available
-          </h5>
-          <span className={styles.search__info__span}>
-            Showing <b>{doctors.length} doctors</b>
-          </span>
+          <div className={styles.search__info__text}>
+            <div className={styles.search__info__title}>
+              Sort by: Earliest available
+              <img src={chevronDownIcon} alt="" aria-hidden="true" />
+            </div>
+            <span className={styles.search__info__span}>
+              Showing <b>{Math.min(visibleDoctorCount, doctors.length)} of {doctors.length} doctors</b>
+            </span>
+          </div>
+          <button
+            type="button"
+            className={styles.search__filters__button}
+            onClick={() => setIsFiltersOpen(true)}
+            aria-label="Open filters"
+            aria-expanded={isFiltersOpen}
+          >
+            <img src={filterIcon} alt="" aria-hidden="true" />
+          </button>
         </div>
 
         {isLoading ? (
@@ -145,7 +164,7 @@ export const SearchPage = () => {
           </div>
         ) : (
           <div className={styles.cards__grid}>
-            {doctors.map((doctor) => (
+            {doctors.slice(0, visibleDoctorCount).map((doctor) => (
               <DoctorsCard
                 key={doctor.id}
                 doctor={doctor}
@@ -155,8 +174,12 @@ export const SearchPage = () => {
           </div>
         )}
 
-        {doctors.length > 0 && !isLoading && (
-          <button className={styles.doctors__list__button}>
+        {visibleDoctorCount < doctors.length && !isLoading && (
+          <button
+            type="button"
+            className={styles.doctors__list__button}
+            onClick={() => setVisibleDoctorCount((count) => count + DOCTORS_PER_PAGE)}
+          >
             Load more doctors
           </button>
         )}
